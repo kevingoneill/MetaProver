@@ -4,18 +4,18 @@ import inference.Inference;
 import truthfunction.TruthFunction;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Created by kevin on 3/2/16.
+ * Created by kevin on 3/4/16.
  */
-public class Atom extends Sentence {
-
+public class Predicate extends Sentence{
     /**
      * Create a new Atom object with the given name
      * @param n the name of the Atom
      */
-    public Atom(String n) {
-        super(new ArrayList<>(), n);
+    public Predicate(String n, List<Sentence> vars) {
+        super(new ArrayList<>(vars), n);
     }
 
     /**
@@ -40,7 +40,4 @@ public class Atom extends Sentence {
     public Inference reasonBackwards(TruthFunction h) {
         return null;
     }
-
-    public String toString() { return name; }
-    public int hashCode() { return name.hashCode(); }
 }

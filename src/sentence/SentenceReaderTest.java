@@ -62,4 +62,11 @@ public class SentenceReaderTest {
         System.out.println(SentenceReader.parse("(and true (iff false true) c)"));
         System.out.println(SentenceReader.parse("(implies (and true false) (or true false))"));
     }
+
+    @Test
+    public void predicateTest() {
+        System.out.println(SentenceReader.parse("(P atom1 atom2)"));
+        System.out.println(SentenceReader.parse("(Q a b)"));
+        System.out.println(SentenceReader.parse("(Predicate a1 a2)"));
+    }
 }

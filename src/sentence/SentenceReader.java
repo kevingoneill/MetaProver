@@ -67,7 +67,7 @@ public interface SentenceReader {
             stack.pop();
             return Constant.FALSE;
         } else {
-            return makeSentence(stack.pop(), new ArrayList<>());
+            return new Atom(stack.pop());
         }
     }
 
@@ -106,12 +106,9 @@ public interface SentenceReader {
             if (args.size() != 2)
                 throw new SentenceParseException("Iff Sentence must have exactly two arguments.");
             return new Iff(args.get(0), args.get(1));
-        } else if (args.isEmpty()) {
-            return new Atom(name);
+        } else {
+            return new Predicate(name, args);
         }
-
-
-        throw new SentenceParseException("Cannot create an undefined Sentence.");
     }
 
 

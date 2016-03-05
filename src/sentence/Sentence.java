@@ -1,5 +1,6 @@
 package sentence;
 
+import inference.Inference;
 import truthfunction.TruthFunction;
 
 import java.util.ArrayList;
@@ -18,6 +19,9 @@ public abstract class Sentence {
 
     public abstract Boolean eval(TruthFunction h);
 
+    public abstract Inference reasonForwards(TruthFunction h);
+    public abstract Inference reasonBackwards(TruthFunction h);
+
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("(").append(name);
@@ -27,4 +31,20 @@ public abstract class Sentence {
     }
 
     public int hashCode() { return toString().hashCode(); }
+
+    public boolean equals(Object o) {
+        if (o instanceof Sentence) {
+            Sentence s = (Sentence)o;
+            if (!s.name.equals(name) || s.args.size() != args.size())
+                return false;
+
+            for (int i = 0; i < args.size(); ++i) {
+                if (!args.get(i).equals(s.args.get(i)))
+                    return false;
+            }
+
+            return true;
+        }
+        return false;
+    }
 }

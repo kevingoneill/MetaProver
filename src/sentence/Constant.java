@@ -1,5 +1,6 @@
 package sentence;
 
+import inference.Inference;
 import truthfunction.TruthFunction;
 
 /**
@@ -18,5 +19,15 @@ public class Constant extends Atom {
 
     public Boolean eval(TruthFunction h) {
         return value;
+    }
+
+    @Override
+    public Inference reasonForwards(TruthFunction h) {
+        return null;
+    }
+
+    @Override
+    public Inference reasonBackwards(TruthFunction h) {
+        return null;
     }
 }

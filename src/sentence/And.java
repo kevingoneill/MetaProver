@@ -1,5 +1,6 @@
 package sentence;
 
+import inference.Inference;
 import truthfunction.TruthFunction;
 
 import java.util.ArrayList;
@@ -28,6 +29,18 @@ public class And extends Sentence {
         boolean val = args.stream().allMatch(arg -> arg.eval(h));
         h.set(this, val);
         return val;
+    }
+
+    @Override
+    public Inference reasonForwards(TruthFunction h) {
+
+
+        return null;
+    }
+
+    @Override
+    public Inference reasonBackwards(TruthFunction h) {
+        return null;
     }
 
 
