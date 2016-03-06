@@ -1,4 +1,4 @@
-package sentence;
+package logicalreasoner.sentence;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
- * Created by kevin on 3/2/16.
+ * SentenceReader is an interface for the parsing of logical Sentences
  */
 public interface SentenceReader {
 
@@ -86,28 +86,29 @@ public interface SentenceReader {
     static Sentence makeSentence(String name, ArrayList<Sentence> args) {
         if (name.isEmpty())
             throw new SentenceParseException("Cannot create an Sentence from an empty string.");
-        if (name.equals("not")) {
-            if (args.size() != 1)
-                throw new SentenceParseException("Not Sentence must have exactly one argument.");
-            return new Not(args.get(0));
-        } else if (name.equals("and")) {
-            if (args.size() < 2)
-                throw new SentenceParseException("And Sentence must have at least two arguments.");
-            return new And(args);
-        } else if (name.equals("or")) {
-            if (args.size() < 2)
-                throw new SentenceParseException("Or Sentence must have at least two arguments.");
-            return new Or(args);
-        } else if (name.equals("implies")) {
-            if (args.size() != 2)
-                throw new SentenceParseException("Implies Sentence must have exactly two arguments.");
-            return new Implies(args.get(0), args.get(1));
-        } else if (name.equals("iff")) {
-            if (args.size() != 2)
-                throw new SentenceParseException("Iff Sentence must have exactly two arguments.");
-            return new Iff(args.get(0), args.get(1));
-        } else {
-            return new Predicate(name, args);
+        switch(name) {
+            case "not": {
+                if (args.size() != 1)
+                    throw new SentenceParseException("Not Sentence must have exactly one argument.");
+                return new Not(args.get(0));
+            } case "and": {
+                if (args.size() < 2)
+                    throw new SentenceParseException("And Sentence must have at least two arguments.");
+                return new And(args);
+            } case "or": {
+                if (args.size() < 2)
+                    throw new SentenceParseException("Or Sentence must have at least two arguments.");
+                return new Or(args);
+            } case "implies": {
+                if (args.size() != 2)
+                    throw new SentenceParseException("Implies Sentence must have exactly two arguments.");
+                return new Implies(args.get(0), args.get(1));
+            } case "iff": {
+                if (args.size() != 2)
+                    throw new SentenceParseException("Iff Sentence must have exactly two arguments.");
+                return new Iff(args.get(0), args.get(1));
+            } default:
+                return new Predicate(name, args);
         }
     }
 

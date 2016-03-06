@@ -1,10 +1,10 @@
-package sentence;
+package logicalreasoner.sentence;
 
-import inference.Inference;
-import truthfunction.TruthFunction;
+import logicalreasoner.inference.Inference;
+import logicalreasoner.truthfunction.TruthAssignment;
 
 /**
- * Created by kevin on 3/3/16.
+ * The Constant represents logical tautology and contradiction
  */
 public class Constant extends Atom {
     public static final Constant TRUE = new Constant(true),
@@ -17,17 +17,13 @@ public class Constant extends Atom {
         value = b;
     }
 
-    public Boolean eval(TruthFunction h) {
+    public Boolean eval(TruthAssignment h) {
         return value;
     }
 
     @Override
-    public Inference reasonForwards(TruthFunction h) {
-        return null;
-    }
-
-    @Override
-    public Inference reasonBackwards(TruthFunction h) {
+    public Inference reason(TruthAssignment h) {
+        h.setDecomposed(this);
         return null;
     }
 }

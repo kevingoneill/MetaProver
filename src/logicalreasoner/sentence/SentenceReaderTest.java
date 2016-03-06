@@ -1,10 +1,11 @@
-package sentence;
+package logicalreasoner.sentence;
 
 
 import org.junit.Test;
 
 /**
- * Created by kevin on 3/3/16.
+ * This class tests the functionality of the SentenceReader,
+ * an interface for parsing logical Sentences.
  */
 public class SentenceReaderTest {
 

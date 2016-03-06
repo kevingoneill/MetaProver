@@ -1,12 +1,12 @@
-package sentence;
+package logicalreasoner.sentence;
 
-import inference.Inference;
-import truthfunction.TruthFunction;
+import logicalreasoner.inference.Inference;
+import logicalreasoner.truthfunction.TruthAssignment;
 
 import java.util.ArrayList;
 
 /**
- * Created by kevin on 3/2/16.
+ * The Atom class represents a single propositional variable
  */
 public class Atom extends Sentence {
 
@@ -19,12 +19,12 @@ public class Atom extends Sentence {
     }
 
     /**
-     * Return the value of this in the given TruthFunction
-     * @param h the TruthFunction used to evaluate this
+     * Return the value of this in the given TruthAssignment
+     * @param h the TruthAssignment used to evaluate this
      * @return null if h does not contain this,
      * true if h models this, or false if h models (not this)
      */
-    public Boolean eval(TruthFunction h) {
+    public Boolean eval(TruthAssignment h) {
         if (h.isMapped(this))
             return h.models(this);
 
@@ -32,14 +32,11 @@ public class Atom extends Sentence {
     }
 
     @Override
-    public Inference reasonForwards(TruthFunction h) {
+    public Inference reason(TruthAssignment h) {
+        h.setDecomposed(this);
         return null;
     }
 
-    @Override
-    public Inference reasonBackwards(TruthFunction h) {
-        return null;
-    }
 
     public String toString() { return name; }
     public int hashCode() { return name.hashCode(); }

@@ -1,7 +1,7 @@
-package prover;
+package logicalreasoner.prover;
 
-import sentence.Sentence;
-import sentence.SentenceReader;
+import logicalreasoner.sentence.Sentence;
+import logicalreasoner.sentence.SentenceReader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by kevin on 3/4/16.
+ *  This is the main driver class for running the Semantic Logical Reasoner
  */
 public class SemanticProverMain {
 
@@ -23,6 +23,8 @@ public class SemanticProverMain {
      * @param args input files for reasoning
      */
     public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
+
         if (args.length != 2) {
             System.out.println(usage(args[0]));
             return;
@@ -48,6 +50,8 @@ public class SemanticProverMain {
 
         SemanticProver prover = new SemanticProver(premises, interests);
         prover.run();
+
+        System.out.println("\nTime taken: " + ((double)(System.currentTimeMillis() - startTime))/1000 + " seconds.");
     }
 
     private static String usage(String arg0) {
