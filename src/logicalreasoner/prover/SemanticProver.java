@@ -6,7 +6,10 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 /**
  * The SemanticProver class represents a logical reasoner
@@ -64,7 +67,7 @@ public class SemanticProver implements Runnable {
             }
         });
 
-        System.out.println("Discoveries: " + discoveries);
+        //System.out.println("Discoveries: " + discoveries);
 
         if (discoveries.isEmpty() || h.containsAll(discoveries))
             return false;
@@ -77,6 +80,7 @@ public class SemanticProver implements Runnable {
      */
     public void run() {
         //printInferences();
+        //printBranches();
 
         while (!reasoningCompleted()) {
             boolean updated = true;
@@ -89,15 +93,16 @@ public class SemanticProver implements Runnable {
 
             closeBranches();
 
-            printInferences();
+            //printInferences();
+            //printBranches();
 
             //Branch once on the largest branching statement then loop back around
             if (!openBranches.isEmpty() && !reasoningCompleted() && !branchQueue.isEmpty())
                 addBranches();
 
-            closeBranches();
-            printInferences();
-            printBranches();
+
+            //printInferences();
+            //printBranches();
         }
 
         //printInferences();
@@ -154,24 +159,26 @@ public class SemanticProver implements Runnable {
      */
     public void addBranches() {
         Branch b = branchQueue.poll();
-        System.out.println("Branching from: " + b.getOrigin());
-        System.out.println("Parent: " + b.getParent());
-        System.out.println("Leaves: " + b.getParent().getLeaves());
+        //System.out.println("Branching from: " + b.getOrigin());
+        //System.out.println("Parent: " + b.getParent());
+        //System.out.println("Leaves: " + b.getParent().getLeaves());
+        //printBranches();
 
-        printBranches();
 
         b.getParent().setDecomposed(b.getOrigin());
-
         if (openBranches.isEmpty())
             return;
 
-        openBranches.remove(b.getParent());
-        b.getParent().getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(leaf -> {
-            b.infer(leaf);
+        b.getParent().getLeaves().forEach(leaf -> {
+            //System.out.println("Leaf: " + leaf);
+            b.infer(leaf).stream().filter(l -> !openBranches.contains(l)).forEach(l -> openBranches.add(l));
+
             openBranches.remove(leaf);
         });
-        openBranches.addAll(b.getBranches());
 
+        closeBranches();
+
+        //masterFunction.print();
         //printBranches();
     }
 

@@ -3,6 +3,8 @@ package logicalreasoner.inference;
 import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
 
+import java.util.List;
+
 /**
  * A Decomposition is the direct inference of one or more
  * Sentences from another Sentence.
@@ -16,9 +18,9 @@ public class Decomposition extends Inference {
     }
 
     @Override
-    public void infer(TruthAssignment h) {
-        //if (h.equals(getParent()))
-            h.merge(additions);
+    public List<TruthAssignment> infer(TruthAssignment h) {
+        h.merge(additions);
+        return null;
     }
 
     public void setTrue(Sentence s) { additions.setTrue(s); }

@@ -3,6 +3,8 @@ package logicalreasoner.inference;
 import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
 
+import java.util.List;
+
 /**
  * The inference stores changes to be made to a parent TruthAssignment.
  */
@@ -19,5 +21,5 @@ public abstract class Inference {
 
     public Sentence getOrigin() { return origin; }
 
-    public abstract void infer(TruthAssignment h);
+    public abstract List<TruthAssignment> infer(TruthAssignment h);
 }

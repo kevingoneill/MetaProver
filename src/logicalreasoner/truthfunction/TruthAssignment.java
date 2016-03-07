@@ -65,6 +65,7 @@ public class TruthAssignment {
     public boolean equals(Object o) {
         if (o instanceof TruthAssignment) {
             TruthAssignment h = (TruthAssignment)o;
+
             if (parent == null)
                 return map.equals(h.map) && h.parent == null && children.equals(h.children);
             return map.equals(h.map) && parent.equals(h.parent) && children.equals(h.children);
@@ -328,17 +329,17 @@ public class TruthAssignment {
      * Recursively add children to all leaf nodes
      * @param h the children of the leaves of this to add
      */
-    public void addChildren(List<TruthAssignment> h) {
+    public List<TruthAssignment> addChildren(List<TruthAssignment> h) {
         if (children.isEmpty()) {
-            children = h;
-            h.forEach(c -> c.setParent(this));
-        }
-        else {
-            children.forEach(c -> {
-                addChildren(h);
-                c.setParent(this);
+            h.forEach(c -> {
+                TruthAssignment c1 = new TruthAssignment(c);
+                children.add(c1);
+                c1.setParent(this);
             });
+            return children;
         }
+        else
+            return children.stream().flatMap(c -> addChildren(h).stream()).collect(Collectors.toList());
     }
 
     /**
@@ -358,12 +359,13 @@ public class TruthAssignment {
     public Set<TruthAssignment> getLeaves() {
         if (children.isEmpty()) {
             HashSet<TruthAssignment> h = new HashSet<>();
-            h.add(this);
+            if (isConsistent())
+                h.add(this);
             return h;
         }
 
         return new HashSet<TruthAssignment>() {{
-            addAll(children.stream().flatMap(s -> s.getLeaves().stream())
+            addAll(children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent)
                     .collect(Collectors.toSet()));
         }};
     }

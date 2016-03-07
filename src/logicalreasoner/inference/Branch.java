@@ -21,10 +21,11 @@ public class Branch extends Inference {
         branches = new ArrayList<>();
     }
 
-    @Override
-    public void infer(TruthAssignment h) {
+    //@Override
+    public List<TruthAssignment> infer(TruthAssignment h) {
+        //branches.forEach(b -> b.setParent(h));
         h.setDecomposed(origin);
-        h.addChildren(branches);
+        return h.addChildren(branches);
     }
 
     public int size() {
