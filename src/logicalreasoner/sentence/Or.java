@@ -6,7 +6,6 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -43,9 +42,9 @@ public class Or extends Sentence {
             if (h.models(this)) {
                 return new Branch(h, this) {{
                     args.forEach(arg ->
-                            addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                                put(arg, true);
-                            }})));
+                            addBranch(new TruthAssignment() {{
+                                setTrue(arg);
+                            }}));
                 }};
             } else {
                 return new Decomposition(h, this) {{

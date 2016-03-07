@@ -3,8 +3,8 @@ package logicalreasoner.inference;
 import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Branch is an inference which generates two or more
@@ -13,16 +13,17 @@ import java.util.Set;
  */
 public class Branch extends Inference {
 
-    Set<TruthAssignment> branches;
+    List<TruthAssignment> branches;
 
 
     public Branch(TruthAssignment p, Sentence s) {
         super(p, s);
-        branches = new HashSet<>();
+        branches = new ArrayList<>();
     }
 
     @Override
     public void infer(TruthAssignment h) {
+        h.setDecomposed(origin);
         h.addChildren(branches);
     }
 
@@ -31,11 +32,10 @@ public class Branch extends Inference {
     }
 
     public void addBranch(TruthAssignment h) {
-        h.setParent(parent);
         branches.add(h);
     }
 
-    public Set<TruthAssignment> getBranches() { return branches; }
+    public List<TruthAssignment> getBranches() { return branches; }
 
 
 }

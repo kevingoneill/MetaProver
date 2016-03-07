@@ -5,7 +5,6 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * The Iff class represents the logical iff
@@ -41,21 +40,21 @@ public class Iff extends Sentence {
             h.setDecomposed(this);
             if (h.models(this)) {
                 return new Branch(h, this) {{
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(0), true); put(args.get(1), true);
-                    }}));
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(0), false); put(args.get(1), false);
-                    }}));
+                    addBranch(new TruthAssignment() {{
+                        setTrue(args.get(0)); setTrue(args.get(1));
+                    }});
+                    addBranch(new TruthAssignment() {{
+                        setFalse(args.get(0)); setFalse(args.get(1));
+                    }});
                 }};
             } else {
                 return new Branch(h, this) {{
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(0), true); put(args.get(1), false);
-                    }}));
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(0), false); put(args.get(1), true);
-                    }}));
+                    addBranch(new TruthAssignment() {{
+                        setTrue(args.get(0)); setFalse(args.get(1));
+                    }});
+                    addBranch(new TruthAssignment() {{
+                        setFalse(args.get(0)); setTrue(args.get(1));
+                    }});
                 }};
             }
         }

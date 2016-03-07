@@ -6,9 +6,7 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
 
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The SemanticProver class represents a logical reasoner
@@ -23,7 +21,7 @@ public class SemanticProver implements Runnable {
     TruthAssignment masterFunction;
 
     //The leaves of the TruthAssignment tree
-    Set<TruthAssignment> openBranches;
+    List<TruthAssignment> openBranches;
 
     //All statements which can be branched upon (in descending order of size)
     PriorityQueue<Branch> branchQueue;
@@ -39,7 +37,7 @@ public class SemanticProver implements Runnable {
         premises.forEach(masterFunction::setTrue);
         interests.forEach(masterFunction::setFalse);
 
-        openBranches = new HashSet<TruthAssignment>() {{ add(masterFunction); }};
+        openBranches = new ArrayList<TruthAssignment>() {{ add(masterFunction); }};
 
         branchQueue = new PriorityQueue<>((b1, b2) -> {
             if (b1.size() != b2.size())
@@ -66,7 +64,7 @@ public class SemanticProver implements Runnable {
             }
         });
 
-        //System.out.println("Discoveries: " + discoveries);
+        System.out.println("Discoveries: " + discoveries);
 
         if (discoveries.isEmpty() || h.containsAll(discoveries))
             return false;
@@ -78,23 +76,32 @@ public class SemanticProver implements Runnable {
      * Run the prover over the given premises & conclusion
      */
     public void run() {
-        printInferences();
+        //printInferences();
 
         while (!reasoningCompleted()) {
             boolean updated = true;
 
             // Always decompose all statements before branching
-            while (updated) {
+            while (!openBranches.isEmpty() && updated) {
+                closeBranches();
                 updated = openBranches.stream().anyMatch(this::reason);
             }
 
-            //Branch once on the largest branching statement then loop back around
-            if (!branchQueue.isEmpty())
-                addBranches();
+            closeBranches();
 
             printInferences();
+
+            //Branch once on the largest branching statement then loop back around
+            if (!openBranches.isEmpty() && !reasoningCompleted() && !branchQueue.isEmpty())
+                addBranches();
+
+            closeBranches();
+            printInferences();
+            printBranches();
         }
-        printInferences();
+
+        //printInferences();
+        //printBranches();
 
         //If the tree has been completely decomposed
         //without inconsistencies, the argument is invalid
@@ -109,26 +116,17 @@ public class SemanticProver implements Runnable {
     }
 
     /**
-     * Check if the TruthAssignment is fully decomposed.
-     * @return true if all statements are decomposed
-     */
-    public boolean reasoningCompleted(TruthAssignment h) {
-        //System.out.println("DecomposedAll: " + h.decomposedAll());
-
-        return h.decomposedAll() && branchQueue.isEmpty();
-    }
-
-    /**
      * Check if all TruthAssignments are consistent and fully decomposed.
      * @return true if all open branches are fully decomposed
      */
     public boolean reasoningCompleted() {
-        return openBranches.stream().allMatch(this::reasoningCompleted);
+        //System.out.println("Open Branches: " + openBranches);
+        //System.out.println("Branch Queue: " + branchQueue);
+        return (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAll)) || openBranches.isEmpty();
     }
 
     public boolean isConsistent() {
-        //System.out.println("Consistent: " + h.isConsistent());
-        return openBranches.stream().allMatch(TruthAssignment::isConsistent);
+        return !openBranches.isEmpty() && openBranches.stream().allMatch(TruthAssignment::isConsistent);
     }
 
     /**
@@ -160,11 +158,24 @@ public class SemanticProver implements Runnable {
         System.out.println("Parent: " + b.getParent());
         System.out.println("Leaves: " + b.getParent().getLeaves());
 
+        printBranches();
+
         b.getParent().setDecomposed(b.getOrigin());
+
+        if (openBranches.isEmpty())
+            return;
+
+        openBranches.remove(b.getParent());
         b.getParent().getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(leaf -> {
             b.infer(leaf);
             openBranches.remove(leaf);
         });
         openBranches.addAll(b.getBranches());
+
+        //printBranches();
+    }
+
+    private void closeBranches() {
+        openBranches.removeIf(b -> !b.isConsistent());
     }
 }

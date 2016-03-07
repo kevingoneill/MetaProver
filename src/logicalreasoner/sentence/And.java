@@ -44,9 +44,9 @@ public class And extends Sentence {
             } else {
                 return new Branch(h, this) {{
                     args.forEach(arg ->
-                        addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                            put(arg, false);
-                        }})));
+                        addBranch(new TruthAssignment() {{
+                            setFalse(arg);
+                        }}));
                 }};
             }
         }

@@ -6,7 +6,6 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * The Implies class represents logical implication,
@@ -44,12 +43,12 @@ public class Implies extends Sentence {
             h.setDecomposed(this);
             if (h.models(this)) {
                 return new Branch(h, this) {{
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(0), false);
-                    }}));
-                    addBranch(new TruthAssignment(new HashMap<Sentence, Boolean>() {{
-                        put(args.get(1), true);
-                    }}));
+                    addBranch(new TruthAssignment() {{
+                        setFalse(args.get(0));
+                    }});
+                    addBranch(new TruthAssignment() {{
+                        setTrue(args.get(1));
+                    }});
                 }};
             } else {
                 return new Decomposition(h, this) {{
