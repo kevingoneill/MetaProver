@@ -2,6 +2,7 @@ package logicalreasoner.truthfunction;
 
 import logicalreasoner.sentence.Atom;
 import logicalreasoner.sentence.Not;
+import logicalreasoner.sentence.Predicate;
 import logicalreasoner.sentence.Sentence;
 
 import java.util.*;
@@ -141,7 +142,7 @@ public class TruthAssignment {
         else
             map.put(s, new HashSet<Boolean>() {{ add(false); }});
 
-        if (s instanceof Atom)
+        if (s instanceof Atom || s instanceof Predicate)
             setDecomposed(s);
     }
 
@@ -156,7 +157,7 @@ public class TruthAssignment {
         else
             map.put(s, new HashSet<Boolean>() {{ add(b); }});
 
-        if (s instanceof Atom)
+        if (s instanceof Atom || s instanceof Predicate)
             setDecomposed(s);
     }
 
@@ -190,22 +191,6 @@ public class TruthAssignment {
     public Set<Sentence> keySet() { return map.keySet(); }
 
     /**
-     * Recursively collect the mappings of this TruthAssignment and
-     * all of its children
-     *
-     * @return a set of all inferences under this TruthAssignment
-     */
-    public Set<Sentence> getSentencesDownwards() {
-        if (children.isEmpty())
-            return map.keySet();
-
-        Set<Sentence> set = new HashSet<>(map.keySet());
-        set.addAll(children.stream().flatMap(s -> s.getSentencesDownwards().stream())
-                .collect(Collectors.toSet()));
-        return set;
-    }
-
-    /**
      * Recursively collect the mappings of this
      * TruthAssignment and its parents
      *
@@ -226,7 +211,7 @@ public class TruthAssignment {
      * @return a Stream of all true Sentences in this
      */
     public Stream<Sentence> getTrueSentences() {
-        return map.keySet().stream().filter(this::models);
+        return getSentencesUpwards().stream().filter(this::models);
     }
 
     /**
@@ -234,7 +219,7 @@ public class TruthAssignment {
      * @return a Stream of all false Sentences in this
      */
     public Stream<Sentence> getFalseSentences() {
-        return map.keySet().stream().filter(sentence -> !models(sentence));
+        return getSentencesUpwards().stream().filter(sentence -> !models(sentence));
     }
 
     /**
@@ -259,7 +244,7 @@ public class TruthAssignment {
      */
     public boolean isConsistent() {
         return map.keySet().stream().allMatch(s -> {
-            if (map.get(s).size() > 1)
+            if (map.get(s).size() > 1) //Can't be mapped to true and false
                 return false;
             if (parent != null && parent.isMapped(s)) {
                 return parent.models(s).equals(models(s));
@@ -343,19 +328,9 @@ public class TruthAssignment {
     }
 
     /**
-     * Recursively find the TruthAssignment equal to or a
-     * parent of this which explicitly has a mapping for s
-     * @param s the sentence to search for
-     * @return the TruthAssignment containing s
+     * Get all descendents of this which have noe children
+     * @return the set of leaf TruthAssignments under this
      */
-    public TruthAssignment getEnclosingTruthAssignment(Sentence s) {
-        if (map.containsKey(s))
-            return this;
-        if (parent != null)
-            return parent.getEnclosingTruthAssignment(s);
-        return null;
-    }
-
     public Set<TruthAssignment> getLeaves() {
         if (children.isEmpty()) {
             HashSet<TruthAssignment> h = new HashSet<>();

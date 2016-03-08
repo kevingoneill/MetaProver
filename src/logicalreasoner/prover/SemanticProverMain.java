@@ -23,7 +23,7 @@ public class SemanticProverMain {
      * @param args input files for reasoning
      */
     public static void main(String[] args) {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
 
         if (args.length != 2) {
             System.out.println(usage(args[0]));
@@ -51,7 +51,7 @@ public class SemanticProverMain {
         SemanticProver prover = new SemanticProver(premises, interests);
         prover.run();
 
-        System.out.println("\nTime taken: " + ((double)(System.currentTimeMillis() - startTime))/1000 + " seconds.");
+        System.out.println("\nTime taken: " + ((double)(System.nanoTime() - startTime))/ 1000000000.0 + " seconds.");
     }
 
     private static String usage(String arg0) {

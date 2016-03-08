@@ -45,7 +45,7 @@ public class SemanticProver implements Runnable {
         branchQueue = new PriorityQueue<>((b1, b2) -> {
             if (b1.size() != b2.size())
                 return b1.size() > b2.size() ? 1 : 0;
-            return b1.getOrigin().size() < b2.getOrigin().size() ? 1 : 0;
+            return b1.getOrigin().size() > b2.getOrigin().size() ? 1 : 0;
         });
     }
 
@@ -67,9 +67,7 @@ public class SemanticProver implements Runnable {
             }
         });
 
-        //System.out.println("Discoveries: " + discoveries);
-
-        if (discoveries.isEmpty() || h.containsAll(discoveries))
+        if (discoveries.isEmpty())
             return false;
         h.merge(discoveries);
         return true;
@@ -79,9 +77,6 @@ public class SemanticProver implements Runnable {
      * Run the prover over the given premises & conclusion
      */
     public void run() {
-        //printInferences();
-        //printBranches();
-
         while (!reasoningCompleted()) {
             boolean updated = true;
 
@@ -93,20 +88,10 @@ public class SemanticProver implements Runnable {
 
             closeBranches();
 
-            //printInferences();
-            //printBranches();
-
             //Branch once on the largest branching statement then loop back around
-            if (!openBranches.isEmpty() && !reasoningCompleted() && !branchQueue.isEmpty())
+            if (!openBranches.isEmpty() && !branchQueue.isEmpty())
                 addBranches();
-
-
-            //printInferences();
-            //printBranches();
         }
-
-        //printInferences();
-        //printBranches();
 
         //If the tree has been completely decomposed
         //without inconsistencies, the argument is invalid
@@ -117,7 +102,6 @@ public class SemanticProver implements Runnable {
         }
 
         masterFunction.print();
-        //System.out.println(masterFunction.getChildren());
     }
 
     /**
@@ -125,9 +109,7 @@ public class SemanticProver implements Runnable {
      * @return true if all open branches are fully decomposed
      */
     public boolean reasoningCompleted() {
-        //System.out.println("Open Branches: " + openBranches);
-        //System.out.println("Branch Queue: " + branchQueue);
-        return (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAll)) || openBranches.isEmpty();
+        return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAll));
     }
 
     public boolean isConsistent() {
@@ -159,27 +141,16 @@ public class SemanticProver implements Runnable {
      */
     public void addBranches() {
         Branch b = branchQueue.poll();
-        //System.out.println("Branching from: " + b.getOrigin());
-        //System.out.println("Parent: " + b.getParent());
-        //System.out.println("Leaves: " + b.getParent().getLeaves());
-        //printBranches();
-
-
         b.getParent().setDecomposed(b.getOrigin());
-        if (openBranches.isEmpty())
+        if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
             return;
 
         b.getParent().getLeaves().forEach(leaf -> {
-            //System.out.println("Leaf: " + leaf);
             b.infer(leaf).stream().filter(l -> !openBranches.contains(l)).forEach(l -> openBranches.add(l));
-
             openBranches.remove(leaf);
         });
 
-        closeBranches();
-
-        //masterFunction.print();
-        //printBranches();
+        closeBranches();    //Clean up any inconsistent branches
     }
 
     private void closeBranches() {
