@@ -1,7 +1,7 @@
 package logicalreasoner.prover;
 
-import logicalreasoner.sentence.Sentence;
-import logicalreasoner.sentence.SentenceReader;
+import sentence.Sentence;
+import sentence.SentenceReader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -1,33 +1,45 @@
 package logicalreasoner.inference;
 
-import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
+import sentence.Sentence;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A Decomposition is the direct inference of one or more
  * Sentences from another Sentence.
  */
 public class Decomposition extends Inference {
-    TruthAssignment additions;
+    private TruthAssignment additions;
 
-    public Decomposition(TruthAssignment h, Sentence o) {
-        super(h, o);
+    public Decomposition(TruthAssignment h, Sentence o, int i) {
+        super(h, o, i);
         additions = new TruthAssignment();
     }
 
     @Override
-    public List<TruthAssignment> infer(TruthAssignment h) {
+    public void infer(TruthAssignment h) {
         h.merge(additions);
-        return null;
     }
 
-    public void setTrue(Sentence s) { additions.setTrue(s); }
+    public void setTrue(Sentence s) { additions.setTrue(s, inferenceNum); }
 
-    public void setFalse(Sentence s) { additions.setFalse(s); }
+    public void setFalse(Sentence s) { additions.setFalse(s, inferenceNum); }
 
     public TruthAssignment getAdditions() {
         return additions;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof Decomposition) {
+            Decomposition i = (Decomposition)o;
+            return super.equals(i) && additions.equals(i.additions);
+        }
+        return false;
+    }
+
+    public String toString() {
+        return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " inferences: { "
+                + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " ").collect(Collectors.joining()) + "}";
     }
 }

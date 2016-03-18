@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Inference;
@@ -35,27 +35,30 @@ public class Iff extends Sentence {
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
+    public Inference reason(TruthAssignment h, int inferenceNum) {
         if (h.isMapped(this)) {
-            h.setDecomposed(this);
             if (h.models(this)) {
-                return new Branch(h, this) {{
-                    addBranch(new TruthAssignment() {{
-                        setTrue(args.get(0)); setTrue(args.get(1));
-                    }});
-                    addBranch(new TruthAssignment() {{
-                        setFalse(args.get(0)); setFalse(args.get(1));
-                    }});
-                }};
+                Branch b = new Branch(h, this, inferenceNum);
+                TruthAssignment t = new TruthAssignment();
+                t.setTrue(args.get(0), inferenceNum);
+                t.setTrue(args.get(1), inferenceNum);
+                b.addBranch(t);
+                TruthAssignment t1 = new TruthAssignment();
+                t1.setFalse(args.get(0), inferenceNum);
+                t1.setFalse(args.get(1), inferenceNum);
+                b.addBranch(t1);
+                return b;
             } else {
-                return new Branch(h, this) {{
-                    addBranch(new TruthAssignment() {{
-                        setTrue(args.get(0)); setFalse(args.get(1));
-                    }});
-                    addBranch(new TruthAssignment() {{
-                        setFalse(args.get(0)); setTrue(args.get(1));
-                    }});
-                }};
+                Branch b = new Branch(h, this, inferenceNum);
+                TruthAssignment t = new TruthAssignment();
+                t.setTrue(args.get(0), inferenceNum);
+                t.setFalse(args.get(1), inferenceNum);
+                b.addBranch(t);
+                TruthAssignment t1 = new TruthAssignment();
+                t1.setFalse(args.get(0), inferenceNum);
+                t1.setTrue(args.get(1), inferenceNum);
+                b.addBranch(t1);
+                return b;
             }
         }
 

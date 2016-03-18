@@ -1,24 +1,21 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * The Predicate class represents a logical predicate over
- * some variables
- *
- * ie, (P x), (W x y z), and (H a) are all predicates
+ * The Atom class represents a single propositional variable
  */
-public class Predicate extends Sentence {
+public class Atom extends Sentence {
+
     /**
      * Create a new Atom object with the given name
      * @param n the name of the Atom
      */
-    public Predicate(String n, List<Sentence> vars) {
-        super(new ArrayList<>(vars), n);
+    public Atom(String n) {
+        super(new ArrayList<>(), n);
     }
 
     /**
@@ -35,8 +32,13 @@ public class Predicate extends Sentence {
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
-        h.setDecomposed(this);
+    public Inference reason(TruthAssignment h, int inferenceNum) {
+        if (!h.isDecomposed(this))
+            h.setDecomposed(this);
         return null;
     }
+
+
+    public String toString() { return name; }
+    public int hashCode() { return name.hashCode(); }
 }

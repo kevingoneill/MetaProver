@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
@@ -29,17 +29,17 @@ public class Not extends Sentence {
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
+    public Inference reason(TruthAssignment h, int inferenceNum) {
         if (h.isMapped(this)) {
-            h.setDecomposed(this);
-            if (h.models(this))
-                return new Decomposition(h, this) {{
-                    setFalse(args.get(0));
-                }};
-            else
-                return new Decomposition(h, this) {{
-                    setTrue(args.get(0));
-                }};
+            if (h.models(this)) {
+                Decomposition d = new Decomposition(h, this, inferenceNum);
+                d.setFalse(args.get(0));
+                return d;
+            } else {
+                Decomposition d = new Decomposition(h, this, inferenceNum);
+                d.setTrue(args.get(0));
+                return d;
+            }
         }
         return null;
     }

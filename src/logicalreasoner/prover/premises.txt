@@ -1,2 +1,0 @@
-(implies (or J M) (not (and J M))))
-(iff M (implies M J))

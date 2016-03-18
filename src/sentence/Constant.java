@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
@@ -22,8 +22,9 @@ public class Constant extends Atom {
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
-        h.setDecomposed(this);
+    public Inference reason(TruthAssignment h, int inferenceNum) {
+        if (!h.isDecomposed(this))
+            h.setDecomposed(this);
         return null;
     }
 }

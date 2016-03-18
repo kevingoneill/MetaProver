@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
@@ -114,6 +114,6 @@ public interface SentenceReader {
 
 
     class SentenceParseException extends RuntimeException {
-        public SentenceParseException(String message) { super(message); }
+        private SentenceParseException(String message) { super(message); }
     }
 }

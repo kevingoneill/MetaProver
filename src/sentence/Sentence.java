@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthfunction.TruthAssignment;
@@ -20,7 +20,7 @@ public abstract class Sentence {
 
     public abstract Boolean eval(TruthAssignment h);
 
-    public abstract Inference reason(TruthAssignment h);
+    public abstract Inference reason(TruthAssignment h, int inferenceNum);
 
     public String toString() {
         StringBuilder builder = new StringBuilder();

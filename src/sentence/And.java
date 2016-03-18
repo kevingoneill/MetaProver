@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
@@ -29,25 +29,23 @@ public class And extends Sentence {
         //Create a new mapping in h for this with newly computed value
         //boolean val =
         return args.stream().allMatch(arg -> arg.eval(h));
-        //h.set(this, val);
-        //return val;
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
+    public Inference reason(TruthAssignment h, int inferenceNum) {
         if (h.isMapped(this)) {
-            h.setDecomposed(this);
             if (h.models(this)) {
-                return new Decomposition(h, this) {{
-                    args.forEach(this::setTrue);
-                }};
+                Decomposition d = new Decomposition(h, this, inferenceNum);
+                args.forEach(d::setTrue);
+                return d;
             } else {
-                return new Branch(h, this) {{
-                    args.forEach(arg ->
-                        addBranch(new TruthAssignment() {{
-                            setFalse(arg);
-                        }}));
-                }};
+                Branch b = new Branch(h, this, inferenceNum);
+                args.forEach(arg -> {
+                    TruthAssignment t = new TruthAssignment();
+                    t.setFalse(arg, inferenceNum);
+                    b.addBranch(t);
+                });
+                return b;
             }
         }
 

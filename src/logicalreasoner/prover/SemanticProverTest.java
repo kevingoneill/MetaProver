@@ -1,8 +1,8 @@
 package logicalreasoner.prover;
 
-import logicalreasoner.sentence.SentenceReader;
+import sentence.SentenceReader;
 import org.junit.Assert;
-import logicalreasoner.sentence.Sentence;
+import sentence.Sentence;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.Set;
  *      -Note, problem 20d is NOT valid
  */
 public class SemanticProverTest {
-    public static void runProver(Set<String> premises, Set<String> interests, boolean validArgument) {
+    private static void runProver(Set<String> premises, Set<String> interests, boolean validArgument) {
         Set<Sentence> p = new HashSet<Sentence>() {{
             premises.forEach(premise -> this.add(SentenceReader.parse(premise)));
         }};
@@ -36,669 +36,830 @@ public class SemanticProverTest {
 
     @Test
     public void prob1a() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (and B C))");
-            add("(iff C B)");
-            add("(not C)");
-        }}, new HashSet<String>() {{ add("(not A)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (and B C))");
+        premises.add("(iff C B)");
+        premises.add("(not C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not A)");
+
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob2a() {
-        runProver(new HashSet<String>() {{
-            add("(implies K H)");
-            add("(implies H L)");
-            add("(implies L M)");
-        }}, new HashSet<String>() {{ add("(implies K M)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies K H)");
+        premises.add("(implies H L)");
+        premises.add("(implies L M)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies K M)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob3a() {
-        runProver(new HashSet<String>() {{
-            add("(not (iff A B))");
-            add("(not A)");
-            add("(not B)");
-        }}, new HashSet<String>() {{ add("(and C (not C))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (iff A B))");
+        premises.add("(not A)");
+        premises.add("(not B)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and C (not C))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob4a() {
-        runProver(new HashSet<String>() {{
-            add("(and A (or B C))");
-            add("(implies (or (not C) H) (implies H (not H)))");
-        }}, new HashSet<String>() {{ add("(and A B)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and A (or B C))");
+        premises.add("(implies (or (not C) H) (implies H (not H)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and A B)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob5a() {
-        runProver(new HashSet<String>() {{
-            add("(implies R Q)");
-            add("(not (and T (not S)))");
-            add("(or (not Q) (not S))");
-        }}, new HashSet<String>() {{ add("(or (not R) (not T))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies R Q)");
+        premises.add("(not (and T (not S)))");
+        premises.add("(or (not Q) (not S))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or (not R) (not T))");
+        runProver(premises,  interests, true);
     }
 
     @Test
     public void prob6a() {
-        runProver(new HashSet<String>() {{
-            add("(and A (implies B C))");
-        }}, new HashSet<String>() {{ add("(or (and A B) (and A C))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and A (implies B C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or (and A B) (and A C))");
+        runProver(premises , interests, false);
     }
 
     @Test
     public void prob7a() {
-        runProver(new HashSet<String>() {{
-            add("(implies (and (or C D) H) A)");
-            add("D");
-        }}, new HashSet<String>() {{ add("(implies H A)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (and (or C D) H) A)");
+        premises.add("D");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies H A)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob8a() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or J M) (not (and J M)))");
-            add("(iff M (implies M J))");
-        }}, new HashSet<String>() {{ add("(implies M J)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or J M) (not (and J M)))");
+        premises.add("(iff M (implies M J))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies M J)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob9a() {
-        runProver(new HashSet<String>() {{
-            add("(not (iff A B))");
-        }}, new HashSet<String>() {{ add("(iff (not A) (not B))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (iff A B))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff (not A) (not B))");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob10a() {
-        runProver(new HashSet<String>() {{
-        }}, new HashSet<String>() {{ add("(iff (implies (not P) P) P)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff (implies (not P) P) P)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob11a() {
-        runProver(new HashSet<String>() {{
-            add("(implies M (implies K B))");
-            add("(implies (not K) (not M))");
-            add("(and L M)");
-        }}, new HashSet<String>() {{ add("B"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies M (implies K B))");
+        premises.add("(implies (not K) (not M))");
+        premises.add("(and L M)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("B");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob12a() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or (not J) K) (and L M))");
-            add("(not (or (not J) K))");
-        }}, new HashSet<String>() {{ add("(not (and L M))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or (not J) K) (and L M))");
+        premises.add("(not (or (not J) K))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not (and L M))");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob13a() {
-        runProver(new HashSet<String>() {{
-            add("(not (and (not A) (not B)))");
-        }}, new HashSet<String>() {{ add("(and A B)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (and (not A) (not B)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and A B)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob14a() {
-        runProver(new HashSet<String>() {{
-            add("(or (iff M K) (not (and K D)))");
-            add("(implies (not M) (not K))");
-            add("(implies (not D) (not (and K D)))");
-        }}, new HashSet<String>() {{ add("M"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or (iff M K) (not (and K D)))");
+        premises.add("(implies (not M) (not K))");
+        premises.add("(implies (not D) (not (and K D)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("M");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob15a() {
-        runProver(new HashSet<String>() {{
-            add("(and B (or H Z))");
-            add("(implies (not Z) K)");
-            add("(implies (iff B Z) (not Z))");
-            add("(not K)");
-        }}, new HashSet<String>() {{ add("(and M N)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and B (or H Z))");
+        premises.add("(implies (not Z) K)");
+        premises.add("(implies (iff B Z) (not Z))");
+        premises.add("(not K)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and M N)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob16a() {
-        runProver(new HashSet<String>() {{
-            add("(and (iff D (not G)) G)");
-            add("implies (or G (and (implies A D) A)) (not D))");
-        }}, new HashSet<String>() {{ add("(implies G (not D))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and (iff D (not G)) G)");
+        premises.add("implies (or G (and (implies A D) A)) (not D))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies G (not D))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob17a() {
-        runProver(new HashSet<String>() {{
-            add("(implies J (implies T J))");
-            add("(implies T (implies J T))");
-        }}, new HashSet<String>() {{ add("(and (not J) (not T))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies J (implies T J))");
+        premises.add("(implies T (implies J T))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and (not J) (not T))");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob18a() {
-        runProver(new HashSet<String>() {{
-            add("(and A (implies B C))");
-        }}, new HashSet<String>() {{ add("(or (and A C) (and A (not B)))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and A (implies B C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or (and A C) (and A (not B)))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob19a() {
-        runProver(new HashSet<String>() {{
-            add("(or A (not (and B C)))");
-            add("(not B)");
-            add("(not (or A C))");
-        }}, new HashSet<String>() {{ add("A"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or A (not (and B C)))");
+        premises.add("(not B)");
+        premises.add("(not (or A C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("A");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob20a() {
-        runProver(new HashSet<String>() {{
-            add("(or (iff G H) (iff (not G) H))");
-        }}, new HashSet<String>() {{ add("(or (iff (not G) (not H)) (not (iff G H)))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or (iff G H) (iff (not G) H))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or (iff (not G) (not H)) (not (iff G H)))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob1b() {
-        runProver(new HashSet<String>() {{
-            add("(implies K (not K))");
-        }}, new HashSet<String>() {{ add("(not K)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies K (not K))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not K)");
+        runProver(premises, interests, true);
     }
 
 
     @Test
     public void prob2b() {
-        runProver(new HashSet<String>() {{
-            add("(implies R R)");
-        }}, new HashSet<String>() {{ add("R"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies R R)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("R");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob3b() {
-        runProver(new HashSet<String>() {{
-            add("(iff P (not N))");
-        }}, new HashSet<String>() {{ add("(or N P)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff P (not N))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or N P)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob4b() {
-        runProver(new HashSet<String>() {{
-            add("(not (and G M))");
-            add("(or M (not G))");
-        }}, new HashSet<String>() {{ add("(not G)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (and G M))");
+        premises.add("(or M (not G))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not G)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob5b() {
-        runProver(new HashSet<String>() {{
-            add("(iff K (not L))");
-            add("(not (and L (not K)))");
-        }}, new HashSet<String>() {{ add("(implies K L)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff K (not L))");
+        premises.add("(not (and L (not K)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies K L)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob6b() {
-        runProver(new HashSet<String>() {{
-            add("Z");
-        }}, new HashSet<String>() {{ add("(implies E (implies Z E))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("Z");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies E (implies Z E))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob7b() {
-        runProver(new HashSet<String>() {{
-            add("(not (and W (not X)))");
-            add("(not (and X (not W)))");
-        }}, new HashSet<String>() {{ add("(or X W)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (and W (not X)))");
+        premises.add("(not (and X (not W)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or X W)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob8b() {
-        runProver(new HashSet<String>() {{
-            add("(iff C D)");
-            add("(or E (not D))");
-        }}, new HashSet<String>() {{ add("(implies E C)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff C D)");
+        premises.add("(or E (not D))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies E C)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob9b() {
-        runProver(new HashSet<String>() {{
-            add("(iff A (or B C))");
-            add("(or (not C) B)");
-        }}, new HashSet<String>() {{ add("(implies A B)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff A (or B C))");
+        premises.add("(or (not C) B)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A B)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob10b() {
-        runProver(new HashSet<String>() {{
-            add("(implies J (implies K L))");
-            add("(implies K (implies J L))");
-        }}, new HashSet<String>() {{ add("(implies (or J K) L)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies J (implies K L))");
+        premises.add("(implies K (implies J L))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies (or J K) L)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob11b() {
-        runProver(new HashSet<String>() {{
-            add("(not (iff K S))");
-            add("(implies S (not (or R K)))");
-        }}, new HashSet<String>() {{ add("(or R (not S))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not (iff K S))");
+        premises.add("(implies S (not (or R K)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or R (not S))");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob12b() {
-        runProver(new HashSet<String>() {{
-            add("(implies E (and F G))");
-            add("(implies F (implies G H))");
-        }}, new HashSet<String>() {{ add("(implies E H)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies E (and F G))");
+        premises.add("(implies F (implies G H))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies E H)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob13b() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (or N Q))");
-            add("(not (or N (not A)))");
-        }}, new HashSet<String>() {{ add("(implies A Q)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (or N Q))");
+        premises.add("(not (or N (not A)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A Q)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob14b() {
-        runProver(new HashSet<String>() {{
-            add("(implies G H)");
-            add("(iff R G)");
-            add("(or (not H) G)");
-        }}, new HashSet<String>() {{ add("(iff R H)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies G H)");
+        premises.add("(iff R G)");
+        premises.add("(or (not H) G)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff R H)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob15b() {
-        runProver(new HashSet<String>() {{
-            add("(implies L M)");
-            add("(implies M N)");
-            add("(implies N L)");
-        }}, new HashSet<String>() {{ add("(or L N)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies L M)");
+        premises.add("(implies M N)");
+        premises.add("(implies N L)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or L N)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob16b() {
-        runProver(new HashSet<String>() {{
-            add("(implies S T)");
-            add("(implies S (not T))");
-            add("(implies (not T) S)");
-        }}, new HashSet<String>() {{ add("(or S (not T))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies S T)");
+        premises.add("(implies S (not T))");
+        premises.add("(implies (not T) S)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or S (not T))");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob17b() {
-        runProver(new HashSet<String>() {{
-            add("(implies W X)");
-            add("(implies X W)");
-            add("(implies X Y)");
-            add("(implies Y X)");
-        }}, new HashSet<String>() {{ add("(iff W Y)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies W X)");
+        premises.add("(implies X W)");
+        premises.add("(implies X Y)");
+        premises.add("(implies Y X)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff W Y)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob18b() {
-        runProver(new HashSet<String>() {{
-            add("(iff K (or L M))");
-            add("(implies L M)");
-            add("(implies M K)");
-            add("(or K L)");
-        }}, new HashSet<String>() {{ add("(implies K L)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff K (or L M))");
+        premises.add("(implies L M)");
+        premises.add("(implies M K)");
+        premises.add("(or K L)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies K L)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob19b() {
-        runProver(new HashSet<String>() {{
-            add("(implies A B)");
-            add("(implies (and A B) C)");
-            add("(implies A (implies C D))");
-        }}, new HashSet<String>() {{ add("(implies A D)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A B)");
+        premises.add("(implies (and A B) C)");
+        premises.add("(implies A (implies C D))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A D)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob20b() {
-        runProver(new HashSet<String>() {{
-            add("(or (not A) R)");
-            add("(not (and N (not C)))");
-            add("(implies R C)");
-            add("(implies C (not N))");
-        }}, new HashSet<String>() {{ add("(or A C)"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or (not A) R)");
+        premises.add("(not (and N (not C)))");
+        premises.add("(implies R C)");
+        premises.add("(implies C (not N))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or A C)");
+        runProver(premises, interests, false);
     }
 
     @Test
     public void prob1c() {
-        runProver(new HashSet<String>() {{
-            add("(and R (and C (not F)))");
-            add("(implies (or R S) (not W))");
-        }}, new HashSet<String>() {{ add("(not W)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and R (and C (not F)))");
+        premises.add("(implies (or R S) (not W))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not W)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob2c() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (and B C))");
-            add("(not C)");
-        }}, new HashSet<String>() {{ add("(not (and A D))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (and B C))");
+        premises.add("(not C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not (and A D))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob3c() {
-        runProver(new HashSet<String>() {{
-            add("(iff A B)");
-            add("(iff B C)");
-        }}, new HashSet<String>() {{ add("(iff A C)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff A B)");
+        premises.add("(iff B C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff A C)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob4c() {
-        runProver(new HashSet<String>() {{
-            add("(iff F G)");
-            add("(or F G)");
-        }}, new HashSet<String>() {{ add("(and F G)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff F G)");
+        premises.add("(or F G)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and F G)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob5c() {
-        runProver(new HashSet<String>() {{
-            add("(iff (not B) Z)");
-            add("(implies N B)");
-            add("(and Z N)");
-        }}, new HashSet<String>() {{ add("(not H)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff (not B) Z)");
+        premises.add("(implies N B)");
+        premises.add("(and Z N)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not H)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob6c() {
-        runProver(new HashSet<String>() {{
-            add("(iff A B)");
-            add("(iff B (not C))");
-        }}, new HashSet<String>() {{ add("(not (iff A C))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff A B)");
+        premises.add("(iff B (not C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not (iff A C))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob7c() {
-        runProver(new HashSet<String>() {{
-            add("(implies M I)");
-            add("(and (not I) L)");
-            add("(or M B)");
-        }}, new HashSet<String>() {{ add("B"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies M I)");
+        premises.add("(and (not I) L)");
+        premises.add("(or M B)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("B");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob8c() {
-        runProver(new HashSet<String>() {{
-            add("(or Q (iff J D))");
-            add("(not D)");
-            add("J");
-        }}, new HashSet<String>() {{ add("Q"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or Q (iff J D))");
+        premises.add("(not D)");
+        premises.add("J");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("Q");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob9c() {
-        runProver(new HashSet<String>() {{
-            add("(or A B)");
-            add("(or (not B) C)");
-            add("(not C)");
-        }}, new HashSet<String>() {{ add("A"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or A B)");
+        premises.add("(or (not B) C)");
+        premises.add("(not C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("A");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob10c() {
-        runProver(new HashSet<String>() {{
-            add("(or (not H) J K)");
-            add("(implies K (not I))");
-        }}, new HashSet<String>() {{ add("(implies (and H I) J)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or (not H) J K)");
+        premises.add("(implies K (not I))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies (and H I) J)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob11c() {
-        runProver(new HashSet<String>() {{
-            add("(and (or A B) (not C))");
-            add("(implies (not C) (and D (not A)))");
-            add("(implies B (or A E))");
-        }}, new HashSet<String>() {{ add("(or E F)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and (or A B) (not C))");
+        premises.add("(implies (not C) (and D (not A)))");
+        premises.add("(implies B (or A E))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or E F)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob12c() {
-        runProver(new HashSet<String>() {{
-            add("(implies G (and H (not K)))");
-            add("(iff H (and L I))");
-            add("(or (not I) K)");
-        }}, new HashSet<String>() {{ add("(not G)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies G (and H (not K)))");
+        premises.add("(iff H (and L I))");
+        premises.add("(or (not I) K)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not G)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob13c() {
-        runProver(new HashSet<String>() {{
-            add("(implies R (and (not A) T))");
-            add("(or B (not S))");
-            add("(or B S)");
-        }}, new HashSet<String>() {{ add("(implies A B)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies R (and (not A) T))");
+        premises.add("(or B (not S))");
+        premises.add("(or B S)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A B)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob14c() {
-        runProver(new HashSet<String>() {{
-            add("(or S (and (not R) T))");
-            add("(implies R (not S))");
-        }}, new HashSet<String>() {{ add("(not R)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or S (and (not R) T))");
+        premises.add("(implies R (not S))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not R)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob15c() {
-        runProver(new HashSet<String>() {{
-            add("(implies K (implies (or L M) R))");
-            add("(implies (or R S) T)");
-        }}, new HashSet<String>() {{ add("(implies K (implies M T))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies K (implies (or L M) R))");
+        premises.add("(implies (or R S) T)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies K (implies M T))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob16c() {
-        runProver(new HashSet<String>() {{
-            add("(and (or P R) (or P Q))");
-            add("(implies (and Q R) (implies V W))");
-            add("(not (implies (implies P S) (not (implies S W))))");
-            add("(not W)");
-        }}, new HashSet<String>() {{ add("(implies V S)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and (or P R) (or P Q))");
+        premises.add("(implies (and Q R) (implies V W))");
+        premises.add("(not (implies (implies P S) (not (implies S W))))");
+        premises.add("(not W)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies V S)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob17c() {
-        runProver(new HashSet<String>() {{
-            add("(implies (and A B) C)");
-            add("(implies (not A) C)");
-            add("B");
-        }}, new HashSet<String>() {{ add("C"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (and A B) C)");
+        premises.add("(implies (not A) C)");
+        premises.add("B");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("C");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob18c() {
-        runProver(new HashSet<String>() {{
-            add("(or F G)");
-            add("(and H (implies I F))");
-            add("(implies H (not F))");
-        }}, new HashSet<String>() {{ add("(and G (not I))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or F G)");
+        premises.add("(and H (implies I F))");
+        premises.add("(implies H (not F))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(and G (not I))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob19c() {
-        runProver(new HashSet<String>() {{
-            add("(implies (implies R M) L)");
-            add("(implies (or N S) (and M T))");
-            add("(implies (implies P R) L)");
-            add("(implies (or T K) (not N))");
-        }}, new HashSet<String>() {{ add("L"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (implies R M) L)");
+        premises.add("(implies (or N S) (and M T))");
+        premises.add("(implies (implies P R) L)");
+        premises.add("(implies (or T K) (not N))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("L");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob20c() {
-        runProver(new HashSet<String>() {{
-            add("(iff N P)");
-        }}, new HashSet<String>() {{ add("(iff (implies N R) (implies P R))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff N P)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff (implies N R) (implies P R))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob1d() {
-        runProver(new HashSet<String>() {{
-            add("(not A)");
-        }}, new HashSet<String>() {{ add("(implies A B)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(not A)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A B)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob2d() {
-        runProver(new HashSet<String>() {{
-            add("A");
-        }}, new HashSet<String>() {{ add("(implies B A)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("A");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies B A)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob3d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (implies B C))");
-        }}, new HashSet<String>() {{ add("(implies B (implies A C))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (implies B C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies B (implies A C))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob4d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A B)");
-            add("(implies A C)");
-        }}, new HashSet<String>() {{ add("(implies A (and B C))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A B)");
+        premises.add("(implies A C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A (and B C))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob5d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A C)");
-            add("(implies B C)");
-        }}, new HashSet<String>() {{ add("(implies (or A B) C)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A C)");
+        premises.add("(implies B C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies (or A B) C)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob6d() {
-        runProver(new HashSet<String>() {{
-            add("(or A (and B C))");
-            add("(implies A D)");
-            add("(implies D C)");
-        }}, new HashSet<String>() {{ add("C"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or A (and B C))");
+        premises.add("(implies A D)");
+        premises.add("(implies D C)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("C");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob7d() {
-        runProver(new HashSet<String>() {{
-            add("A");
-            add("(iff A B)");
-            add("(implies C (not B))");
-        }}, new HashSet<String>() {{ add("(not C)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("A");
+        premises.add("(iff A B)");
+        premises.add("(implies C (not B))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not C)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob8d() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or A B) (implies C D))");
-            add("(implies (or (not D) E) (and A C))");
-        }}, new HashSet<String>() {{ add("D"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or A B) (implies C D))");
+        premises.add("(implies (or (not D) E) (and A C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("D");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob9d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A B)");
-            add("(implies A (not B))");
-        }}, new HashSet<String>() {{ add("(not A)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A B)");
+        premises.add("(implies A (not B))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not A)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob10d() {
-        runProver(new HashSet<String>() {{
-            add("(or (not A) B)");
-            add("(or A C)");
-            add("(implies (not D) (not C))");
-        }}, new HashSet<String>() {{ add("(or B D)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(or (not A) B)");
+        premises.add("(or A C)");
+        premises.add("(implies (not D) (not C))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or B D)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob11d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (not (implies B C)))");
-            add("(implies (and D B) C)");
-            add("D");
-        }}, new HashSet<String>() {{ add("(not A)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (not (implies B C)))");
+        premises.add("(implies (and D B) C)");
+        premises.add("D");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not A)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob12d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A B)");
-            add("(implies (not B) (not C))");
-            add("(not (and (not C) (not A)))");
-        }}, new HashSet<String>() {{ add("B"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A B)");
+        premises.add("(implies (not B) (not C))");
+        premises.add("(not (and (not C) (not A)))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("B");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob13d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A B)");
-            add("(implies (not C) (not B))");
-            add("(iff C D)");
-        }}, new HashSet<String>() {{ add("(implies A D)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A B)");
+        premises.add("(implies (not C) (not B))");
+        premises.add("(iff C D)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies A D)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob14d() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or A (not A)) (not B))");
-            add("(implies (and C D) B)");
-        }}, new HashSet<String>() {{ add("(or (not D) (not C))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or A (not A)) (not B))");
+        premises.add("(implies (and C D) B)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or (not D) (not C))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob15d() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or (not A) B) (and C D))");
-            add("(not (or A E))");
-            add("(implies F (not D))");
-        }}, new HashSet<String>() {{ add("(not F)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or (not A) B) (and C D))");
+        premises.add("(not (or A E))");
+        premises.add("(implies F (not D))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not F)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob16d() {
-        runProver(new HashSet<String>() {{
-            add("(iff (not (or A (not B))) (not C))");
-            add("C");
-        }}, new HashSet<String>() {{ add("(implies B (or A D))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(iff (not (or A (not B))) (not C))");
+        premises.add("C");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(implies B (or A D))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob17d() {
-        runProver(new HashSet<String>() {{
-            add("(and A B C)");
-            add("(implies A (or D E))");
-            add("(implies B (or D F))");
-        }}, new HashSet<String>() {{ add("(or D (and E F))"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(and A B C)");
+        premises.add("(implies A (or D E))");
+        premises.add("(implies B (or D F))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(or D (and E F))");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob18d() {
-        runProver(new HashSet<String>() {{
-            add("(implies (and A B) C)");
-            add("(and (not C) B)");
-            add("(implies (or (not A) D) E)");
-        }}, new HashSet<String>() {{ add("E"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (and A B) C)");
+        premises.add("(and (not C) B)");
+        premises.add("(implies (or (not A) D) E)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("E");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob19d() {
-        runProver(new HashSet<String>() {{
-            add("(implies A (and B C))");
-            add("(implies (or B D) A)");
-        }}, new HashSet<String>() {{ add("(iff A B)"); }}, true);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies A (and B C))");
+        premises.add("(implies (or B D) A)");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(iff A B)");
+        runProver(premises, interests, true);
     }
 
     @Test
     public void prob20d() {
-        runProver(new HashSet<String>() {{
-            add("(implies (or (not A) B) (not (and C D)))");
-            add("(implies (and A C) E)");
-            add("(and A (not E))");
-        }}, new HashSet<String>() {{ add("(not (or D E))"); }}, false);
+        HashSet<String> premises = new HashSet<>();
+        premises.add("(implies (or (not A) B) (not (and C D)))");
+        premises.add("(implies (and A C) E)");
+        premises.add("(and A (not E))");
+        HashSet<String> interests = new HashSet<>();
+        interests.add("(not (or D E))");
+        runProver(premises, interests, false);
     }
 }

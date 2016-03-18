@@ -1,1 +1,1 @@
-(implies M J)
+(implies phi (implies psi (iff phi psi)))

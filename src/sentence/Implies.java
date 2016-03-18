@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
@@ -38,23 +38,23 @@ public class Implies extends Sentence {
     }
 
     @Override
-    public Inference reason(TruthAssignment h) {
+    public Inference reason(TruthAssignment h, int inferenceNum) {
         if (h.isMapped(this)) {
-            h.setDecomposed(this);
             if (h.models(this)) {
-                return new Branch(h, this) {{
-                    addBranch(new TruthAssignment() {{
-                        setFalse(args.get(0));
-                    }});
-                    addBranch(new TruthAssignment() {{
-                        setTrue(args.get(1));
-                    }});
-                }};
+                Branch b = new Branch(h, this, inferenceNum);
+                TruthAssignment t = new TruthAssignment();
+                t.setFalse(args.get(0), inferenceNum);
+                b.addBranch(t);
+                TruthAssignment t1 = new TruthAssignment();
+                t1.setTrue(args.get(1), inferenceNum);
+                b.addBranch(t1);
+                return b;
+
             } else {
-                return new Decomposition(h, this) {{
-                    setTrue(args.get(0));
-                    setFalse(args.get(1));
-                }};
+                Decomposition d = new Decomposition(h, this, inferenceNum);
+                d.setTrue(args.get(0));
+                d.setFalse(args.get(1));
+                return d;
             }
         }
 

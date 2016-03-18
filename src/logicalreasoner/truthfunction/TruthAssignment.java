@@ -1,9 +1,8 @@
 package logicalreasoner.truthfunction;
 
-import logicalreasoner.sentence.Atom;
-import logicalreasoner.sentence.Not;
-import logicalreasoner.sentence.Predicate;
-import logicalreasoner.sentence.Sentence;
+import sentence.Atom;
+import sentence.Predicate;
+import sentence.Sentence;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,12 +15,9 @@ import java.util.stream.Stream;
  * a logical model of the world
  */
 public class TruthAssignment {
-    private Map<Sentence, Set<Boolean>> map;     // The explicit Sentence -> Boolean mapping
-
-    private Map<Sentence, Boolean> decomposed;
+    private Map<Sentence, TruthValue> map;     // The explicit Sentence -> Boolean mapping
 
     private TruthAssignment parent;
-
     private List<TruthAssignment> children;
 
     /**
@@ -29,7 +25,6 @@ public class TruthAssignment {
      */
     public TruthAssignment() {
         map = new HashMap<>();
-        decomposed = new HashMap<>();
         parent = null;
         children = new ArrayList<>();
     }
@@ -39,27 +34,12 @@ public class TruthAssignment {
      * @param ta the TruthAssignment to copy
      */
     public TruthAssignment(TruthAssignment ta) {
-        this.map = new HashMap<>(ta.map);
-        this.decomposed = new HashMap<>(ta.decomposed);
+        this.map = new HashMap<>();
+        ta.map.forEach((k, v) -> map.put(k, new TruthValue(v)));
         this.parent = ta.parent;
-        children = new ArrayList<>(ta.children);
-    }
-
-    /**
-     * Create a TruthAssignment with the given mapping
-     * @param ta the mapping
-     */
-    public TruthAssignment(HashMap<Sentence, Set<Boolean>> ta) {
-        this.map = new HashMap<>(ta);
-        decomposed = new HashMap<>();
-        parent = null;
         children = new ArrayList<>();
+        ta.children.forEach(c -> children.add(new TruthAssignment(c)));
     }
-
-
-    public int size() { return map.size(); }
-
-    public boolean isEmpty() { return map.isEmpty(); }
 
     public int hashCode() { return map.hashCode(); }
 
@@ -67,9 +47,7 @@ public class TruthAssignment {
         if (o instanceof TruthAssignment) {
             TruthAssignment h = (TruthAssignment)o;
 
-            if (parent == null)
-                return map.equals(h.map) && h.parent == null && children.equals(h.children);
-            return map.equals(h.map) && parent.equals(h.parent) && children.equals(h.children);
+            return map.equals(h.map) && parent == h.parent && children.equals(h.children);
         }
         return false;
     }
@@ -83,7 +61,7 @@ public class TruthAssignment {
     }
 
     private void print(String prefix, boolean isTail) {
-        System.out.println(prefix + (isTail ? "└── " : "├── ") + toString() + (isConsistent() ? " ✓" : " ✗"));
+        System.out.println(prefix + (isTail ? "└── " : "├── ") + toString() + " isConsistent: " +(isConsistent() ? "✓" : "✗") + " decomposedAll: " + (decomposedAll() ? "✓" : "✗"));
         Iterator<TruthAssignment> itr = children.iterator();
         int i = 0;
 
@@ -96,23 +74,6 @@ public class TruthAssignment {
         }
     }
 
-    public void printDecomposed() {
-        printDecomposed("", true);
-    }
-
-    private void printDecomposed(String prefix, boolean isTail) {
-        System.out.println(prefix + (isTail ? "└── " : "├── ") + decomposed.toString() + (decomposedAll() ? " ✓" : " ✗"));
-        Iterator<TruthAssignment> itr = children.iterator();
-        int i = 0;
-        while (i < children.size() - 1 && itr.hasNext()) {
-            itr.next().printDecomposed(prefix + (isTail ? "    " : "│   "), false);
-            ++i;
-        }
-        if (itr.hasNext()) {
-            itr.next().printDecomposed(prefix + (isTail ?"    " : "│   "), true);
-        }
-    }
-
     public TruthAssignment getParent() { return parent; }
 
     public void setParent(TruthAssignment h) { parent = h; }
@@ -122,13 +83,16 @@ public class TruthAssignment {
      * Add a new mapping to the TruthAssignment
      * @param s the Sentence to be set to true
      */
-    public void setTrue(Sentence s) {
+    public void setTrue(Sentence s, int inferenceNum) {
         if (map.keySet().contains(s))
-            map.get(s).add(true);
-        else
-            map.put(s, new HashSet<Boolean>() {{ add(true); }});
+            map.get(s).setTrue(inferenceNum);
+        else {
+            TruthValue t = new TruthValue();
+            t.set(true, inferenceNum);
+            map.put(s, t);
+        }
 
-        if (s instanceof Atom)
+        if (s instanceof Atom || s instanceof Predicate)
             setDecomposed(s);
     }
 
@@ -136,11 +100,14 @@ public class TruthAssignment {
      * Add a new mapping to the TruthAssignment
      * @param s the Sentence to be set to false
      */
-    public void setFalse(Sentence s) {
+    public void setFalse(Sentence s, int inferenceNum) {
         if (map.keySet().contains(s))
-            map.get(s).add(false);
-        else
-            map.put(s, new HashSet<Boolean>() {{ add(false); }});
+            map.get(s).setFalse(inferenceNum);
+        else {
+            TruthValue t = new TruthValue();
+            t.set(false, inferenceNum);
+            map.put(s, t);
+        }
 
         if (s instanceof Atom || s instanceof Predicate)
             setDecomposed(s);
@@ -151,11 +118,14 @@ public class TruthAssignment {
      * @param s the Sentence to be set to b
      * @param b the new truth value of s
      */
-    public void set(Sentence s, boolean b) {
+    public void set(Sentence s, boolean b, int inferenceNum) {
         if (map.keySet().contains(s))
-            map.get(s).add(b);
-        else
-            map.put(s, new HashSet<Boolean>() {{ add(b); }});
+            map.get(s).set(b, inferenceNum);
+        else {
+            TruthValue t = new TruthValue();
+            t.set(b, inferenceNum);
+            map.put(s, t);
+        }
 
         if (s instanceof Atom || s instanceof Predicate)
             setDecomposed(s);
@@ -169,8 +139,8 @@ public class TruthAssignment {
      */
     public Boolean models(Sentence s) {
         if (map.containsKey(s))
-            return map.get(s).contains(true);
-        if (parent != null)
+            return map.get(s).isModelled();
+        else if (parent != null)
             return parent.models(s);
         return false;
     }
@@ -200,10 +170,10 @@ public class TruthAssignment {
         if (parent == null)
             return map.keySet();
 
-        return new HashSet<Sentence>() {{
-            addAll(map.keySet());
-            addAll(parent.getSentencesUpwards());
-        }};
+        Set<Sentence> s = new HashSet<>();
+        s.addAll(map.keySet());
+        s.addAll(parent.getSentencesUpwards());
+        return s;
     }
 
     /**
@@ -227,14 +197,12 @@ public class TruthAssignment {
      * @param h the mappings to add to this
      */
     public void merge(TruthAssignment h) {
-        h.keySet().forEach(s -> {
-            if (!map.keySet().contains(s))
-                map.put(s, h.map.get(s));
-            else {
-                map.get(s).addAll(h.map.get(s));
-            }
+        h.map.forEach((k, v) -> {
+            if (!map.containsKey(k))
+                map.put(k, new TruthValue(v));
+            else
+                map.get(k).putAll(v);
         });
-        decomposed.putAll(h.decomposed);
     }
 
     /**
@@ -244,34 +212,10 @@ public class TruthAssignment {
      */
     public boolean isConsistent() {
         return map.keySet().stream().allMatch(s -> {
-            if (map.get(s).size() > 1) //Can't be mapped to true and false
+            if (!map.get(s).isConsistent())
                 return false;
-            if (parent != null && parent.isMapped(s)) {
-                return parent.models(s).equals(models(s));
-            }
-            Sentence neg = new Not(s);
-            return !isMapped(neg) || models(neg) != models(s);
-        }) && children.stream().allMatch(TruthAssignment::isConsistent);
-    }
-
-    /**
-     * Check if s is mapped to b in this or a parent of this
-     * @param s the Sentence to search for
-     * @param b the mapping of the Sentence to search for
-     * @return true if this or a parent of this contains this mapping,
-     *  false otherwise.
-     */
-    public boolean contains(Sentence s, Boolean b) {
-        return isMapped(s) && models(s).equals(b);
-    }
-
-    /**
-     * Check if the mappings in h are redundant under this
-     * @param h the possible subset of this
-     * @return true if this contains every mapping in h
-     */
-    public boolean containsAll(TruthAssignment h) {
-        return h.keySet().stream().allMatch(s -> contains(s, h.models(s)));
+            return !(parent != null && parent.isMapped(s)) || parent.models(s).equals(models(s));
+        }) && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistent));
     }
 
     /**
@@ -279,7 +223,10 @@ public class TruthAssignment {
      * @param s the sentence which has been decomposed
      */
     public void setDecomposed(Sentence s) {
-        decomposed.put(s, true);
+        if (map.containsKey(s))
+            map.get(s).setDecomposed();
+        else if (parent != null)
+            parent.setDecomposed(s);
     }
 
     /**
@@ -289,8 +236,8 @@ public class TruthAssignment {
      *  false otherwise
      */
     public Boolean isDecomposed(Sentence s) {
-        if (decomposed.get(s) != null)
-            return decomposed.get(s);
+        if (map.containsKey(s))
+            return map.get(s).isDecomposed();
         if (parent != null)
             return parent.isDecomposed(s);
         return false;
@@ -314,17 +261,12 @@ public class TruthAssignment {
      * Recursively add children to all leaf nodes
      * @param h the children of the leaves of this to add
      */
-    public List<TruthAssignment> addChildren(List<TruthAssignment> h) {
-        if (children.isEmpty()) {
-            h.forEach(c -> {
-                TruthAssignment c1 = new TruthAssignment(c);
-                children.add(c1);
-                c1.setParent(this);
-            });
-            return children;
-        }
-        else
-            return children.stream().flatMap(c -> addChildren(h).stream()).collect(Collectors.toList());
+    public void addChildren(List<TruthAssignment> h) {
+        h.forEach(c -> {
+            TruthAssignment c1 = new TruthAssignment(c);
+            children.add(c1);
+            c1.setParent(this);
+        });
     }
 
     /**
@@ -339,9 +281,9 @@ public class TruthAssignment {
             return h;
         }
 
-        return new HashSet<TruthAssignment>() {{
-            addAll(children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent)
+        Set<TruthAssignment> leaves = new HashSet<>();
+        leaves.addAll(children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent)
                     .collect(Collectors.toSet()));
-        }};
+        return leaves;
     }
 }

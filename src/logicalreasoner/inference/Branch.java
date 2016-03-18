@@ -1,10 +1,11 @@
 package logicalreasoner.inference;
 
-import logicalreasoner.sentence.Sentence;
 import logicalreasoner.truthfunction.TruthAssignment;
+import sentence.Sentence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A Branch is an inference which generates two or more
@@ -13,19 +14,16 @@ import java.util.List;
  */
 public class Branch extends Inference {
 
-    List<TruthAssignment> branches;
+    private List<TruthAssignment> branches;
 
-
-    public Branch(TruthAssignment p, Sentence s) {
-        super(p, s);
+    public Branch(TruthAssignment p, Sentence s, int i) {
+        super(p, s, i);
         branches = new ArrayList<>();
     }
 
-    //@Override
-    public List<TruthAssignment> infer(TruthAssignment h) {
-        //branches.forEach(b -> b.setParent(h));
-        h.setDecomposed(origin);
-        return h.addChildren(branches);
+    @Override
+    public void infer(TruthAssignment h) {
+        h.addChildren(new ArrayList<>(branches));
     }
 
     public int size() {
@@ -36,7 +34,20 @@ public class Branch extends Inference {
         branches.add(h);
     }
 
-    public List<TruthAssignment> getBranches() { return branches; }
+    public boolean equals(Object o) {
+        if (o instanceof Branch) {
+            Branch i = (Branch) o;
+            return super.equals(i) && branches.equals(i.branches);
+        }
+        return false;
+    }
 
+    public String toString() {
+        return "Branch " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " to branches: " +
+                branches.stream().map(b -> "{" +
+                        b.keySet().stream().map(s ->
+                                s.toString() + "=" + b.models(s)).collect(Collectors.joining())
+                        + "} ").collect(Collectors.joining());
+    }
 
 }

@@ -1,4 +1,4 @@
-package logicalreasoner.sentence;
+package sentence;
 
 
 import org.junit.Test;
