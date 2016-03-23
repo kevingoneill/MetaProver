@@ -1,8 +1,8 @@
-package logicalreasoner.truthfunction;
+package logicalreasoner.truthassignment;
 
-import sentence.Atom;
-import sentence.Predicate;
-import sentence.Sentence;
+import expression.sentence.Atom;
+import expression.sentence.Predicate;
+import expression.sentence.Sentence;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,6 +15,9 @@ import java.util.stream.Stream;
  * a logical model of the world
  */
 public class TruthAssignment {
+    private static int truthAssignmentCount = 0;
+
+    private int UID;
     private Map<Sentence, TruthValue> map;     // The explicit Sentence -> Boolean mapping
 
     private TruthAssignment parent;
@@ -24,6 +27,7 @@ public class TruthAssignment {
      * Create a new, empty TruthAssignment
      */
     public TruthAssignment() {
+        UID = truthAssignmentCount++;
         map = new HashMap<>();
         parent = null;
         children = new ArrayList<>();
@@ -34,12 +38,15 @@ public class TruthAssignment {
      * @param ta the TruthAssignment to copy
      */
     public TruthAssignment(TruthAssignment ta) {
+        UID = truthAssignmentCount++;
         this.map = new HashMap<>();
         ta.map.forEach((k, v) -> map.put(k, new TruthValue(v)));
         this.parent = ta.parent;
         children = new ArrayList<>();
         ta.children.forEach(c -> children.add(new TruthAssignment(c)));
     }
+
+    public String getName() { return "h" + UID; }
 
     public int hashCode() { return map.hashCode(); }
 
@@ -133,7 +140,7 @@ public class TruthAssignment {
 
     /**
      * Return true if this |= s (or a parent of this |= s)
-     * @param s the sentence to be tested for
+     * @param s the expression.sentence to be tested for
      * @return true if this |= s, false if this |= (not s),
      * null if not found
      */
@@ -147,7 +154,7 @@ public class TruthAssignment {
 
     /**
      * Return true if this or a parent of this has a mapping for s
-     * @param s the sentence to search for
+     * @param s the expression.sentence to search for
      * @return true if s is mapped to some value,
      *  false otherwise
      */
@@ -219,8 +226,8 @@ public class TruthAssignment {
     }
 
     /**
-     * Mark this sentence as having been decomposed under this TruthAssignment
-     * @param s the sentence which has been decomposed
+     * Mark this expression.sentence as having been decomposed under this TruthAssignment
+     * @param s the expression.sentence which has been decomposed
      */
     public void setDecomposed(Sentence s) {
         if (map.containsKey(s))

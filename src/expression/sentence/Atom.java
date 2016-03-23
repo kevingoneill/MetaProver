@@ -1,7 +1,7 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 
@@ -15,7 +15,7 @@ public class Atom extends Sentence {
      * @param n the name of the Atom
      */
     public Atom(String n) {
-        super(new ArrayList<>(), n);
+        super(new ArrayList<>(), n, n);
     }
 
     /**
@@ -40,5 +40,8 @@ public class Atom extends Sentence {
 
 
     public String toString() { return name; }
+
+    public String toSymbol() { return name; }
+
     public int hashCode() { return name.hashCode(); }
 }

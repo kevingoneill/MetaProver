@@ -1,9 +1,9 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
 
@@ -13,8 +13,8 @@ import java.util.*;
  * For example, (and A B), (and X Y Z)
  */
 public class And extends Sentence {
-    public And(List<Sentence> a) {
-       super(new ArrayList<>(a), "and");
+    public And(ArrayList<Sentence> a) {
+       super(a, "and", "∧");
     }
 
     public Boolean eval(TruthAssignment h) {
@@ -26,8 +26,6 @@ public class And extends Sentence {
         if (args.contains(null))
             return null;
 
-        //Create a new mapping in h for this with newly computed value
-        //boolean val =
         return args.stream().allMatch(arg -> arg.eval(h));
     }
 

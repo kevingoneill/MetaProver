@@ -1,7 +1,7 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 /**
  * The Constant represents logical tautology and contradiction

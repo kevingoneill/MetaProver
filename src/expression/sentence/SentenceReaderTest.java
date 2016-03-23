@@ -1,4 +1,4 @@
-package sentence;
+package expression.sentence;
 
 
 import org.junit.Test;

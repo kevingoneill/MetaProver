@@ -1,11 +1,12 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The Implies class represents logical implication,
@@ -15,7 +16,7 @@ import java.util.ArrayList;
  */
 public class Implies extends Sentence {
     public Implies(Sentence ifExpr, Sentence thenExpr) {
-        super(new ArrayList<Sentence>(){{add(ifExpr); add(thenExpr);}}, "implies");
+        super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶");
     }
 
     public Boolean eval(TruthAssignment h) {

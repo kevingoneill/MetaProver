@@ -3,8 +3,8 @@ package logicalreasoner.prover;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import sentence.Sentence;
-import logicalreasoner.truthfunction.TruthAssignment;
+import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.List;

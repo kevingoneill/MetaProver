@@ -1,14 +1,13 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The Predicate class represents a logical predicate over
- * some variables
+ * some constants (assume no objects are variables)
  *
  * ie, (P x), (W x y z), and (H a) are all predicates
  */
@@ -17,8 +16,16 @@ public class Predicate extends Sentence {
      * Create a new Atom object with the given name
      * @param n the name of the Atom
      */
-    public Predicate(String n, List<Sentence> vars) {
-        super(new ArrayList<>(vars), n);
+    public Predicate(String n, ArrayList<Sentence> vars) {
+        super(vars, n, n);
+    }
+
+    public String toSymbol() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(name).append("(");
+        args.forEach(arg -> builder.append(" ").append(arg));
+        builder.append(")");
+        return builder.toString();
     }
 
     /**

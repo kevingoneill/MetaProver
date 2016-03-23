@@ -1,7 +1,7 @@
 package logicalreasoner.inference;
 
-import sentence.Sentence;
-import logicalreasoner.truthfunction.TruthAssignment;
+import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 /**
  * The inference stores changes to be made to a parent TruthAssignment.

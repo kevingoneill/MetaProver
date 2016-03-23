@@ -1,8 +1,8 @@
 package logicalreasoner.prover;
 
-import sentence.SentenceReader;
+import expression.sentence.SentenceReader;
 import org.junit.Assert;
-import sentence.Sentence;
+import expression.sentence.Sentence;
 import org.junit.Test;
 
 import java.util.HashSet;

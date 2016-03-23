@@ -1,4 +1,4 @@
-package sentence;
+package expression.sentence;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;

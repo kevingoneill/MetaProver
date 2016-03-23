@@ -1,12 +1,11 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The Or class represents the generalized logical disjunction
@@ -15,8 +14,8 @@ import java.util.List;
  */
 public class Or extends Sentence {
 
-    public Or(List<Sentence> a) {
-        super(new ArrayList<>(a), "or");
+    public Or(ArrayList<Sentence> a) {
+        super(a, "or", "∨");
     }
 
     public Boolean eval(TruthAssignment h) {

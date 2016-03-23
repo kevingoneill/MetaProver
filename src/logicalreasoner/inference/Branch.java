@@ -1,7 +1,7 @@
 package logicalreasoner.inference;
 
-import logicalreasoner.truthfunction.TruthAssignment;
-import sentence.Sentence;
+import logicalreasoner.truthassignment.TruthAssignment;
+import expression.sentence.Sentence;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,10 +1,11 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The Iff class represents the logical iff
@@ -12,7 +13,7 @@ import java.util.ArrayList;
  */
 public class Iff extends Sentence {
     public Iff(Sentence expr1, Sentence expr2) {
-        super(new ArrayList<Sentence>(){{add(expr1); add(expr2);}}, "iff");
+        super(new ArrayList<>(Arrays.asList(expr1, expr2)), "iff", "⟷");
     }
 
     public Boolean eval(TruthAssignment h) {

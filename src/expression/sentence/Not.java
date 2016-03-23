@@ -1,10 +1,11 @@
-package sentence;
+package expression.sentence;
 
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.truthfunction.TruthAssignment;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The Not class represents a logical negation
@@ -14,9 +15,14 @@ import java.util.ArrayList;
 public class Not extends Sentence {
 
     public Not(Sentence e) {
-        super(new ArrayList<Sentence>(){{add(e);}}, "not");
+        super(new ArrayList<>(Arrays.asList(e)), "not", "¬");
     }
 
+    public String toSymbol() {
+        if (args.get(0) instanceof Atom || args.get(0) instanceof Predicate)
+            return symbol + args.get(0).toSymbol();
+        return symbol + "(" + args.get(0).toSymbol() + ")";
+    }
 
     public Boolean eval(TruthAssignment h) {
         //if (h.isMapped(this))

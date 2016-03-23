@@ -1,4 +1,4 @@
-package logicalreasoner.truthfunction;
+package logicalreasoner.truthassignment;
 
 import java.util.HashMap;
 
@@ -7,53 +7,53 @@ import java.util.HashMap;
  * a given TruthAssignment. This can be a Set of boolean values, each with
  * an associated number which represents the inference which set this TruthValue.
  */
-class TruthValue {
+public class TruthValue {
     private HashMap<Boolean, Integer> vals;
     private boolean isDecomposed;
 
-    protected TruthValue() {
+    public TruthValue() {
         vals = new HashMap<>();
         isDecomposed = false;
     }
 
-    protected TruthValue(TruthValue tv) {
+    public TruthValue(TruthValue tv) {
         vals = new HashMap<>(tv.vals);
         isDecomposed = false;
     }
 
-    protected void setTrue(int stepNum) {
+    public void setTrue(int stepNum) {
         if (!vals.keySet().contains(true))
             vals.put(true, stepNum);
     }
 
-    protected void setFalse(int stepNum) {
+    public void setFalse(int stepNum) {
         if (!vals.keySet().contains(false))
             vals.put(false, stepNum);
     }
 
-    protected void set(Boolean b, int i) {
+    public void set(Boolean b, int i) {
         if (!vals.keySet().contains(b))
             vals.put(b, i);
     }
 
-    protected boolean isConsistent() {
+    public boolean isConsistent() {
         return vals.size() != 2;
     }
 
-    protected void putAll(TruthValue truthValue) {
+    public void putAll(TruthValue truthValue) {
         truthValue.vals.forEach((k, v) -> {
             if (!vals.containsKey(k))
                 vals.put(k, v);
         });
     }
 
-    protected boolean isModelled() {
+    public boolean isModelled() {
         return vals.keySet().contains(true);
     }
 
-    protected void setDecomposed() { isDecomposed = true; }
+    public void setDecomposed() { isDecomposed = true; }
 
-    protected boolean isDecomposed() { return isDecomposed; }
+    public boolean isDecomposed() { return isDecomposed; }
 
     public String toString() {
         return vals.keySet().toString() + " decomposed: " + isDecomposed;
