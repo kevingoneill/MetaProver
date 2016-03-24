@@ -1,5 +1,8 @@
 package expression.metasentence;
 
+import metareasoner.metainference.MetaInference;
+import metareasoner.proof.Proof;
+
 import java.util.ArrayList;
 
 /**
@@ -15,6 +18,14 @@ public class MetaConstant extends MetaSentence {
     private MetaConstant(Boolean b) {
         super(new ArrayList<>(), Boolean.toString(b), Boolean.toString(b));
         value = b;
+    }
+
+    public MetaInference reasonForwards(Proof p, int inferenceNum) {
+        return null;
+    }
+
+    public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+        return null;
     }
 
 }

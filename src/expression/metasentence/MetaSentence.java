@@ -1,6 +1,8 @@
 package expression.metasentence;
 
 import expression.Expression;
+import metareasoner.metainference.MetaInference;
+import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 
@@ -13,6 +15,28 @@ public abstract class MetaSentence extends Expression {
     protected MetaSentence(ArrayList<Expression> a, String n, String s) {
         super(n, s);
         args = a;
+    }
+
+    public abstract MetaInference reasonForwards(Proof p, int inferenceNum);
+
+    public abstract MetaInference reasonBackwards(Proof p, int inferenceNum);
+
+    public int hashCode() { return toString().hashCode(); }
+
+    public boolean equals(Object o) {
+        if (o instanceof MetaSentence) {
+            MetaSentence s = (MetaSentence)o;
+            if (!s.name.equals(name) || s.args.size() != args.size())
+                return false;
+
+            for (int i = 0; i < args.size(); ++i) {
+                if (!args.get(i).equals(s.args.get(i)))
+                    return false;
+            }
+
+            return true;
+        }
+        return false;
     }
 
     public String toString() {

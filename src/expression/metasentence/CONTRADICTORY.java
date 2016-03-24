@@ -1,5 +1,6 @@
 package expression.metasentence;
 
+import expression.sentence.Sentence;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
@@ -7,11 +8,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * The IFF class represents the metalogical IFF statement
+ * The CONTRADICTORY MetaSentence expresses the meta-logical
+ * notion of two logical statements being contradictory to each
+ * other.
  */
-public class IFF extends MetaSentence {
-    public IFF(MetaSentence s1, MetaSentence s2) {
-        super(new ArrayList<>(Arrays.asList(s1, s2)), "IFF", "IFF");
+public class CONTRADICTORY extends MetaSentence {
+    public CONTRADICTORY(Sentence s1, Sentence s2) {
+        super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRADICTORY", "is contradictory to");
     }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) {
