@@ -6,6 +6,7 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * Created by kevin on 3/23/16.
@@ -13,7 +14,7 @@ import java.util.Arrays;
 public class IS extends MetaSentence {
 
     public IS(Sentence s, MetaConstant c) {
-        super(new ArrayList<>(Arrays.asList(s, c)), "IS", "is a");
+        super(new ArrayList<>(Arrays.asList(s, c)), "IS", "is a", new HashSet<>());
     }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) {

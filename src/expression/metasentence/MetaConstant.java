@@ -4,6 +4,7 @@ import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Created by kevin on 3/22/16.
@@ -16,7 +17,7 @@ public class MetaConstant extends MetaSentence {
     private Boolean value;
 
     private MetaConstant(Boolean b) {
-        super(new ArrayList<>(), Boolean.toString(b), Boolean.toString(b));
+        super(new ArrayList<>(), Boolean.toString(b), Boolean.toString(b), new HashSet<>());
         value = b;
     }
 

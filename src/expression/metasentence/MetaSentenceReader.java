@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 /**
@@ -113,7 +114,9 @@ public interface MetaSentenceReader {
                     else
                         throw new MetaSentenceParseException("All arguments to the AND MetaSentence must be MetaSentences");
                 });
-                return new AND(metaArgs);
+                HashSet<TruthAssignmentVar> v = new HashSet();
+                metaArgs.forEach(a -> v.addAll(a.getVars()));
+                return new AND(metaArgs, v);
             } case "IFF": {
                 if (args.size() != 2)
                     throw new MetaSentenceParseException("IFF MetaSentence requires exactly two arguments.");
@@ -124,7 +127,9 @@ public interface MetaSentenceReader {
                     else
                         throw new MetaSentenceParseException("All arguments to the IFF MetaSentence must be MetaSentences");
                 });
-                return new IFF(metaArgs.get(0), metaArgs.get(1));
+                HashSet<TruthAssignmentVar> v = new HashSet();
+                metaArgs.forEach(a -> v.addAll(a.getVars()));
+                return new IFF(metaArgs.get(0), metaArgs.get(1), v);
             } case "EQUIVALENT": {
                 if (args.size() != 2)
                     throw new MetaSentenceParseException("EQUIVALENT MetaSentence requires exactly two arguments.");

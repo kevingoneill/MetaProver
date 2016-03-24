@@ -6,6 +6,7 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * The CONTRADICTORY MetaSentence expresses the meta-logical
@@ -14,7 +15,7 @@ import java.util.Arrays;
  */
 public class CONTRADICTORY extends MetaSentence {
     public CONTRADICTORY(Sentence s1, Sentence s2) {
-        super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRADICTORY", "is contradictory to");
+        super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRADICTORY", "is contradictory to", new HashSet<>());
     }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) {

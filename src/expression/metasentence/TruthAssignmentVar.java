@@ -1,12 +1,13 @@
 package expression.metasentence;
 
+import expression.sentence.Sentence;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
-import expression.sentence.Sentence;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  *  TruthAssignmentVar is a wrapper class for TruthAssignment which
@@ -17,7 +18,7 @@ public class TruthAssignmentVar extends MetaSentence {
     TruthAssignment truthAssignment;
 
     public TruthAssignmentVar(TruthAssignment t) {
-        super(new ArrayList<>(), t.getName(), t.getName());
+        super(new ArrayList<>(), t.getName(), t.getName(), new HashSet<>());
         truthAssignment = t;
     }
 
@@ -57,7 +58,26 @@ public class TruthAssignmentVar extends MetaSentence {
         return name;
     }
 
+    public String toString(boolean isTopLevel) {
+        return toString();
+    }
+
     public String toSymbol() {
         return name;
+    }
+
+    public String toSymbol(boolean isTopLevel) {
+        return toSymbol();
+    }
+
+    public int hashCode() {
+        return truthAssignment.hashCode();
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof TruthAssignmentVar) {
+            return ((TruthAssignmentVar)o).truthAssignment.equals(truthAssignment);
+        }
+        return false;
     }
 }

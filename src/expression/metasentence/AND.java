@@ -5,18 +5,19 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * The AND class represents the meta-logical AND,
  * a high order conjunction of MetaSentences
  */
 public class AND extends MetaSentence {
-    public AND(ArrayList<MetaSentence> a) {
-        super(new ArrayList<>(a), "AND", "AND");
+    public AND(ArrayList<MetaSentence> a, Set<TruthAssignmentVar> v) {
+        super(new ArrayList<>(a), "AND", "AND", v);
     }
 
-    public AND(MetaSentence s1, MetaSentence s2) {
-        super(new ArrayList<>(Arrays.asList(s1, s2)), "AND", "AND");
+    public AND(MetaSentence s1, MetaSentence s2, Set<TruthAssignmentVar> v) {
+        super(new ArrayList<>(Arrays.asList(s1, s2)), "AND", "AND", v);
     }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) {
@@ -25,6 +26,10 @@ public class AND extends MetaSentence {
 
     public MetaInference reasonBackwards(Proof p, int inferenceNum) {
         return infer(p, inferenceNum);
+    }
+
+    public String toSymbol() {
+        return "";
     }
 
     private MetaInference infer(Proof p, int inferenceNum) {

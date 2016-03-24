@@ -1,12 +1,13 @@
 package expression.metasentence;
 
 import expression.sentence.Sentence;
-import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * The MODELS class represents the meta-logical property of a
@@ -18,7 +19,9 @@ public class MODELS extends MetaSentence {
     Boolean isModelled;
 
     public MODELS(TruthAssignmentVar t, Sentence s, Boolean b, int inferenceNum) {
-        super(new ArrayList<>(Arrays.asList(t, s)), "models", b == null ? "⊨?" : (b ? "⊨" : "⊭"));
+        super(new ArrayList<>(Arrays.asList(t, s)),
+                "models", b == null ? "⊨?" : (b ? "⊨" : "⊭"),
+                new HashSet<>(Collections.singletonList(t)));
         isModelled = b;
         if (b != null) {
             if (b)
@@ -26,11 +29,16 @@ public class MODELS extends MetaSentence {
             else
                 t.setFalse(s, inferenceNum);
         }
-        System.out.println(t.getTruthAssignment());
     }
 
     public String toSymbol() {
-        return "∀" + args.get(0).toSymbol() + "[" + args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol() + "]";
+        return args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
+    }
+
+    public String toSymbol(boolean isTopLevel) {
+        if (isTopLevel)
+            return toSymbol();
+        return args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
     }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) {

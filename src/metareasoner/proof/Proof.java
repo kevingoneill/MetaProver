@@ -43,7 +43,7 @@ public class Proof {
     }
 
     public void addForwardsInference(MetaSentence s, MetaInference i) {
-        System.out.println(s);
+        //System.out.println(s);
         ArrayList<Step> inferences = new ArrayList<>();
         forwardsInferences.forEach(inference -> {
             if (inference.getMetaSentence().equals(i.getOrigin())) {

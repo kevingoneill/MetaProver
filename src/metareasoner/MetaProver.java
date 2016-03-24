@@ -34,10 +34,7 @@ public class MetaProver implements Runnable {
 
         System.out.println(inferences);
 
-        inferences.forEach(i -> {
-            System.out.println(i);
-            i.infer(p, true);
-        });
+        inferences.forEach(i -> i.infer(p, true));
 
         return !inferences.isEmpty();
     }
@@ -52,11 +49,7 @@ public class MetaProver implements Runnable {
                 .map(s -> s.reasonBackwards(p, inferenceCount++)).filter(i -> i != null)
                 .collect(Collectors.toList());
 
-        inferences.forEach(i -> {
-            System.out.println(i);
-            i.infer(p, false);
-        });
-
+        inferences.forEach(i -> i.infer(p, false));
         return !inferences.isEmpty();
     }
 
