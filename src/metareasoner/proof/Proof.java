@@ -15,11 +15,11 @@ public class Proof {
 
     private ArrayList<Step> forwardsInferences, backwardsInferences;
 
-    public Proof(ArrayList<MetaSentence> inferences, ArrayList<MetaSentence> interests) {
+    public Proof(ArrayList<MetaSentence> inferences, MetaSentence interest) {
         forwardsInferences = new ArrayList<>();
         backwardsInferences = new ArrayList<>();
         inferences.forEach(i -> forwardsInferences.add(new Step(i, null)));
-        interests.forEach(i -> backwardsInferences.add(new Step(i, null)));
+        backwardsInferences.add(new Step(interest, null));
     }
 
     public int hashCode() {
@@ -43,7 +43,6 @@ public class Proof {
     }
 
     public void addForwardsInference(MetaSentence s, MetaInference i) {
-        //System.out.println(s);
         ArrayList<Step> inferences = new ArrayList<>();
         forwardsInferences.forEach(inference -> {
             if (inference.getMetaSentence().equals(i.getOrigin())) {

@@ -72,7 +72,7 @@ public abstract class MetaSentence extends Expression {
         builder.append("[").append(name);
         args.forEach(arg -> {
             if (arg instanceof MetaSentence)
-                builder.append(" ").append(((MetaSentence)arg).toString(isTopLevel));
+                builder.append(" ").append(((MetaSentence)arg).toString(false));
             else
                 builder.append(" ").append(arg);
         });
@@ -89,7 +89,10 @@ public abstract class MetaSentence extends Expression {
 
             builder.append("[");
             for (int i = 0; i < args.size() - 1; ++i) {
-                builder.append(args.get(i).toSymbol()).append(" ").append(symbol).append(" ");
+                if (args.get(i) instanceof MetaSentence)
+                    builder.append(((MetaSentence)args.get(i)).toSymbol(false)).append(" ").append(symbol).append(" ");
+                else
+                    builder.append(args.get(i).toSymbol()).append(" ").append(symbol).append(" ");
             }
             builder.append(args.get(args.size() - 1).toSymbol()).append("]");
             return builder.toString();

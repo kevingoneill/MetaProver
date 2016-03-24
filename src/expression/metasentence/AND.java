@@ -28,10 +28,6 @@ public class AND extends MetaSentence {
         return infer(p, inferenceNum);
     }
 
-    public String toSymbol() {
-        return "";
-    }
-
     private MetaInference infer(Proof p, int inferenceNum) {
         ArrayList<MetaSentence> inferences = new ArrayList<>();
         args.forEach(a -> inferences.add((MetaSentence)a));

@@ -47,4 +47,8 @@ public class Step {
         }
         return false;
     }
+
+    public String toString() {
+        return metaSentence.toSymbol();
+    }
 }

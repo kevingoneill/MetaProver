@@ -23,7 +23,7 @@ public class MetaProver implements Runnable {
     public MetaProver(ArrayList<MetaSentence> p, MetaSentence i) {
         premises = p;
         interest = i;
-        proof = new Proof(p, new ArrayList<>(Collections.singletonList(i)));
+        proof = new Proof(p, i);
         inferenceCount = 1;
     }
 
@@ -31,8 +31,6 @@ public class MetaProver implements Runnable {
         List<MetaInference> inferences = p.getNewForwardSentences().stream()
                 .map(s -> s.reasonForwards(p, inferenceCount++)).filter(i -> i != null)
                 .collect(Collectors.toList());
-
-        System.out.println(inferences);
 
         inferences.forEach(i -> i.infer(p, true));
 
