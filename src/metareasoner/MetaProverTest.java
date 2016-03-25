@@ -27,6 +27,9 @@ public class MetaProverTest {
 
         MetaProver prover = new MetaProver(p, i);
         prover.run();
+        if (!prover.proofFound()) {
+            throw new RuntimeException("Proof could not be found!");
+        }
     }
 
     @Test

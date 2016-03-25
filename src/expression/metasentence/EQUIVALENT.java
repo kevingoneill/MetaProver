@@ -27,16 +27,11 @@ public class EQUIVALENT extends MetaSentence {
     }
 
     public MetaInference reason(Proof p, int inferenceNum) {
-        TruthAssignmentVar t1 = new TruthAssignmentVar(new TruthAssignment()),
-                t2 = new TruthAssignmentVar(new TruthAssignment());
+        TruthAssignmentVar t1 = new TruthAssignmentVar(new TruthAssignment());
         MODELS m1 = new MODELS(t1, (Sentence)args.get(0), true, inferenceNum),
-                m2 = new MODELS(t1, (Sentence)args.get(1), false, inferenceNum),
-                m3 = new MODELS(t2, (Sentence)args.get(0), false, inferenceNum),
-                m4 = new MODELS(t2, (Sentence)args.get(1), true, inferenceNum);
+                m2 = new MODELS(t1, (Sentence)args.get(1), true, inferenceNum);
 
-        MetaSentence s = new AND(new NOT(new AND(m1, m2, new HashSet<>(Collections.singletonList(t1)))),
-                new NOT(new AND(m3, m4, new HashSet<>(Collections.singletonList(t2)))),
-                new HashSet<>(Arrays.asList(t1, t2)));
+        MetaSentence s = new IFF(m1, m2, new HashSet<>(Collections.singletonList(t1)));
 
         ArrayList<MetaSentence> a = new ArrayList<>();
         a.add(s);

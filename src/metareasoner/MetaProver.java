@@ -5,7 +5,6 @@ import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,11 +36,6 @@ public class MetaProver implements Runnable {
         return !inferences.isEmpty();
     }
 
-    /**
-     * Reason over the TruthAssignment h by decomposing statements
-     * @param h the TruthAssignment to reason over
-     * @return true if changes to h have been made as a result of this call, false otherwise
-     */
     public boolean reasonBackwards(Proof p) {
         List<MetaInference> inferences = p.getNewBackwardSentences().stream()
                 .map(s -> s.reasonBackwards(p, inferenceCount++)).filter(i -> i != null)
@@ -63,24 +57,27 @@ public class MetaProver implements Runnable {
             if (!reasonForwards(proof) && !reasonBackwards(proof))
                 break;
 
-            System.out.println("\nInferences: ");
-            proof.printInferences();
-
-            System.out.println("\nInterests: ");
-            proof.printInterests();
+            //System.out.println("\nInferences: ");
+            //proof.printInferences();
+            //System.out.println("\nInterests: ");
+            //proof.printInterests();
         }
 
-
+        System.out.println("\n\n\nProof:\n");
+        proof.printProof();
     }
 
+    public boolean proofFound() {
+        return proof.isComplete();
+    }
 
     /**
      * Check if all TruthAssignments are consistent and fully decomposed.
      * @return true if all open branches are fully decomposed
      */
     private boolean reasoningCompleted() {
-        System.out.println("Complete: " + proof.isComplete());
-        System.out.println("Decomposed: " + proof.decomposedAll());
+        //System.out.println("Complete: " + proof.isComplete());
+        //System.out.println("Decomposed: " + proof.decomposedAll());
         return proof.isComplete() || proof.decomposedAll();
     }
 }

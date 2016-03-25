@@ -2,6 +2,7 @@ package expression.metasentence;
 
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Inference;
+import logicalreasoner.prover.SemanticProver;
 import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
@@ -20,6 +21,7 @@ public class TruthAssignmentVar extends MetaSentence {
     public TruthAssignmentVar(TruthAssignment t) {
         super(new ArrayList<>(), t.getName(), t.getName(), new HashSet<>());
         truthAssignment = t;
+        reduce();
     }
 
     public Inference reason(TruthAssignment h, int inferenceNum) {
@@ -32,10 +34,12 @@ public class TruthAssignmentVar extends MetaSentence {
 
     public void setTrue(Sentence s, int inferenceNum) {
         truthAssignment.setTrue(s, inferenceNum);
+        reduce();
     }
 
     public void setFalse(Sentence s, int inferenceNum) {
         truthAssignment.setFalse(s, inferenceNum);
+        reduce();
     }
 
     public boolean models(Sentence s) {
@@ -76,8 +80,14 @@ public class TruthAssignmentVar extends MetaSentence {
 
     public boolean equals(Object o) {
         if (o instanceof TruthAssignmentVar) {
-            return ((TruthAssignmentVar)o).truthAssignment.equals(truthAssignment);
+            TruthAssignment t = ((TruthAssignmentVar) o).truthAssignment;
+
+            return truthAssignment.keySet().stream().allMatch(s -> truthAssignment.models(s) == t.models(s));
         }
         return false;
+    }
+
+    private void reduce() {
+        SemanticProver.decompose(truthAssignment);
     }
 }

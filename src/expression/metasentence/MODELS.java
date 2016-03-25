@@ -41,6 +41,10 @@ public class MODELS extends MetaSentence {
         return args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
     }
 
+    public Sentence getSentence() {
+        return (Sentence)args.get(1);
+    }
+
     public MetaInference reasonForwards(Proof p, int inferenceNum) {
         return null;
     }

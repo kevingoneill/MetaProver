@@ -87,14 +87,18 @@ public abstract class MetaSentence extends Expression {
             if (!vars.isEmpty())
                 builder.append(" ");
 
-            builder.append("[");
+            //builder.append("[");
             for (int i = 0; i < args.size() - 1; ++i) {
                 if (args.get(i) instanceof MetaSentence)
                     builder.append(((MetaSentence)args.get(i)).toSymbol(false)).append(" ").append(symbol).append(" ");
                 else
                     builder.append(args.get(i).toSymbol()).append(" ").append(symbol).append(" ");
             }
-            builder.append(args.get(args.size() - 1).toSymbol()).append("]");
+            if (args.get(args.size() - 1) instanceof MetaSentence)
+                builder.append(((MetaSentence)args.get(args.size() - 1)).toSymbol(false)); //.append("]");
+            else
+                builder.append(args.get(args.size() - 1).toSymbol()); //.append("]");
+
             return builder.toString();
         }
         return symbol;

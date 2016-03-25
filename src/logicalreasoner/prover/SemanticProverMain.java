@@ -30,7 +30,8 @@ public class SemanticProverMain {
             return;
         }
 
-        Set<Sentence> premises, interests;
+        Set<Sentence> premises;
+        Sentence interest;
 
         try {
             premises = readSentences(args[0]);
@@ -41,14 +42,14 @@ public class SemanticProverMain {
         }
 
         try {
-            interests = readSentences(args[1]);
+            interest = readSentence(args[1]);
         } catch (IOException ioe){
             System.out.println("Exception while reading premises: \n");
             ioe.printStackTrace();
             return;
         }
 
-        SemanticProver prover = new SemanticProver(premises, interests);
+        SemanticProver prover = new SemanticProver(premises, interest);
         prover.run();
 
         System.out.println("\nTime taken: " + ((double)(System.nanoTime() - startTime))/ 1000000000.0 + " seconds.");
@@ -68,5 +69,18 @@ public class SemanticProverMain {
             sentences.add(SentenceReader.parse(line));
         }
         return sentences;
+    }
+
+    private static Sentence readSentence(String fileName) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line;
+
+        Set<Sentence> sentences = new HashSet<>();
+
+        if ((line = reader.readLine()) != null) {
+            return SentenceReader.parse(line);
+        }
+
+        return null;
     }
 }

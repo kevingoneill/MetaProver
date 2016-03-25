@@ -48,6 +48,6 @@ public class NOT extends MetaSentence {
     public String toSymbol(boolean isTopLevel) {
         if (isTopLevel)
             return toSymbol();
-        return "[" + symbol + ((MetaSentence)args.get(0)).toSymbol(false) + "]";
+        return "[" + symbol + " " + ((MetaSentence)args.get(0)).toSymbol(false) + "]";
     }
 }
