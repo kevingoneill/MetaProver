@@ -1,5 +1,6 @@
 package expression.metasentence;
 
+import expression.sentence.Atom;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.prover.SemanticProver;
@@ -9,7 +10,7 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
 
 /**
  *  TruthAssignmentVar is a wrapper class for TruthAssignment which
@@ -18,10 +19,12 @@ import java.util.Set;
  */
 public class TruthAssignmentVar extends MetaSentence {
     TruthAssignment truthAssignment;
+    LinkedList<Inference> inferences;
 
     public TruthAssignmentVar(TruthAssignment t) {
         super(new ArrayList<>(), t.getName(), t.getName(), new HashSet<>());
         truthAssignment = t;
+        inferences = new LinkedList<>();
         reduce();
     }
 
@@ -59,24 +62,16 @@ public class TruthAssignmentVar extends MetaSentence {
         return truthAssignment;
     }
 
+    public LinkedList<Inference> getInferences() { return inferences; }
+
     @Override
     public String toString() {
         return name;
     }
 
     @Override
-    public String toString(boolean isTopLevel) {
-        return toString();
-    }
-
-    @Override
     public String toSymbol() {
         return name;
-    }
-
-    @Override
-    public String toSymbol(boolean isTopLevel, Set<TruthAssignmentVar> unprintedVars) {
-        return toSymbol();
     }
 
     public int hashCode() {
@@ -87,12 +82,12 @@ public class TruthAssignmentVar extends MetaSentence {
         if (o instanceof TruthAssignmentVar) {
             TruthAssignment t = ((TruthAssignmentVar) o).truthAssignment;
 
-            return truthAssignment.keySet().stream().allMatch(s -> truthAssignment.models(s) == t.models(s));
+            return truthAssignment.keySet().stream().filter(s -> s instanceof Atom).allMatch(s -> truthAssignment.models(s) == t.models(s));
         }
         return false;
     }
 
     private void reduce() {
-        SemanticProver.decompose(truthAssignment);
+        SemanticProver.decompose(truthAssignment, inferences);
     }
 }

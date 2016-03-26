@@ -18,9 +18,10 @@ import java.util.stream.Collectors;
  */
 public class SemanticProver implements Runnable {
 
-    public static void decompose(TruthAssignment t) {
+    public static void decompose(TruthAssignment t, LinkedList<Inference> inferences) {
         SemanticProver prover = new SemanticProver(t);
         prover.run();
+        inferences.addAll(prover.inferenceList);
     }
 
     private Set<Sentence> premises, interests;

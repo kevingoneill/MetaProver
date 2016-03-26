@@ -57,10 +57,12 @@ public class MetaProver implements Runnable {
             if (!reasonForwards(proof) && !reasonBackwards(proof))
                 break;
 
-            //System.out.println("\nInferences: ");
-            //proof.printInferences();
-            //System.out.println("\nInterests: ");
-            //proof.printInterests();
+            /*
+            System.out.println("\nInferences: ");
+            proof.printInferences();
+            System.out.println("\nInterests: ");
+            proof.printInterests();
+            */
         }
 
         System.out.println("\n\n\nProof:\n");

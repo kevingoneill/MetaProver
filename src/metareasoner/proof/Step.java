@@ -86,13 +86,13 @@ public class Step {
         if (isForwards) {
             if (justification != null) {
                 if (justification.getOrigin() instanceof MODELS)
-                    return "sem. of " + ((MODELS)justification.getOrigin()).getSentence().getSymbol();
-                return "def. of " + justification.getOrigin().getSymbol();
+                    return "(sem. of " + ((MODELS)justification.getOrigin()).getSentence().getSymbol() + ")";
+                return "(def. of " + justification.getOrigin().getSymbol() + ")";
             }
             return "Premise";
         }
         if (metaSentence instanceof MODELS)
-            return "sem. of " + ((MODELS)metaSentence).getSentence().getSymbol();
-        return "def. of " + metaSentence.getSymbol();
+            return "(sem. of " + ((MODELS)metaSentence).getSentence().getSymbol() + ")";
+        return "(def. of " + metaSentence.getSymbol() + ")";
     }
 }

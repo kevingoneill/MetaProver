@@ -28,7 +28,7 @@ public class IS extends MetaSentence {
     
     public MetaInference reason(Proof p, int inferenceNum) {
         TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment());
-    	  MODELS m = new MODELS(t, (Sentence)args.get(0), ((MetaConstant)args.get(1)).getValue(), inferenceNum);
+    	  MODELS m = new MODELS(t, (Sentence)args.get(0), ((MetaConstant)args.get(1)).getValue(), inferenceNum, true);
     	  ArrayList<MetaSentence> a = new ArrayList<>();
         a.add(m);
 

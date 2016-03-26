@@ -38,4 +38,11 @@ public class MetaProverTest {
         premises.add("[EQUIVALENT phi psi]");
         runProver(premises, "[AND [SUBSUMES phi psi] [SUBSUMES psi phi]]");
     }
+
+    @Test
+    public void test2() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS phi TAUTOLOGY]");
+        runProver(premises, "[IS (not phi) CONTRADICTION]");
+    }
 }

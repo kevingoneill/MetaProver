@@ -5,18 +5,18 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.HashSet;
 
 /**
  * The AND class represents the meta-logical AND,
  * a high order conjunction of MetaSentences
  */
 public class AND extends MetaSentence {
-    public AND(ArrayList<MetaSentence> a, Set<TruthAssignmentVar> v) {
+    public AND(ArrayList<MetaSentence> a, HashSet<TruthAssignmentVar> v) {
         super(new ArrayList<>(a), "AND", "AND", v);
     }
 
-    public AND(MetaSentence s1, MetaSentence s2, Set<TruthAssignmentVar> v) {
+    public AND(MetaSentence s1, MetaSentence s2, HashSet<TruthAssignmentVar> v) {
         super(new ArrayList<>(Arrays.asList(s1, s2)), "AND", "AND", v);
     }
 
