@@ -9,6 +9,7 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  *  TruthAssignmentVar is a wrapper class for TruthAssignment which
@@ -58,24 +59,28 @@ public class TruthAssignmentVar extends MetaSentence {
         return truthAssignment;
     }
 
+    @Override
     public String toString() {
         return name;
     }
 
+    @Override
     public String toString(boolean isTopLevel) {
         return toString();
     }
 
+    @Override
     public String toSymbol() {
         return name;
     }
 
-    public String toSymbol(boolean isTopLevel) {
+    @Override
+    public String toSymbol(boolean isTopLevel, Set<TruthAssignmentVar> unprintedVars) {
         return toSymbol();
     }
 
     public int hashCode() {
-        return truthAssignment.hashCode();
+        return name.hashCode();
     }
 
     public boolean equals(Object o) {

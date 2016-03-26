@@ -4,10 +4,7 @@ import expression.sentence.Sentence;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * The MODELS class represents the meta-logical property of a
@@ -35,7 +32,8 @@ public class MODELS extends MetaSentence {
         return args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
     }
 
-    public String toSymbol(boolean isTopLevel) {
+    @Override
+    public String toSymbol(boolean isTopLevel, Set<TruthAssignmentVar> unprintedVars) {
         if (isTopLevel)
             return toSymbol();
         return args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
