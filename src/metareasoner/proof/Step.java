@@ -1,6 +1,5 @@
 package metareasoner.proof;
 
-import expression.metasentence.MODELS;
 import expression.metasentence.MetaSentence;
 import metareasoner.metainference.MetaInference;
 
@@ -34,6 +33,8 @@ public class Step {
     public MetaInference getJustification() {
         return justification;
     }
+
+    public void setJustification(MetaInference i) { justification = i; }
 
     public Step getParent() { return parent; }
 
@@ -83,16 +84,22 @@ public class Step {
     }
 
     public String getReason() {
+
         if (isForwards) {
-            if (justification != null) {
-                if (justification.getOrigin() instanceof MODELS)
-                    return "(sem. of " + ((MODELS)justification.getOrigin()).getSentence().getSymbol() + ")";
-                return "(def. of " + justification.getOrigin().getSymbol() + ")";
-            }
+            if (justification != null)
+                return justification.getReason();
             return "Premise";
         }
+
+        if (justification != null)
+            return justification.getReason();
+        return "...";
+        /*
         if (metaSentence instanceof MODELS)
             return "(sem. of " + ((MODELS)metaSentence).getSentence().getSymbol() + ")";
+        else if (metaSentence instanceof IS)
+            return  "(def. of " + ((IS) metaSentence).getConstant().getSymbol() + ")";
         return "(def. of " + metaSentence.getSymbol() + ")";
+        */
     }
 }

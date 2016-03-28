@@ -44,7 +44,7 @@ public class NOT extends MetaSentence {
         if (!vars.isEmpty())
             builder.append(" ");
 
-        builder.append("[").append(symbol).append(" ").append(args.get(0).toSymbol()).append("]");
+        builder.append(symbol).append("[").append(args.get(0).toSymbol()).append("]");
 
         return builder.toString();
     }

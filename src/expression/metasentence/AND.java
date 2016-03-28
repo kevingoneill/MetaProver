@@ -31,6 +31,6 @@ public class AND extends MetaSentence {
     private MetaInference infer(Proof p, int inferenceNum) {
         ArrayList<MetaSentence> inferences = new ArrayList<>();
         args.forEach(a -> inferences.add((MetaSentence)a));
-        return new MetaInference(this, inferences, inferenceNum);
+        return new MetaInference(this, inferences, inferenceNum, false, symbol);
     }
 }

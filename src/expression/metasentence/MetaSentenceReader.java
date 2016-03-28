@@ -90,6 +90,8 @@ public interface MetaSentenceReader {
 
     static ArrayList<Expression> parseList(String exprName, LinkedList<String> stack) {
         //System.out.println("ParseList: " + stack);
+        if (stack.isEmpty())
+            throw new MetaSentenceParseException("Error: missing \"]\"");
         ArrayList<Expression> list = new ArrayList<>();
         while (!stack.peek().equals("]")) {
             if (stack.peek() == null)

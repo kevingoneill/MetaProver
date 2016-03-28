@@ -1,10 +1,9 @@
 package logicalreasoner.inference;
 
-import logicalreasoner.truthassignment.TruthAssignment;
 import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
  */
 public class Branch extends Inference {
 
-    private List<TruthAssignment> branches;
+    private ArrayList<TruthAssignment> branches;
 
     public Branch(TruthAssignment p, Sentence s, int i) {
         super(p, s, i);
@@ -23,7 +22,7 @@ public class Branch extends Inference {
 
     @Override
     public void infer(TruthAssignment h) {
-        h.addChildren(new ArrayList<>(branches));
+        h.addChildren(branches);
     }
 
     public int size() {
@@ -33,6 +32,8 @@ public class Branch extends Inference {
     public void addBranch(TruthAssignment h) {
         branches.add(h);
     }
+
+    public ArrayList<TruthAssignment> getBranches() { return branches; }
 
     public boolean equals(Object o) {
         if (o instanceof Branch) {

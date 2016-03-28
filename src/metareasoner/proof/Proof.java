@@ -63,7 +63,8 @@ public class Proof {
         Step step = find(backwardsInferences, i.getOrigin());
         if (step != null) {
             step.setDecomposed();
-            backwardsInferences.add(new Step(s, i, step, false));
+            step.setJustification(i);
+            backwardsInferences.add(new Step(s, null, step, false));
         }
     }
 

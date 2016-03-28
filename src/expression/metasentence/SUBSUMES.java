@@ -26,12 +26,15 @@ public class SUBSUMES extends MetaSentence {
     }
 
     public MetaInference reason(Proof p, int inferenceNum) {
-        TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment());
-        MODELS m1 = new MODELS(t, (Sentence)args.get(0), true, inferenceNum, false),
-                m2 = new MODELS(t, (Sentence)args.get(1), false, inferenceNum, false);
-        MetaSentence s = new NOT(new AND(m1, m2, new HashSet<>()), new HashSet<>(Collections.singletonList(t)));
+        TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment()),
+                child1 = t.addChild(new TruthAssignment()),
+                child2 = t.addChild(new TruthAssignment());
+
+        MODELS m1 = new MODELS(child1, (Sentence)args.get(0), false, inferenceNum, false),
+                m2 = new MODELS(child2, (Sentence)args.get(1), true, inferenceNum, false);
+        MetaSentence s = new OR(m1, m2, new HashSet<>(Collections.singletonList(t)));
         ArrayList<MetaSentence> a = new ArrayList<>();
         a.add(s);
-        return new MetaInference(this, a, inferenceNum);
+        return new MetaInference(this, a, inferenceNum, false, symbol);
     }
 }

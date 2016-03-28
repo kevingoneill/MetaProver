@@ -9,6 +9,7 @@ import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -22,7 +23,7 @@ public class TruthAssignmentVar extends MetaSentence {
     LinkedList<Inference> inferences;
 
     public TruthAssignmentVar(TruthAssignment t) {
-        super(new ArrayList<>(), t.getName(), t.getName(), new HashSet<>());
+        super(new ArrayList<>(), t.getRoot().getName(), t.getRoot().getName(), new HashSet<>());
         truthAssignment = t;
         inferences = new LinkedList<>();
         reduce();
@@ -44,6 +45,11 @@ public class TruthAssignmentVar extends MetaSentence {
     public void setFalse(Sentence s, int inferenceNum) {
         truthAssignment.setFalse(s, inferenceNum);
         reduce();
+    }
+
+    public TruthAssignmentVar addChild(TruthAssignment h) {
+        truthAssignment.addChildren(Collections.singletonList(h));
+        return new TruthAssignmentVar(truthAssignment.getChildren().get(truthAssignment.getChildren().size() -1));
     }
 
     public boolean models(Sentence s) {
@@ -89,5 +95,6 @@ public class TruthAssignmentVar extends MetaSentence {
 
     private void reduce() {
         SemanticProver.decompose(truthAssignment, inferences);
+        //System.out.println(truthAssignment.getName() + " :- " + truthAssignment);
     }
 }

@@ -1,6 +1,7 @@
 package expression.metasentence;
 
 import expression.sentence.Sentence;
+import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import metareasoner.metainference.MetaInference;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class MODELS extends MetaSentence {
 
-    Boolean isModelled;
+    Boolean isModelled, isTopLevel;
 
     public MODELS(TruthAssignmentVar t, Sentence s, Boolean b, int inferenceNum, boolean printQuantifier) {
         super(new ArrayList<>(Arrays.asList(t, s)),
@@ -29,6 +30,7 @@ public class MODELS extends MetaSentence {
             else
                 t.setFalse(s, inferenceNum);
         }
+        isTopLevel = printQuantifier;
     }
 
     public String toSymbol() {
@@ -48,17 +50,40 @@ public class MODELS extends MetaSentence {
 
     public MetaInference reason(Proof p, int inferenceNum) {
         TruthAssignmentVar t = (TruthAssignmentVar)args.get(0);
+
+        if (!t.getTruthAssignment().isConsistent()) {
+            ArrayList<MetaSentence> inferences = new ArrayList<>();
+            inferences.add(MetaConstant.CONTRADICTION);
+            return new MetaInference(this, inferences, inferenceNum, true, getSentence().getSymbol());
+        }
+
         if (!t.getInferences().isEmpty()) {
             Inference i = t.getInferences().pop();
-            if (i.getOrigin().equals(getSentence()) && i instanceof Decomposition) {
-                Decomposition d = (Decomposition)i;
-                TruthAssignmentVar var = new TruthAssignmentVar(d.getAdditions());
-                System.out.println("INFERRING " + d.getAdditions());
-                ArrayList<MetaSentence> a = new ArrayList<>();
-                d.getAdditions().keySet().forEach(s ->
-                    a.add(new MODELS(var, s, var.models(s), inferenceNum, true)));
+            if (i.getOrigin().equals(getSentence())) {
+                if (i instanceof Decomposition) {
+                    Decomposition d = (Decomposition) i;
+                    d.infer(t.getTruthAssignment());
 
-                return new MetaInference(this, a, inferenceNum);
+                    //System.out.println("INFERRING " + d.getAdditions());
+
+                    ArrayList<MetaSentence> a = new ArrayList<>();
+                    d.getAdditions().keySet().forEach(s ->
+                            a.add(new MODELS(t, s, t.models(s), inferenceNum, isTopLevel)));
+
+                    return new MetaInference(this, a, inferenceNum, true, d.getOrigin().getSymbol());
+                } else if (i instanceof Branch) {
+                    Branch b = (Branch)i;
+
+                    ArrayList<MetaSentence> a = new ArrayList<>();
+                    b.getBranches().forEach(c -> {
+                        if (c.keySet().size() == 1)
+                            c.keySet().forEach(s -> a.add(new MODELS(t.addChild(c), s, c.models(s), inferenceNum, false)));
+                    });
+                    OR or = new OR(a, new HashSet<>(Collections.singleton(t)));
+                    a.clear();
+                    a.add(or);
+                    return new MetaInference(this, a, inferenceNum, true, b.getOrigin().getSymbol());
+                }
             }
         }
 

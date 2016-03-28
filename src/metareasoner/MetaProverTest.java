@@ -45,4 +45,39 @@ public class MetaProverTest {
         premises.add("[IS phi TAUTOLOGY]");
         runProver(premises, "[IS (not phi) CONTRADICTION]");
     }
+
+    @Test
+    public void test3() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS phi CONTRADICTION]");
+        runProver(premises, "[IS (not phi) TAUTOLOGY]");
+    }
+
+    @Test
+    public void test4() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS phi CONTINGENCY]");
+        runProver(premises, "[IS (not phi) CONTINGENCY]");
+    }
+
+    @Test
+    public void test5() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS psi TAUTOLOGY]");
+        runProver(premises, "[SUBSUMES true psi]");
+    }
+
+    @Test
+    public void test6() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS phi CONTRADICTION]");
+        runProver(premises, "[SUBSUMES phi false]");
+    }
+
+    @Test
+    public void test7() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[IS (implies phi psi) TAUTOLOGY]");
+        runProver(premises, "[SUBSUMES phi psi]");
+    }
 }

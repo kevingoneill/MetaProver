@@ -35,6 +35,6 @@ public class EQUIVALENT extends MetaSentence {
 
         ArrayList<MetaSentence> a = new ArrayList<>();
         a.add(s);
-        return new MetaInference(this, a, inferenceNum);
+        return new MetaInference(this, a, inferenceNum, false, symbol);
     }
 }

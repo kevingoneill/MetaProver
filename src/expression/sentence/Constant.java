@@ -13,7 +13,7 @@ public class Constant extends Atom {
     private boolean value;
 
     private Constant(boolean b) {
-        super(Boolean.toString(b));
+        super(b ? "⊤" : "⊥");
         value = b;
     }
 

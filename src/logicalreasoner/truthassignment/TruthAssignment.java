@@ -1,6 +1,7 @@
 package logicalreasoner.truthassignment;
 
 import expression.sentence.Atom;
+import expression.sentence.Constant;
 import expression.sentence.Predicate;
 import expression.sentence.Sentence;
 
@@ -219,6 +220,10 @@ public class TruthAssignment {
      */
     public boolean isConsistent() {
         return map.keySet().stream().allMatch(s -> {
+            if (s.equals(Constant.TRUE) && !map.get(s).isModelled())
+                return false;
+            if (s.equals(Constant.FALSE) && map.get(s).isModelled())
+                return false;
             if (!map.get(s).isConsistent())
                 return false;
             return !(parent != null && parent.isMapped(s)) || parent.models(s).equals(models(s));
@@ -292,5 +297,16 @@ public class TruthAssignment {
         leaves.addAll(children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent)
                     .collect(Collectors.toSet()));
         return leaves;
+    }
+
+    /**
+     * Get the toplevel TruthAssignment in this tree
+     * @return
+     */
+    public TruthAssignment getRoot() {
+        if (parent == null)
+            return this;
+
+        return parent.getRoot();
     }
 }

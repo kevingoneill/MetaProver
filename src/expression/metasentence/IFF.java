@@ -28,20 +28,24 @@ public class IFF extends MetaSentence {
                     arg2 = (MODELS)args.get(1);
 
             TruthAssignmentVar t1 = new TruthAssignmentVar(new TruthAssignment()),
-                    t2 = new TruthAssignmentVar(new TruthAssignment());
+                    child1 = t1.addChild(new TruthAssignment()),
+                    child2 = t1.addChild(new TruthAssignment()),
+                    t2 = new TruthAssignmentVar(new TruthAssignment()),
+                    child3 = t2.addChild(new TruthAssignment()),
+                    child4 = t2.addChild(new TruthAssignment());
 
-            MODELS m1 = new MODELS(t1, arg1.getSentence(), true, inferenceNum, false),
-                    m2 = new MODELS(t1, arg2.getSentence(), false, inferenceNum, false),
-                    m3 = new MODELS(t2, arg1.getSentence(), false, inferenceNum, false),
-                    m4 = new MODELS(t2, arg2.getSentence(), true, inferenceNum, false);
+            MODELS m1 = new MODELS(child1, arg1.getSentence(), false, inferenceNum, false),
+                    m2 = new MODELS(child2, arg2.getSentence(), true, inferenceNum, false),
+                    m3 = new MODELS(child3, arg1.getSentence(), true, inferenceNum, false),
+                    m4 = new MODELS(child4, arg2.getSentence(), false, inferenceNum, false);
 
-            MetaSentence s = new AND(new NOT(new AND(m1, m2, new HashSet<>()), new HashSet<>(Collections.singletonList(t1))),
-                    new NOT(new AND(m4, m3, new HashSet<>()), new HashSet<>(Collections.singletonList(t2))),
+            MetaSentence s = new AND(new OR(m1, m2, new HashSet<>(Collections.singletonList(t1))),
+                    new OR(m4, m3, new HashSet<>(Collections.singletonList(t2))),
                     new HashSet<>());
 
             ArrayList<MetaSentence> a = new ArrayList<>();
             a.add(s);
-            return new MetaInference(this, a, inferenceNum);
+            return new MetaInference(this, a, inferenceNum, false, symbol);
         }
 
         return null;
