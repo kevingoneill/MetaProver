@@ -78,7 +78,6 @@ public class SemanticProver implements Runnable {
         interests = null;
 
         masterFunction = truthAssignment;
-
         inferenceList = new ArrayList<>();
         inferenceCount = 1;
 
@@ -131,7 +130,7 @@ public class SemanticProver implements Runnable {
 
             // Always decompose all statements before branching
             while (!openBranches.isEmpty() && updated) {
-                closeBranches();
+                //closeBranches();
                 updated = openBranches.stream().map(this::reason).collect(Collectors.toList()).contains(true);
             }
 
