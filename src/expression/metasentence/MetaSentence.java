@@ -64,7 +64,7 @@ public abstract class MetaSentence extends Expression {
         if (!args.isEmpty()) {
             StringBuilder builder = new StringBuilder();
 
-            vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+            vars.forEach(v -> builder.append("FORALL ").append(v.toSymbol()));
             if (!vars.isEmpty())
                 builder.append(" ");
 

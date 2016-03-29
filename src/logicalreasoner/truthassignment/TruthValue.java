@@ -22,17 +22,17 @@ public class TruthValue {
     }
 
     public void setTrue(int stepNum) {
-        if (!vals.keySet().contains(true))
+        if (!vals.containsKey(true))
             vals.put(true, stepNum);
     }
 
     public void setFalse(int stepNum) {
-        if (!vals.keySet().contains(false))
+        if (!vals.containsKey(false))
             vals.put(false, stepNum);
     }
 
     public void set(Boolean b, int i) {
-        if (!vals.keySet().contains(b))
+        if (!vals.containsKey(b))
             vals.put(b, i);
     }
 
@@ -48,7 +48,7 @@ public class TruthValue {
     }
 
     public boolean isModelled() {
-        return vals.keySet().contains(true);
+        return vals.containsKey(true);
     }
 
     public void setDecomposed() { isDecomposed = true; }

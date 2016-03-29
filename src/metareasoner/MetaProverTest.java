@@ -35,49 +35,73 @@ public class MetaProverTest {
     @Test
     public void test1() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[EQUIVALENT phi psi]");
-        runProver(premises, "[AND [SUBSUMES phi psi] [SUBSUMES psi phi]]");
+        premises.add("[EQUIVALENT φ ψ]");
+        runProver(premises, "[AND [SUBSUMES φ ψ] [SUBSUMES ψ φ]]");
     }
 
     @Test
     public void test2() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS phi TAUTOLOGY]");
-        runProver(premises, "[IS (not phi) CONTRADICTION]");
+        premises.add("[IS φ TAUTOLOGY]");
+        runProver(premises, "[IS (not φ) CONTRADICTION]");
     }
 
     @Test
     public void test3() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS phi CONTRADICTION]");
-        runProver(premises, "[IS (not phi) TAUTOLOGY]");
+        premises.add("[IS φ CONTRADICTION]");
+        runProver(premises, "[IS (not φ) TAUTOLOGY]");
     }
 
     @Test
     public void test4() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS phi CONTINGENCY]");
-        runProver(premises, "[IS (not phi) CONTINGENCY]");
+        premises.add("[IS φ CONTINGENCY]");
+        runProver(premises, "[IS (not φ) CONTINGENCY]");
     }
 
     @Test
     public void test5() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS psi TAUTOLOGY]");
-        runProver(premises, "[SUBSUMES true psi]");
+        premises.add("[IS ψ TAUTOLOGY]");
+        runProver(premises, "[SUBSUMES true ψ]");
     }
 
     @Test
     public void test6() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS phi CONTRADICTION]");
-        runProver(premises, "[SUBSUMES phi false]");
+        premises.add("[IS φ CONTRADICTION]");
+        runProver(premises, "[SUBSUMES φ false]");
     }
 
     @Test
     public void test7() {
         ArrayList<String> premises = new ArrayList<>();
-        premises.add("[IS (implies phi psi) TAUTOLOGY]");
-        runProver(premises, "[SUBSUMES phi psi]");
+        premises.add("[IS (implies φ ψ) TAUTOLOGY]");
+        runProver(premises, "[SUBSUMES φ ψ]");
     }
+
+    @Test
+    public void test8() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[CONTRADICTORY φ ψ]");
+        runProver(premises, "[AND [CONTRARY φ ψ] [SUBCONTRARY φ ψ]]");
+    }
+
+    @Test
+    public void test9() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[EQUIVALENT φ ψ]");
+        runProver(premises, "[CONTRADICTORY φ (not ψ)]");
+    }
+
+    /*
+    @Test
+    public void test10() {
+        ArrayList<String> premises = new ArrayList<>();
+        premises.add("[SUBSUMES φ ψ]");
+        premises.add("[SUBSUMES ψ λ]");
+        runProver(premises, "[SUBSUMES φ λ]");
+    }
+    */
 }

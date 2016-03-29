@@ -35,16 +35,28 @@ public class TruthAssignment {
     }
 
     /**
+     * Create a new, empty TruthAssignment with the
+     * provided ID. Useful for temporary TruthAssignments,
+     * so that the static counter doesn't increase as quickly
+     */
+    public TruthAssignment(int id) {
+        UID = id;
+        map = new HashMap<>();
+        parent = null;
+        children = new ArrayList<>();
+    }
+
+    /**
      * Create a copy of another TruthAssignment, th
      * @param ta the TruthAssignment to copy
      */
     public TruthAssignment(TruthAssignment ta) {
-        UID = truthAssignmentCount++;
+        UID = ta.UID;
         this.map = new HashMap<>();
         ta.map.forEach((k, v) -> map.put(k, new TruthValue(v)));
         this.parent = ta.parent;
         children = new ArrayList<>();
-        ta.children.forEach(c -> children.add(new TruthAssignment(c)));
+        ta.children.forEach(c -> children.add(c));
     }
 
     public String getName() { return "h" + UID; }
@@ -293,10 +305,7 @@ public class TruthAssignment {
             return h;
         }
 
-        Set<TruthAssignment> leaves = new HashSet<>();
-        leaves.addAll(children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent)
-                    .collect(Collectors.toSet()));
-        return leaves;
+        return children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent).collect(Collectors.toSet());
     }
 
     /**

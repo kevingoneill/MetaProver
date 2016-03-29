@@ -165,6 +165,28 @@ public interface MetaSentenceReader {
                         throw new MetaSentenceParseException("All arguments to the CONTRADICTORY Metasentence must be Sentences");
                 });
                 return new CONTRADICTORY(metaArgs.get(0), metaArgs.get(1));
+            } case "CONTRARY": {
+                if (args.size() != 2)
+                    throw new MetaSentenceParseException("CONTRARY MetaSentence requires exactly two arguments.");
+                ArrayList<Sentence> metaArgs = new ArrayList<>();
+                args.forEach(a -> {
+                    if (a instanceof Sentence)
+                        metaArgs.add((Sentence) a);
+                    else
+                        throw new MetaSentenceParseException("All arguments to the CONTRARY Metasentence must be Sentences");
+                });
+                return new CONTRARY(metaArgs.get(0), metaArgs.get(1));
+            } case "SUBCONTRARY": {
+                if (args.size() != 2)
+                    throw new MetaSentenceParseException("SUBCONTRARY MetaSentence requires exactly two arguments.");
+                ArrayList<Sentence> metaArgs = new ArrayList<>();
+                args.forEach(a -> {
+                    if (a instanceof Sentence)
+                        metaArgs.add((Sentence) a);
+                    else
+                        throw new MetaSentenceParseException("All arguments to the SUBCONTRARY Metasentence must be Sentences");
+                });
+                return new SUBCONTRARY(metaArgs.get(0), metaArgs.get(1));
             } case "IS": {
                 if (args.size() != 2)
                     throw new MetaSentenceParseException("IS MetaSentence requires exactly two arguments.");

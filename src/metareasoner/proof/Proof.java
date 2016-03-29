@@ -124,8 +124,10 @@ public class Proof {
             System.out.print(i + ".  " + s.getMetaSentence().toSymbol() + "\t\t\t" + s.getReason() + " ");
 
             if (s.isForwards() && justification != null)
-                    System.out.println(indexOf(proof, s.getJustification().getOrigin()));
-             else {
+                System.out.println(indexOf(proof, s.getJustification().getOrigin()));
+            else if (s.isForwards())
+                System.out.println();
+            else {
                 if (s.getChildren().size() > 0) {
                     System.out.print(indexOf(proof, s.getChildren().get(0).getMetaSentence()));
                     for (int j = 1; j < s.getChildren().size(); ++j)

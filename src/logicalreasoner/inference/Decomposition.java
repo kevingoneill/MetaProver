@@ -14,7 +14,7 @@ public class Decomposition extends Inference {
 
     public Decomposition(TruthAssignment h, Sentence o, int i) {
         super(h, o, i);
-        additions = new TruthAssignment();
+        additions = new TruthAssignment(-1);
     }
 
     @Override

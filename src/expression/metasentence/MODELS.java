@@ -34,13 +34,15 @@ public class MODELS extends MetaSentence {
     }
 
     public String toSymbol() {
-        return vars.stream().map(v -> "∀" + v.toSymbol()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
+        return vars.stream().map(v -> "FORALL " + v.toSymbol()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
                 + args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
     }
 
     public Sentence getSentence() {
         return (Sentence)args.get(1);
     }
+
+    public boolean isModelled() { return isModelled; }
 
     public MetaInference reasonForwards(Proof p, int inferenceNum) { return reason(p, inferenceNum); }
 
