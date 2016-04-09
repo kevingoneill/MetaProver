@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -25,6 +27,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -110,6 +115,7 @@ public class SemanticProverGui {
  */
 class NewProofInputPanel extends JPanel {
 	private static final long serialVersionUID = 2358456949144956315L;
+	
 
 	public NewProofInputPanel(SemanticProverGui mainWindow) {
 		this.setLayout(new BorderLayout());
@@ -134,15 +140,18 @@ class NewProofInputPanel extends JPanel {
 		premiseInputField.addFocusListener(new FocusListener () {
 			@Override
 			public void focusGained(FocusEvent e) { 
-				premiseInputField.setText(""); 
+				if (premiseInputField.getText().equals("Add Premise Here")) {
+					premiseInputField.setText(""); 
+				}
 			}
 			@Override
 			public void focusLost(FocusEvent e) { 
-				if(premiseInputField.getText().equals("")) {
+				if (premiseInputField.getText().equals("")) {
 					premiseInputField.setText("Add Premise Here");
 				}
 			}
 		});
+		premiseInputField.getDocument().addDocumentListener(new LatexCommands(premiseInputField));
 		premiseLabel.setLabelFor(premiseInputField);
 		removePremiseButton.setEnabled(false);
 		removePremiseButton.addActionListener(new ActionListener() {
@@ -171,16 +180,19 @@ class NewProofInputPanel extends JPanel {
 		JTextField goalInputField = new JTextField("Add Goal Here", 25);
 		goalInputField.addFocusListener(new FocusListener () {
 			@Override
-			public void focusGained(FocusEvent e) { 
-				goalInputField.setText(""); 
+			public void focusGained(FocusEvent e) {
+				if (goalInputField.getText().equals("Add Goal Here")) {
+					goalInputField.setText("");
+				}
 			}
 			@Override
 			public void focusLost(FocusEvent e) { 
-				if(goalInputField.getText().equals("")) {
+				if (goalInputField.getText().equals("")) {
 					goalInputField.setText("Add Goal Here");
 				}
 			}
 		});
+		goalInputField.getDocument().addDocumentListener(new LatexCommands(goalInputField));
 		goalLabel.setLabelFor(goalInputField);
 		JPanel newGoalPanel = new JPanel();
 		newGoalPanel.add(goalLabel);
@@ -228,5 +240,56 @@ class NewProofInputPanel extends JPanel {
 	
 	private void closeWindow() {
 		this.getRootPane().getParent().setVisible(false);
+	}
+	
+	private class LatexCommands implements DocumentListener {
+		private JTextField focus;
+		private Map <String, String> greekLetters = new HashMap<String, String>() {
+			private static final long serialVersionUID = -8954285668593228620L;
+		{
+			put("\\alpha", "α"); put("\\beta", "β"); put("\\gamma", "γ");
+			put("\\delta", "δ"); put("\\epsilon", "ε"); put("\\zeta", "ζ"); 
+			put("\\eta", "η"); put("\\theta", "θ"); put("\\iota", "ι");
+			put("\\kappa", "κ"); put("\\lambda", "λ"); put("\\mu", "μ");
+			put("\\nu", "ν"); put("\\xi", "ξ"); put("\\omicron", "ο");
+			put("\\pi", "π"); put("\\rho", "ρ"); put("\\sigma", "σ");
+			put("\\tau", "τ"); put("\\upsilon", "υ"); put("\\phi", "φ");
+			put("\\chi", "χ"); put("\\psi", "ψ"); put("\\omega", "ω");
+		}};
+		
+		public LatexCommands(JTextField focus) {
+			this.focus = focus;
+		}
+		
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			String input = focus.getText();
+			char lastChar = input.charAt(input.length()-1);
+			
+			if (!Character.isLetter(lastChar)) {
+				int i = input.length() - 2;
+				while (i > 0 && input.charAt(i) != ' ' && input.charAt(i) != '\\') {
+					i--;
+				}
+				if (i >= 0 && input.charAt(i) == '\\') {
+					String command = input.substring(i, input.length()-1);
+					String replacement = greekLetters.get(command);
+					if (replacement != null) {
+						String newString = input.substring(0, i).concat(replacement).concat(input.substring(input.length()-1, input.length()));
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								focus.setText(newString);
+							}
+						});
+					}
+				}
+			}
+		}
+		
+		@Override
+		public void removeUpdate(DocumentEvent e) { }
+		
+		@Override
+		public void changedUpdate(DocumentEvent e) { }
 	}
 }
