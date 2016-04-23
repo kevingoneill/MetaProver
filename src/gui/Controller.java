@@ -3,11 +3,16 @@ package gui;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import expression.Expression;
 import expression.metasentence.MetaSentence;
 import expression.metasentence.MetaSentenceReader;
+import expression.sentence.Sentence;
+import expression.sentence.SentenceReader;
+import logicalreasoner.prover.SemanticProver;
 import metareasoner.MetaProver;
 
 public class Controller {
@@ -15,11 +20,14 @@ public class Controller {
 	
 	public Controller() {
 		baos = new ByteArrayOutputStream();
-		System.setOut(new PrintStream(baos));
+		
 	}
 	
 	public String MetaProve(List<String> premises, String goal) {
-        ArrayList<MetaSentence> p = new ArrayList<MetaSentence>() {{
+		System.setOut(new PrintStream(baos));
+        ArrayList<MetaSentence> p = new ArrayList<MetaSentence>() {
+			private static final long serialVersionUID = 6077224465030638138L;
+		{
             premises.forEach(premise -> {
                 Expression e = MetaSentenceReader.parse(premise);
                 if (e instanceof MetaSentence)
@@ -39,6 +47,25 @@ public class Controller {
 		
 		String toReturn = baos.toString();
 		System.out.flush();
+		System.setOut(System.out);
 		return toReturn;
+	}
+	
+	public String TruthFunctionalProve(List<String> premises, String goal) {
+		System.setOut(new PrintStream(baos));
+		Set<Sentence> p = new HashSet<Sentence>() {
+			private static final long serialVersionUID = 8376931001151027146L;
+
+		{
+            premises.forEach(premise -> this.add(SentenceReader.parse(premise)));
+        }};
+        
+        SemanticProver prover = new SemanticProver(p, SentenceReader.parse(goal));
+        prover.run();
+        
+        String toReturn = baos.toString();
+        System.out.flush();
+        System.setOut(System.out);
+        return toReturn;
 	}
 }

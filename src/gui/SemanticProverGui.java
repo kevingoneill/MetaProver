@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -23,6 +24,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -53,6 +55,7 @@ public class SemanticProverGui {
 		mainWindow = new JFrame(TITLE);
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainWindow.setLayout(new BorderLayout());
+		mainWindow.setLocation(100, 100);
 		
 		menuBar = initMenuBar();
 		mainWindow.setJMenuBar(menuBar);
@@ -104,8 +107,13 @@ public class SemanticProverGui {
 		dialog.setVisible(true);
 	}
 	
-	protected void prove(ArrayList<String> premises, String goal) {
-		String proof = controller.MetaProve(premises, goal);
+	protected void prove(ArrayList<String> premises, String goal, boolean meta) {
+		String proof;
+		if (meta) {
+			proof = controller.MetaProve(premises, goal);
+		} else {
+			proof = controller.TruthFunctionalProve(premises, goal);
+		}
 		proofOutput.setText(proof);
 	}
 }
@@ -122,7 +130,7 @@ class NewProofInputPanel extends JPanel {
 		
 		// create panel for premise/goal input
 		JPanel inputPane = new JPanel();
-		inputPane.setLayout(new BoxLayout(inputPane, BoxLayout.Y_AXIS));
+		inputPane.setLayout(new BoxLayout(inputPane, BoxLayout.Y_AXIS)); // top level layout for newProofInputPanel
 		JButton addPremiseButton =  new JButton("Add");
 		JButton removePremiseButton = new JButton("Remove");
 		DefaultListModel<String> addedModel = new DefaultListModel<String>();
@@ -204,6 +212,22 @@ class NewProofInputPanel extends JPanel {
 		inputPane.add(newGoalPanel);
 		inputPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
+		// create radio button to choose truth-functional or semantic proof
+		JPanel proofTypeSelectPane = new JPanel();
+		proofTypeSelectPane.setLayout(new BoxLayout(proofTypeSelectPane, BoxLayout.X_AXIS));
+		proofTypeSelectPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JRadioButton truthFunctionalOption = new JRadioButton("Truth Functional Proof");
+		JRadioButton metaOption	= new JRadioButton("Meta-logical Proof");
+		metaOption.setSelected(true);
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(truthFunctionalOption);
+		bg.add(metaOption);
+		proofTypeSelectPane.add(Box.createHorizontalGlue());
+		proofTypeSelectPane.add(metaOption);
+		proofTypeSelectPane.add(Box.createRigidArea(new Dimension(10,0)));
+		proofTypeSelectPane.add(truthFunctionalOption);
+		proofTypeSelectPane.add(Box.createHorizontalGlue());
+		
 		// create panel for buttons
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
@@ -218,7 +242,8 @@ class NewProofInputPanel extends JPanel {
 					premises.add(addedModel.getElementAt(i));
 				}
 				String goal = goalInputField.getText();
-				mainWindow.prove(premises, goal);
+				boolean meta = metaOption.isSelected();
+				mainWindow.prove(premises, goal, meta);
 			}
 		});
 		JButton cancelButton = new JButton("Cancel");
@@ -233,9 +258,15 @@ class NewProofInputPanel extends JPanel {
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(proveButton);
 		
+		// Combines proof type selection pane with button pane
+		JPanel bottomPane = new JPanel();
+		bottomPane.setLayout(new BoxLayout(bottomPane, BoxLayout.Y_AXIS));
+		bottomPane.add(proofTypeSelectPane);
+		bottomPane.add(buttonPane);
+		
 		// Add everything to encapsulating JPanel (this)
 		this.add(inputPane, BorderLayout.CENTER);
-		this.add(buttonPane, BorderLayout.PAGE_END);
+		this.add(bottomPane, BorderLayout.PAGE_END);
 	}
 	
 	private void closeWindow() {
