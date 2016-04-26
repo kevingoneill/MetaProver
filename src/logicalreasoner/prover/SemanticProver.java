@@ -152,6 +152,7 @@ public class SemanticProver implements Runnable {
 
             printInferences();
             printInferenceList();
+            printTruthTree();
         }
     }
 
@@ -197,6 +198,14 @@ public class SemanticProver implements Runnable {
             inferenceList.forEach(System.out::println);
             System.out.println();
         }
+    }
+    
+    private void printTruthTree() {
+    	if (print) {
+    		System.out.println("Truth tree: ");
+    		masterFunction.makeTruthTree().print();
+    		System.out.println();
+    	}
     }
 
     /**

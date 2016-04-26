@@ -1,5 +1,9 @@
 package gui;
 
+import gui.truthtreevisualization.TreeBranch;
+import gui.truthtreevisualization.TreeViewer;
+import gui.truthtreevisualization.TruthTree;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -40,12 +44,14 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SemanticProverGui {
 	final static String TITLE = "Semantic Prover";
-	final static int WIDTH = 600;
+	final static int WIDTH = 1100;
 	final static int HEIGHT = 400;
 	
 	private JFrame mainWindow;
 	private JMenuBar menuBar;
 	private JTextArea proofOutput;
+	private TreeViewer treePanel;
+	private JPanel mainOutputPanel;
 	private Controller controller;
 	
 	public SemanticProverGui() {
@@ -61,7 +67,19 @@ public class SemanticProverGui {
 		mainWindow.setJMenuBar(menuBar);
 		
 		proofOutput = new JTextArea();
-		mainWindow.add(proofOutput, BorderLayout.CENTER);
+		proofOutput.setSize(WIDTH/2, HEIGHT);
+		
+		TreeBranch root = new TreeBranch();
+		root.addStatement("premise1");
+		root.addStatement("premise2");
+		TruthTree tree = new TruthTree(root); 
+		treePanel = new TreeViewer(tree, WIDTH/2, HEIGHT);
+		
+		mainOutputPanel = new JPanel();
+		mainOutputPanel.setLayout(new BoxLayout(mainOutputPanel, BoxLayout.X_AXIS));
+		mainOutputPanel.add(proofOutput);
+		mainOutputPanel.add(treePanel);
+		mainWindow.add(mainOutputPanel, BorderLayout.CENTER);
 	}
 	
 	public void showWindow() {

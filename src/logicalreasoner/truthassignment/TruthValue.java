@@ -46,6 +46,14 @@ public class TruthValue {
                 vals.put(k, v);
         });
     }
+    
+    public boolean containsTrue() {
+    	return vals.containsKey(true);
+    }
+    
+    public boolean containsFalse() {
+    	return vals.containsKey(false);
+    }
 
     public boolean isModelled() {
         return vals.containsKey(true);
@@ -56,7 +64,7 @@ public class TruthValue {
     public boolean isDecomposed() { return isDecomposed; }
 
     public String toString() {
-        return vals.keySet().toString() + " decomposed: " + isDecomposed;
+        return vals.keySet().toString() + " " + "decomposed: " + isDecomposed;
     }
 
     public int hashCode() {

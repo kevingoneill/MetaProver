@@ -1,13 +1,21 @@
 package logicalreasoner.truthassignment;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import expression.sentence.Atom;
 import expression.sentence.Constant;
 import expression.sentence.Predicate;
 import expression.sentence.Sentence;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import gui.truthtreevisualization.TreeBranch;
+import gui.truthtreevisualization.TruthTree;
 
 /**
  * The TruthAssignment class represents a function
@@ -92,6 +100,29 @@ public class TruthAssignment {
         if (itr.hasNext()) {
             itr.next().print(prefix + (isTail ?"    " : "│   "), true);
         }
+    }
+    
+    public TruthTree makeTruthTree() {
+    	TreeBranch root = makeBranch(map.keySet());
+    	children.forEach(child -> {
+    		root.addChild(child.makeTruthTree().getRoot());
+    	});
+    	
+    	TruthTree tree = new TruthTree(root);
+    	return tree;
+    }
+    
+    private TreeBranch makeBranch(Set<Sentence> sens) {
+    	TreeBranch newBranch = new TreeBranch();
+    	sens.forEach(s -> {
+    		String prefix = "";
+    		if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
+    			prefix = "¬";
+    		}
+    		newBranch.addStatement(prefix + s.toString());
+    	});
+    	
+    	return newBranch;
     }
 
     public TruthAssignment getParent() { return parent; }
