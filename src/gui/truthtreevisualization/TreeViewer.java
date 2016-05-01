@@ -8,8 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -21,16 +19,17 @@ public class TreeViewer extends JPanel{
 	private Point baseReference, clickPoint;
 	private TruthTree tree;
 	private int xPan, yPan;
+	private String name;
 	
 	private static final int DEFAULT_VERT_SPACE = 20;
 	private static final int DEFAULT_HORZ_SPACE = 10;
 	private static final int DEFAULT_LINE_THICK = 2;
-	private static final float DEFAULT_FONT_SIZE = 12.0f;
+//	private static final float DEFAULT_FONT_SIZE = 12.0f;
+//	
+//	private int VERT_SPACE, HORZ_SPACE, LINE_THICK;
+//	private float FONT_SIZE;
 	
-	private int VERT_SPACE, HORZ_SPACE, LINE_THICK;
-	private float FONT_SIZE;
-	
-	public TreeViewer(TruthTree t, int w, int h) {
+	public TreeViewer(TruthTree t, String name) {
 		super();
 		setOpaque(false);
 		setBackground(new Color(0,0,0,0));
@@ -41,18 +40,18 @@ public class TreeViewer extends JPanel{
 		this.tree = t;
 		xPan = yPan = 0;
 		clickPoint = new Point(0, 0);
+		this.name = name;
 		
-		VERT_SPACE = DEFAULT_VERT_SPACE;
-		HORZ_SPACE = DEFAULT_HORZ_SPACE;
-		LINE_THICK = DEFAULT_LINE_THICK;
-		FONT_SIZE = DEFAULT_FONT_SIZE;
+//		VERT_SPACE = DEFAULT_VERT_SPACE;
+//		HORZ_SPACE = DEFAULT_HORZ_SPACE;
+//		LINE_THICK = DEFAULT_LINE_THICK;
+//		FONT_SIZE = DEFAULT_FONT_SIZE;
 		
 		// Add listener for mouse drag panning
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				clickPoint = e.getPoint();
-//				System.out.println("press");
 			}
 		});
 		
@@ -62,7 +61,6 @@ public class TreeViewer extends JPanel{
 				xPan -= clickPoint.x - e.getPoint().x;
 				yPan -= clickPoint.y - e.getPoint().y;
 				clickPoint = e.getPoint();
-				System.out.println("pan = (" + xPan + ", " + yPan + ")");
 				repaint();
 			}
 		});
@@ -90,55 +88,17 @@ public class TreeViewer extends JPanel{
 //				repaint();
 //			}
 //		});
-		
-//		addMouseListener(new MouseListener() {
-//			@Override
-//			public void mouseClicked(MouseEvent e) {}
-//
-//			@Override
-//			public void mousePressed(MouseEvent e) {
-//				System.out.println("mousepressed");
-//				clickPoint = e.getPoint();
-//			}
-//
-//			@Override
-//			public void mouseReleased(MouseEvent e) {}
-//			@Override
-//			public void mouseEntered(MouseEvent e) {}
-//			@Override
-//			public void mouseExited(MouseEvent e) {}
-//		});
-//		
-//		addMouseMotionListener(new MouseMotionListener() {
-//			@Override
-//			public void mouseDragged(MouseEvent e) { 
-//				xPan += e.getPoint().x - clickPoint.x;
-//				yPan += e.getPoint().y - clickPoint.y;
-//				System.out.println("pan = (" + xPan + ", " + yPan + ")");
-//			}
-//
-//			@Override
-//			public void mouseMoved(MouseEvent e) { }
-//		});
-//		repaint();
-		
-//		this.branches = new LinkedHashSet<BranchViewer>();
-//		int x = width / 2;
-//		int y = height / 2;
-//		drawBranch(new BranchViewer(tree.getRoot().getStatements()), x, y);
+	}
+	
+	@Override
+	public String getName() {
+		return name;
 	}
 	
 	public void addTree(TruthTree t) {
 		this.tree = t;
 		
-		xPan = yPan = 0;
-		
-		VERT_SPACE = DEFAULT_VERT_SPACE;
-		HORZ_SPACE = DEFAULT_HORZ_SPACE;
-		LINE_THICK = DEFAULT_LINE_THICK;
-		FONT_SIZE = DEFAULT_FONT_SIZE;
-		
-		validate();
+		revalidate();
 		repaint();
 	}
 	
@@ -151,10 +111,7 @@ public class TreeViewer extends JPanel{
 		if (tree == null) {
 			return;
 		}
-		
-		System.out.println("check");
-		System.out.println("pan = (" + xPan + ", " + yPan + ")");
-		
+				
 		baseReference.x = this.getWidth()/2 + xPan;
 		baseReference.y = 10 + yPan;
 		
@@ -177,7 +134,7 @@ public class TreeViewer extends JPanel{
 			if (currBranch.getParent() != null) {
 				Point lineStart = currBranch.getParent().getBottomAnchor();
 				g2.setColor(Color.blue);
-				g2.setStroke(new BasicStroke(LINE_THICK));
+				g2.setStroke(new BasicStroke(DEFAULT_LINE_THICK));
 				g2.drawLine(lineStart.x, lineStart.y, ref.x, ref.y);
 			}
 			
@@ -186,7 +143,7 @@ public class TreeViewer extends JPanel{
 			for (TreeBranch c : currBranch.getChildren()) {
 				int childFrameWidth = getFrameWidth(c);
 				int newX;
-				int newY = ref.y + currBranch.getPreferredSize().height + VERT_SPACE;
+				int newY = ref.y + currBranch.getPreferredSize().height + DEFAULT_VERT_SPACE;
 				double relativeFrameSize = (double)childFrameWidth / (double)currFrameWidth;
 				int relativePlacement = (int)((relativeFrameSize/2.0) * currFrameWidth);
 				if (c.isLeftChild()) {
@@ -229,25 +186,18 @@ public class TreeViewer extends JPanel{
 			for (TreeBranch c : topBranch.getChildren()) {
 				fwidth += getFrameWidth(c);
 			}
-			return fwidth + HORZ_SPACE;
+			return fwidth + DEFAULT_HORZ_SPACE;
 		}
 		
 	}
 	
-	private void updateFontSize(TreeBranch b, float newSize) {
-		b.getStatements().values().forEach(s -> {
-			s.setFont(s.getFont().deriveFont((float) 25.0));
-			s.revalidate();
-		});
-		b.revalidate();
-		b.repaint();
-		b.getChildren().forEach(c -> updateFontSize(c, newSize));
-	}
-	
-//	private void drawBranch(BranchViewer branch, int x, int y) {
-//		branches.add(branch);
-//		this.add(branch);
-//		Dimension size = branch.getPreferredSize();
-//		branch.setBounds(x, y, size.width, size.height);
+//	private void updateFontSize(TreeBranch b, float newSize) {
+//		b.getStatements().values().forEach(s -> {
+//			s.setFont(s.getFont().deriveFont((float) 25.0));
+//			s.revalidate();
+//		});
+//		b.revalidate();
+//		b.repaint();
+//		b.getChildren().forEach(c -> updateFontSize(c, newSize));
 //	}
 }

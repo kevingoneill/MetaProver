@@ -1,10 +1,13 @@
 package metareasoner.proof;
 
 import expression.metasentence.MetaSentence;
+import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -110,6 +113,43 @@ public class Proof {
                     f.getMetaSentence().equals(l.getMetaSentence())));
     }
 
+    public Map<Integer, List<TruthTree>> getTruthTrees() {
+    	if (!isComplete()) {
+    		return null;
+    	}
+    	
+    	Map<Integer, List<TruthTree>> stepsToTruthTrees = new LinkedHashMap<Integer, List<TruthTree>>();
+    	
+    	ArrayList<Step> proof = generateProof();
+    	
+    	for (int i = 0; i < proof.size(); ++i) {
+    		Step s = proof.get(i);
+    		List<TruthTree> stepTTs = new ArrayList<TruthTree>();
+    		
+    		s.getMetaSentence().getVars().forEach(tav -> stepTTs.add(tav.getTruthAssignment().makeTruthTree()));
+    		
+//            s.getChildren().forEach(child -> 
+//            	child.getMetaSentence().getVars().forEach(tav -> {
+//            		stepTTs.add(tav.getTruthAssignment().makeTruthTree());
+//            	})
+//            );
+    		if (stepTTs.size() > 0) {
+    			stepsToTruthTrees.put(i, stepTTs);
+    		}
+    	}
+    	
+    	stepsToTruthTrees.keySet().forEach(step -> {
+    		System.out.println(step + ": \n");
+    		int i = 1;
+    		stepsToTruthTrees.get(step).forEach(tree -> {
+    			System.out.println("Tree " + i + ":\n");
+    			tree.print();
+    			System.out.println("\n");
+    		});
+    	});
+    	return stepsToTruthTrees;
+    }
+    
     public void printProof() {
         if (!isComplete()) {
             System.out.println("NO PROOF FOUND");

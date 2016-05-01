@@ -103,7 +103,7 @@ public class TruthAssignment {
     }
     
     public TruthTree makeTruthTree() {
-    	TreeBranch root = makeBranch(map.keySet());
+    	TreeBranch root = makeBranch(map.keySet(), children.isEmpty());
     	children.forEach(child -> {
     		root.addChild(child.makeTruthTree().getRoot());
     	});
@@ -112,15 +112,19 @@ public class TruthAssignment {
     	return tree;
     }
     
-    private TreeBranch makeBranch(Set<Sentence> sens) {
+    private TreeBranch makeBranch(Set<Sentence> sens, boolean isLeaf) {
     	TreeBranch newBranch = new TreeBranch();
     	sens.forEach(s -> {
     		String prefix = "";
     		if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
     			prefix = "¬";
     		}
-    		newBranch.addStatement(prefix + s.toString());
+    		newBranch.addStatement(prefix + s.toSymbol());
     	});
+    	
+    	if (isLeaf) {
+    		newBranch.addStatement((isConsistent() ? "✓" : "✗"));
+    	}
     	
     	return newBranch;
     }

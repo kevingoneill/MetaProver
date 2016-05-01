@@ -1,11 +1,13 @@
 package metareasoner;
 
 import expression.metasentence.MetaSentence;
+import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -67,10 +69,17 @@ public class MetaProver implements Runnable {
 
         System.out.println("\n\n\nProof:\n");
         proof.printProof();
+        System.out.println("\n\n\nSome trees:\n");
+        proof.getTruthTrees();
+
     }
 
     public boolean proofFound() {
         return proof.isComplete();
+    }
+    
+    public Map<Integer, List<TruthTree>> getTruthTrees() {
+    	return proof.getTruthTrees();
     }
 
     /**

@@ -1,8 +1,6 @@
 package gui;
 
-import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TreeViewer;
-import gui.truthtreevisualization.TruthTree;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -31,6 +29,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -55,7 +54,7 @@ public class SemanticProverGui extends JFrame {
 	private JMenuBar menuBar;
 	private JTextArea textOutput;
 	private JScrollPane scroll;
-	private TreeViewer treePanel;
+	private JTabbedPane treePanel;
 	private JPanel mainOutputPanel;
 	private Controller controller;
 	
@@ -79,32 +78,9 @@ public class SemanticProverGui extends JFrame {
 		scroll.setBorder(new TitledBorder(new EtchedBorder(), "Text Output"));
 //		scroll.setPreferredSize(new Dimension(WIDTH/2, HEIGHT));
 		
-		TreeBranch root = new TreeBranch();
-		root.addStatement("premise1");
-		root.addStatement("premise2");
-		TreeBranch branch1 = new TreeBranch();
-		branch1.addStatement("branch1");
-		root.addChild(branch1);
-		TreeBranch branch11 = new TreeBranch();
-		branch11.addStatement("branch1.1");
-		TreeBranch branch12 = new TreeBranch();
-		branch12.addStatement("branch1.2");
-		branch1.addChild(branch11);
-		branch1.addChild(branch12);
-		TreeBranch branch2 = new TreeBranch();
-		branch2.addStatement("branch2");
-		branch2.addStatement("branch2");
-		TreeBranch branch21 = new TreeBranch();
-		branch21.addStatement("branch2.1");
-		TreeBranch branch22 = new TreeBranch();
-		branch22.addStatement("branch2.2");
-		branch2.addChild(branch21);
-		branch2.addChild(branch22);
-		root.addChild(branch2);
 		
-		TruthTree tree = new TruthTree(root);
-		System.out.println(root.getChildren());
-		treePanel = new TreeViewer(null, WIDTH/2, HEIGHT);
+		
+		treePanel = new JTabbedPane();
 		
 		mainOutputPanel = new JPanel();
 		mainOutputPanel.setLayout(new GridLayout(1, 2));
@@ -157,19 +133,32 @@ public class SemanticProverGui extends JFrame {
 	}
 	
 	protected void prove(ArrayList<String> premises, String goal, boolean meta) {
-		ProofInfo proof = null;
+		textOutput.setText(null);
+		for (int i = 0; i < treePanel.getTabCount(); ++i) {
+			treePanel.remove(i);
+		}
+		
+		ProofInfo result = null;
 		if (meta) {
-			System.out.println("not implemented yet");
-			//proof = controller.MetaProve(premises, goal);
+//			System.out.println("not implemented yet");
+			result = controller.MetaProve(premises, goal);
 		} else {
-			proof = controller.TruthFunctionalProve(premises, goal);
+			result = controller.TruthFunctionalProve(premises, goal);
 		}
-		if (proof == null) {
-			System.out.println("still need to implement meta-proof truth trees");
-			return;
-		}
+		final ProofInfo proof = result;
 		textOutput.setText(proof.text);
-		treePanel.addTree(proof.tree);
+		proof.trees.keySet().forEach(step -> {
+			if (step == -1) {
+				// truth functional proof
+				treePanel.add(new TreeViewer(proof.trees.get(step).get(0), "TruthTree"));
+			} else {
+				proof.trees.get(step).forEach(tt -> {
+					treePanel.add(new TreeViewer(tt, "Step " + step + ", Tree " + proof.trees.get(step).indexOf(tt)));
+					
+				});
+			}
+		});
+		treePanel.add(new TreeViewer(proof.trees.get(1).get(0), "Truth Tree"));
 		this.setSize(new Dimension(getWidth(), getHeight()-1)); // stupid fix to show jlabels in truth tree, idk why, but it works
 	}
 }

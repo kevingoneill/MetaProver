@@ -4,7 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import expression.Expression;
@@ -24,7 +26,7 @@ public class Controller {
 		
 	}
 	
-	public String MetaProve(List<String> premises, String goal) {
+	public ProofInfo MetaProve(List<String> premises, String goal) {
 		System.setOut(new PrintStream(baos));
         ArrayList<MetaSentence> p = new ArrayList<MetaSentence>() {
 			private static final long serialVersionUID = 6077224465030638138L;
@@ -46,10 +48,11 @@ public class Controller {
             throw new RuntimeException("Proof could not be found!");
         }
 		
-		String toReturn = baos.toString();
+		String text = baos.toString();
+		baos.reset();
 		System.out.flush();
 		System.setOut(System.out);
-		return toReturn;
+		return new ProofInfo(text, prover.getTruthTrees());
 	}
 	
 	public ProofInfo TruthFunctionalProve(List<String> premises, String goal) {
@@ -65,18 +68,23 @@ public class Controller {
         prover.run();
         
         String text = baos.toString();
+        baos.reset();
         System.out.flush();
         System.setOut(System.out);
-        return new ProofInfo(text, prover.getTruthAssignment().makeTruthTree());
+        return new ProofInfo(text, new LinkedHashMap<Integer, List<TruthTree>>() {{
+        	put(-1, new ArrayList<TruthTree>() {{
+        		add(prover.getTruthAssignment().makeTruthTree());
+        	}});
+        }});
 	}
 }
 
 class ProofInfo {
 	String text;
-	TruthTree tree;
+	Map<Integer, List<TruthTree>> trees;
 	
-	public ProofInfo(String text, TruthTree tree) {
+	public ProofInfo(String text, Map<Integer, List<TruthTree>> trees) {
 		this.text = text;
-		this.tree = tree;
+		this.trees = trees;
 	}
 }

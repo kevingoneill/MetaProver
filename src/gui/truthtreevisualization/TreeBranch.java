@@ -1,9 +1,10 @@
 package gui.truthtreevisualization;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,8 +14,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 public class TreeBranch extends JPanel {
 	private static final long serialVersionUID = -5667752505914020168L;
@@ -42,10 +41,35 @@ public class TreeBranch extends JPanel {
 		children = new ArrayList<TreeBranch>();
 		this.parent = parent;
 		this.leftChild = isLeft;
+		
+		setVisible(true);
 	}
 	
 	public void addStatement(String s) {
 		JLabel sLabel = new JLabel(s);
+		sLabel.setOpaque(true);
+		if (s.equals("✓")) {
+			sLabel.setForeground(Color.GREEN);
+		} else if (s.equals("✗")) {
+			sLabel.setForeground(Color.RED);
+		}
+//		sLabel.addMouseListener(new MouseAdapter() {
+//			@Override
+//			public void mouseEntered(MouseEvent e) {
+//				System.out.println("entered");
+//				sLabel.setBackground(Color.CYAN);
+//				sLabel.setText("hi");
+////				sLabel.repaint();
+//			}
+//
+//			@Override
+//			public void mouseExited(MouseEvent e) {
+//				System.out.println("exited");
+//				sLabel.setBackground(Color.white);
+//				sLabel.setText("bye");
+////				sLabel.repaint();
+//			}
+//		});
 		sLabel.setFont(sLabel.getFont().deriveFont(16.0f));
 		statements.put(s, sLabel);
 		this.add(sLabel);
@@ -122,7 +146,7 @@ public class TreeBranch extends JPanel {
 	
 	public void print(String prefix) {
 		String output = prefix + (leftChild ? "[left] " : "[right] ") + 
-				statements.toString();
+				statements.keySet().toString();
 		System.out.println(output);
 		children.forEach(child -> child.print(prefix + "\t"));
 	}
