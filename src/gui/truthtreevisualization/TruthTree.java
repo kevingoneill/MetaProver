@@ -13,7 +13,7 @@ public class TruthTree {
 	}
 	
 	public TreeBranch getRoot() {
-		return new TreeBranch(root);
+		return root;
 	}
 	
 	public void print() {

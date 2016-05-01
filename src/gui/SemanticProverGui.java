@@ -6,6 +6,7 @@ import gui.truthtreevisualization.TruthTree;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -34,6 +35,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -42,50 +45,78 @@ import javax.swing.event.ListSelectionListener;
 /**
  * Top level window that holds all graphical components of the main window
  */
-public class SemanticProverGui {
+public class SemanticProverGui extends JFrame {
+	private static final long serialVersionUID = 2445713372827434324L;
+	
 	final static String TITLE = "Semantic Prover";
 	final static int WIDTH = 1100;
 	final static int HEIGHT = 400;
 	
-	private JFrame mainWindow;
 	private JMenuBar menuBar;
-	private JTextArea proofOutput;
+	private JTextArea textOutput;
+	private JScrollPane scroll;
 	private TreeViewer treePanel;
 	private JPanel mainOutputPanel;
 	private Controller controller;
 	
 	public SemanticProverGui() {
+		super(TITLE);
 		controller = new Controller();
 		
 		// mainWindow initialization
-		mainWindow = new JFrame(TITLE);
-		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainWindow.setLayout(new BorderLayout());
-		mainWindow.setLocation(100, 100);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setLayout(new BorderLayout());
+		this.setLocation(100, 100);
+//		this.setResizable(false);
 		
 		menuBar = initMenuBar();
-		mainWindow.setJMenuBar(menuBar);
+		this.setJMenuBar(menuBar);
 		
-		proofOutput = new JTextArea();
-		proofOutput.setSize(WIDTH/2, HEIGHT);
+		textOutput = new JTextArea();
+		textOutput.setEditable(false);
+//		textOutput.setPreferredSize(new Dimension(WIDTH/2, HEIGHT));
+		scroll = new JScrollPane(textOutput);
+		scroll.setBorder(new TitledBorder(new EtchedBorder(), "Text Output"));
+//		scroll.setPreferredSize(new Dimension(WIDTH/2, HEIGHT));
 		
 		TreeBranch root = new TreeBranch();
 		root.addStatement("premise1");
 		root.addStatement("premise2");
-		TruthTree tree = new TruthTree(root); 
-		treePanel = new TreeViewer(tree, WIDTH/2, HEIGHT);
+		TreeBranch branch1 = new TreeBranch();
+		branch1.addStatement("branch1");
+		root.addChild(branch1);
+		TreeBranch branch11 = new TreeBranch();
+		branch11.addStatement("branch1.1");
+		TreeBranch branch12 = new TreeBranch();
+		branch12.addStatement("branch1.2");
+		branch1.addChild(branch11);
+		branch1.addChild(branch12);
+		TreeBranch branch2 = new TreeBranch();
+		branch2.addStatement("branch2");
+		branch2.addStatement("branch2");
+		TreeBranch branch21 = new TreeBranch();
+		branch21.addStatement("branch2.1");
+		TreeBranch branch22 = new TreeBranch();
+		branch22.addStatement("branch2.2");
+		branch2.addChild(branch21);
+		branch2.addChild(branch22);
+		root.addChild(branch2);
+		
+		TruthTree tree = new TruthTree(root);
+		System.out.println(root.getChildren());
+		treePanel = new TreeViewer(null, WIDTH/2, HEIGHT);
 		
 		mainOutputPanel = new JPanel();
-		mainOutputPanel.setLayout(new BoxLayout(mainOutputPanel, BoxLayout.X_AXIS));
-		mainOutputPanel.add(proofOutput);
+		mainOutputPanel.setLayout(new GridLayout(1, 2));
+		mainOutputPanel.add(scroll);
 		mainOutputPanel.add(treePanel);
-		mainWindow.add(mainOutputPanel, BorderLayout.CENTER);
+		this.add(mainOutputPanel, BorderLayout.CENTER);
 	}
 	
 	public void showWindow() {
-		mainWindow.pack();
-		mainWindow.setSize(WIDTH, HEIGHT);
-		mainWindow.setVisible(true);
+		this.pack();
+		this.setSize(WIDTH, HEIGHT);
+		this.setVisible(true);
 	}
 	
 	/**
@@ -116,7 +147,7 @@ public class SemanticProverGui {
 	 * want to prove
 	 */
 	private void newProofDialog() {
-		JDialog dialog = new JDialog(mainWindow, "New Proof", true);
+		JDialog dialog = new JDialog(this, "New Proof", true);
 		NewProofInputPanel panel = new NewProofInputPanel(this);
 		dialog.getContentPane().add(panel);
 		dialog.setSize(1000, 1000);
@@ -126,13 +157,20 @@ public class SemanticProverGui {
 	}
 	
 	protected void prove(ArrayList<String> premises, String goal, boolean meta) {
-		String proof;
+		ProofInfo proof = null;
 		if (meta) {
-			proof = controller.MetaProve(premises, goal);
+			System.out.println("not implemented yet");
+			//proof = controller.MetaProve(premises, goal);
 		} else {
 			proof = controller.TruthFunctionalProve(premises, goal);
 		}
-		proofOutput.setText(proof);
+		if (proof == null) {
+			System.out.println("still need to implement meta-proof truth trees");
+			return;
+		}
+		textOutput.setText(proof.text);
+		treePanel.addTree(proof.tree);
+		this.setSize(new Dimension(getWidth(), getHeight()-1)); // stupid fix to show jlabels in truth tree, idk why, but it works
 	}
 }
 
@@ -184,6 +222,7 @@ class NewProofInputPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				addedModel.remove(addedList.getSelectedIndex());
+				removePremiseButton.setEnabled(false);
 			}
 		});
 		addPremiseButton.addActionListener(new ActionListener() {

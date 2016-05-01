@@ -152,7 +152,7 @@ public class SemanticProver implements Runnable {
 
             printInferences();
             printInferenceList();
-            printTruthTree();
+//            printTruthTree();
         }
     }
 
@@ -200,12 +200,16 @@ public class SemanticProver implements Runnable {
         }
     }
     
-    private void printTruthTree() {
-    	if (print) {
-    		System.out.println("Truth tree: ");
-    		masterFunction.makeTruthTree().print();
-    		System.out.println();
-    	}
+//    private void printTruthTree() {
+//    	if (print) {
+//    		System.out.println("Truth tree: ");
+//    		masterFunction.makeTruthTree().print();
+//    		System.out.println();
+//    	}
+//    }
+    
+    public TruthAssignment getTruthAssignment() {
+    	return masterFunction;
     }
 
     /**

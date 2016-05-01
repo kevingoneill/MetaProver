@@ -12,6 +12,7 @@ import expression.metasentence.MetaSentence;
 import expression.metasentence.MetaSentenceReader;
 import expression.sentence.Sentence;
 import expression.sentence.SentenceReader;
+import gui.truthtreevisualization.TruthTree;
 import logicalreasoner.prover.SemanticProver;
 import metareasoner.MetaProver;
 
@@ -51,7 +52,7 @@ public class Controller {
 		return toReturn;
 	}
 	
-	public String TruthFunctionalProve(List<String> premises, String goal) {
+	public ProofInfo TruthFunctionalProve(List<String> premises, String goal) {
 		System.setOut(new PrintStream(baos));
 		Set<Sentence> p = new HashSet<Sentence>() {
 			private static final long serialVersionUID = 8376931001151027146L;
@@ -63,9 +64,19 @@ public class Controller {
         SemanticProver prover = new SemanticProver(p, SentenceReader.parse(goal));
         prover.run();
         
-        String toReturn = baos.toString();
+        String text = baos.toString();
         System.out.flush();
         System.setOut(System.out);
-        return toReturn;
+        return new ProofInfo(text, prover.getTruthAssignment().makeTruthTree());
+	}
+}
+
+class ProofInfo {
+	String text;
+	TruthTree tree;
+	
+	public ProofInfo(String text, TruthTree tree) {
+		this.text = text;
+		this.tree = tree;
 	}
 }

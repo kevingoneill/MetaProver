@@ -1,38 +1,253 @@
 package gui.truthtreevisualization;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JPanel;
 
 public class TreeViewer extends JPanel{
 	private static final long serialVersionUID = -3510274108984179880L;
 
-	private int width, height;
+	private Point baseReference, clickPoint;
 	private TruthTree tree;
-	private Set<BranchViewer> branches;
+	private int xPan, yPan;
+	
+	private static final int DEFAULT_VERT_SPACE = 20;
+	private static final int DEFAULT_HORZ_SPACE = 10;
+	private static final int DEFAULT_LINE_THICK = 2;
+	private static final float DEFAULT_FONT_SIZE = 12.0f;
+	
+	private int VERT_SPACE, HORZ_SPACE, LINE_THICK;
+	private float FONT_SIZE;
 	
 	public TreeViewer(TruthTree t, int w, int h) {
 		super();
 		setOpaque(false);
 		setBackground(new Color(0,0,0,0));
 		setLayout(null);
-		width = w;
-		height = h;
-		setPreferredSize(new Dimension(width, height));
-		tree = t;
-		branches = new LinkedHashSet<BranchViewer>();
-		int x = width / 2;
-		int y = height / 2;
-		drawBranch(new BranchViewer(tree.getRoot().getStatements()), x, y);
+		baseReference = new Point(this.getWidth()/2, 10);
+//		setPreferredSize(new Dimension(w, h));
+		setFocusable(true);
+		this.tree = t;
+		xPan = yPan = 0;
+		clickPoint = new Point(0, 0);
+		
+		VERT_SPACE = DEFAULT_VERT_SPACE;
+		HORZ_SPACE = DEFAULT_HORZ_SPACE;
+		LINE_THICK = DEFAULT_LINE_THICK;
+		FONT_SIZE = DEFAULT_FONT_SIZE;
+		
+		// Add listener for mouse drag panning
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				clickPoint = e.getPoint();
+//				System.out.println("press");
+			}
+		});
+		
+		addMouseMotionListener(new MouseAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				xPan -= clickPoint.x - e.getPoint().x;
+				yPan -= clickPoint.y - e.getPoint().y;
+				clickPoint = e.getPoint();
+				System.out.println("pan = (" + xPan + ", " + yPan + ")");
+				repaint();
+			}
+		});
+		
+//		this.addMouseWheelListener(new MouseWheelListener() {
+//			@Override
+//			public void mouseWheelMoved(MouseWheelEvent e) {
+//				if (e.getWheelRotation() < 0) {
+//					VERT_SPACE += 1;
+//					HORZ_SPACE += 1;
+//					LINE_THICK += 1;
+//					FONT_SIZE *= 1.01;
+//				} else {
+//					if (VERT_SPACE < DEFAULT_VERT_SPACE) {
+//						return;
+//					}
+//					VERT_SPACE -= 1;
+//					HORZ_SPACE -= 1;
+//					LINE_THICK -= 1;
+//					FONT_SIZE *= 0.99;
+//				}
+//				
+//				updateFontSize(tree.getRoot(), FONT_SIZE);
+//				revalidate();
+//				repaint();
+//			}
+//		});
+		
+//		addMouseListener(new MouseListener() {
+//			@Override
+//			public void mouseClicked(MouseEvent e) {}
+//
+//			@Override
+//			public void mousePressed(MouseEvent e) {
+//				System.out.println("mousepressed");
+//				clickPoint = e.getPoint();
+//			}
+//
+//			@Override
+//			public void mouseReleased(MouseEvent e) {}
+//			@Override
+//			public void mouseEntered(MouseEvent e) {}
+//			@Override
+//			public void mouseExited(MouseEvent e) {}
+//		});
+//		
+//		addMouseMotionListener(new MouseMotionListener() {
+//			@Override
+//			public void mouseDragged(MouseEvent e) { 
+//				xPan += e.getPoint().x - clickPoint.x;
+//				yPan += e.getPoint().y - clickPoint.y;
+//				System.out.println("pan = (" + xPan + ", " + yPan + ")");
+//			}
+//
+//			@Override
+//			public void mouseMoved(MouseEvent e) { }
+//		});
+//		repaint();
+		
+//		this.branches = new LinkedHashSet<BranchViewer>();
+//		int x = width / 2;
+//		int y = height / 2;
+//		drawBranch(new BranchViewer(tree.getRoot().getStatements()), x, y);
 	}
 	
-	private void drawBranch(BranchViewer branch, int x, int y) {
-		branches.add(branch);
-		this.add(branch);
-		Dimension size = branch.getPreferredSize();
-		branch.setBounds(x, y, size.width, size.height);
+	public void addTree(TruthTree t) {
+		this.tree = t;
+		
+		xPan = yPan = 0;
+		
+		VERT_SPACE = DEFAULT_VERT_SPACE;
+		HORZ_SPACE = DEFAULT_HORZ_SPACE;
+		LINE_THICK = DEFAULT_LINE_THICK;
+		FONT_SIZE = DEFAULT_FONT_SIZE;
+		
+		validate();
+		repaint();
 	}
+	
+	@Override
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g;
+		
+		
+		if (tree == null) {
+			return;
+		}
+		
+		System.out.println("check");
+		System.out.println("pan = (" + xPan + ", " + yPan + ")");
+		
+		baseReference.x = this.getWidth()/2 + xPan;
+		baseReference.y = 10 + yPan;
+		
+		Queue<BranchPositionPair> printQueue = new ConcurrentLinkedQueue<BranchPositionPair>();
+		printQueue.add(new BranchPositionPair(tree.getRoot(), baseReference));
+		while (!printQueue.isEmpty()) {
+			// get next branch/reference point
+			BranchPositionPair currPair = printQueue.remove();
+			TreeBranch currBranch = currPair.branch;
+			Point ref = currPair.reference;
+
+			// display branch
+			this.add(currBranch);
+			Dimension size = currBranch.getPreferredSize();
+			Point anchor = calculateAnchor(ref, size.width);
+			currBranch.setBounds(anchor.x, anchor.y, size.width, size.height);
+			
+			// draw line if applicable
+			currBranch.setBottomAnchor(new Point(ref.x, ref.y + size.height));
+			if (currBranch.getParent() != null) {
+				Point lineStart = currBranch.getParent().getBottomAnchor();
+				g2.setColor(Color.blue);
+				g2.setStroke(new BasicStroke(LINE_THICK));
+				g2.drawLine(lineStart.x, lineStart.y, ref.x, ref.y);
+			}
+			
+			// calculate new reference points for children
+			int currFrameWidth = getFrameWidth(currBranch);
+			for (TreeBranch c : currBranch.getChildren()) {
+				int childFrameWidth = getFrameWidth(c);
+				int newX;
+				int newY = ref.y + currBranch.getPreferredSize().height + VERT_SPACE;
+				double relativeFrameSize = (double)childFrameWidth / (double)currFrameWidth;
+				int relativePlacement = (int)((relativeFrameSize/2.0) * currFrameWidth);
+				if (c.isLeftChild()) {
+					int leftBorder = ref.x - (currFrameWidth/2);
+					newX = leftBorder + relativePlacement;
+				} else {
+					int rightBorder = ref.x + (currFrameWidth/2);
+					newX = rightBorder - relativePlacement;
+				}
+				Point newRef = new Point(newX, newY);
+				printQueue.add(new BranchPositionPair(c, newRef));
+			}
+			
+			currBranch.revalidate();
+			currBranch.repaint();
+		}
+	}
+	
+	private class BranchPositionPair {
+		TreeBranch branch;
+		Point reference;
+		
+		BranchPositionPair(TreeBranch b, Point r) {
+			branch = b;
+			reference = r;
+		}
+	}
+	
+	private Point calculateAnchor(Point reference, int branchWidth) {
+		int x = reference.x - (branchWidth/2);
+		int y = reference.y;
+		return new Point(x, y);
+	}
+	
+	private int getFrameWidth(TreeBranch topBranch) {
+		if (topBranch.isLeaf()) {
+			return topBranch.getPreferredSize().width;
+		} else {
+			int fwidth = 0;		
+			for (TreeBranch c : topBranch.getChildren()) {
+				fwidth += getFrameWidth(c);
+			}
+			return fwidth + HORZ_SPACE;
+		}
+		
+	}
+	
+	private void updateFontSize(TreeBranch b, float newSize) {
+		b.getStatements().values().forEach(s -> {
+			s.setFont(s.getFont().deriveFont((float) 25.0));
+			s.revalidate();
+		});
+		b.revalidate();
+		b.repaint();
+		b.getChildren().forEach(c -> updateFontSize(c, newSize));
+	}
+	
+//	private void drawBranch(BranchViewer branch, int x, int y) {
+//		branches.add(branch);
+//		this.add(branch);
+//		Dimension size = branch.getPreferredSize();
+//		branch.setBounds(x, y, size.width, size.height);
+//	}
 }
