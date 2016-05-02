@@ -1,7 +1,7 @@
 package logicalreasoner.inference;
 
-import logicalreasoner.truthassignment.TruthAssignment;
 import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.stream.Collectors;
 
@@ -10,36 +10,40 @@ import java.util.stream.Collectors;
  * Sentences from another Sentence.
  */
 public class Decomposition extends Inference {
-    private TruthAssignment additions;
+  private TruthAssignment additions;
 
-    public Decomposition(TruthAssignment h, Sentence o, int i) {
-        super(h, o, i);
-        additions = new TruthAssignment(-1);
+  public Decomposition(TruthAssignment h, Sentence o, int i) {
+    super(h, o, i);
+    additions = new TruthAssignment(-1);
+  }
+
+  @Override
+  public void infer(TruthAssignment h) {
+    h.merge(additions);
+  }
+
+  public void setTrue(Sentence s) {
+    additions.setTrue(s, inferenceNum);
+  }
+
+  public void setFalse(Sentence s) {
+    additions.setFalse(s, inferenceNum);
+  }
+
+  public TruthAssignment getAdditions() {
+    return additions;
+  }
+
+  public boolean equals(Object o) {
+    if (o instanceof Decomposition) {
+      Decomposition i = (Decomposition) o;
+      return super.equals(i) && additions.equals(i.additions);
     }
+    return false;
+  }
 
-    @Override
-    public void infer(TruthAssignment h) {
-        h.merge(additions);
-    }
-
-    public void setTrue(Sentence s) { additions.setTrue(s, inferenceNum); }
-
-    public void setFalse(Sentence s) { additions.setFalse(s, inferenceNum); }
-
-    public TruthAssignment getAdditions() {
-        return additions;
-    }
-
-    public boolean equals(Object o) {
-        if (o instanceof Decomposition) {
-            Decomposition i = (Decomposition)o;
-            return super.equals(i) && additions.equals(i.additions);
-        }
-        return false;
-    }
-
-    public String toString() {
-        return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " inferences: { "
-                + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " ").collect(Collectors.joining()) + "}";
-    }
+  public String toString() {
+    return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " inferences: { "
+            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " ").collect(Collectors.joining()) + "}";
+  }
 }

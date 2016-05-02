@@ -14,29 +14,33 @@ import java.util.HashSet;
  * Created by kevin on 3/28/16.
  */
 public class SUBCONTRARY extends MetaSentence {
-    public SUBCONTRARY(Sentence s1, Sentence s2) {
-        super(new ArrayList<>(Arrays.asList(s1, s2)), "SUBCONTRARY", "SUBCONTRARY", new HashSet<>());
-    }
+  public SUBCONTRARY(Sentence s1, Sentence s2) {
+    super(new ArrayList<>(Arrays.asList(s1, s2)), "SUBCONTRARY", "SUBCONTRARY", new HashSet<>());
+  }
 
-    public String toSymbol() {
-        return "[" + args.get(0).toSymbol() + " and " + args.get(1).toSymbol() + " are " + symbol + "]";
-    }
+  public String toSymbol() {
+    return "[" + args.get(0).toSymbol() + " and " + args.get(1).toSymbol() + " are " + symbol + "]";
+  }
 
-    public MetaInference reasonForwards(Proof p, int inferenceNum) { return reason(p, inferenceNum); }
+  public MetaInference reasonForwards(Proof p, int inferenceNum) {
+    return reason(p, inferenceNum);
+  }
 
-    public MetaInference reasonBackwards(Proof p, int inferenceNum) { return reason(p, inferenceNum); }
+  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+    return reason(p, inferenceNum);
+  }
 
-    public MetaInference reason(Proof p, int inferenceNum) {
-        TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment()),
-                child1 = t.addChild(new TruthAssignment()),
-                child2 = t.addChild(new TruthAssignment());
+  public MetaInference reason(Proof p, int inferenceNum) {
+    TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment()),
+            child1 = t.addChild(new TruthAssignment()),
+            child2 = t.addChild(new TruthAssignment());
 
-        MODELS m1 = new MODELS(child1, (Sentence)args.get(0), true, inferenceNum, false),
-                m2 = new MODELS(child2, (Sentence)args.get(1), true, inferenceNum, false);
+    MODELS m1 = new MODELS(child1, (Sentence) args.get(0), true, inferenceNum, false),
+            m2 = new MODELS(child2, (Sentence) args.get(1), true, inferenceNum, false);
 
-        MetaSentence s = new OR(m1, m2, new HashSet<>(Collections.singletonList(t)));
-        ArrayList<MetaSentence> a = new ArrayList<>();
-        a.add(s);
-        return new MetaInference(this, a, inferenceNum, false, symbol);
-    }
+    MetaSentence s = new OR(m1, m2, new HashSet<>(Collections.singletonList(t)));
+    ArrayList<MetaSentence> a = new ArrayList<>();
+    a.add(s);
+    return new MetaInference(this, a, inferenceNum, false, symbol);
+  }
 }
