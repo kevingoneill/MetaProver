@@ -35,12 +35,18 @@ public abstract class Inference {
   public abstract void infer(TruthAssignment h);
 
   public int hashCode() {
+	if (origin == null) {
+		return parent.hashCode();
+	}
     return origin.hashCode();
   }
 
   public boolean equals(Object o) {
     if (o instanceof Inference) {
       Inference i = (Inference) o;
+      if (i.origin == null) {
+    	  return i.parent.equals(parent);
+      }
       return i.origin.equals(origin) && i.parent.equals(parent);
     }
     return false;

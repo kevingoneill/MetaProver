@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import logicalreasoner.inference.Branch;
+import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 
 public class TreeBranch extends JPanel {
@@ -46,33 +48,137 @@ public class TreeBranch extends JPanel {
   
   public void setInferences(List<Inference> infers) {
 	  infers.forEach(i -> {
-		  inferences.put(i, i.getOrigin().toSymbol());
+		  if (i.getOrigin() == null) {
+			  ((Decomposition)i).getAdditions().keySet().forEach(sen -> {
+				  // should only be one sentance	
+				 inferences.put(i, sen.toSymbol()); 
+			  });
+		  } else {
+			  inferences.put(i, i.getOrigin().toSymbol());
+		  }
+		  
 	  });
 	  children.forEach(c -> c.setInferences(infers));
   }
   
   public void placeStatements() {
 	  Set<JLabel> addedLabels = new HashSet<JLabel>(); 
-	  inferences.keySet().forEach(i -> {
+	  for (Inference i : inferences.keySet()) {
 		  
 		  String iOriginTrue = inferences.get(i) + " [true]";
 		  String iOriginFalse = inferences.get(i) + " [false]";
 		  if (statements.containsKey(iOriginTrue)) {
 			 this.add(statements.get(iOriginTrue));
-		  	 addedLabels.add(statements.get(iOriginTrue));
-		  }
-		  if (statements.containsKey(iOriginFalse)) {
-			 this.add(statements.get(iOriginFalse));
-			 addedLabels.add(statements.get(iOriginFalse));
+			 JLabel label = statements.get(iOriginTrue);
+			 String prefix = "";// = ((Integer)i.getInferenceNum()).toString();
+			 String suffix = "";
+			 if (i.getJustificationNum() == 0) {
+				 if (i.getInferenceNum() == 0) {
+					 prefix = "Goal";
+				 } else {
+					 prefix = "Premise " + (-1 * i.getInferenceNum());
+				 }
+//				 label.setText(prefix + ". " + label.getText());// + "  " + (i.getJustificationNum() < 0 ? "Premise" : ""));
+			  	 addedLabels.add(label);
+			 }
+			 else if (i.getJustificationNum() != 0) {
+			  	 if (i instanceof Decomposition) {
+					 ((Decomposition) i).getAdditions().keySet().forEach(s -> {
+						 String inferenceResult = s.toSymbol();
+						 JLabel infResLabel = statements.get(inferenceResult + " [true]");
+						 if (infResLabel == null) {
+							 infResLabel = statements.get(inferenceResult + " [false]");
+						 }
+						 if (infResLabel != null) {
+//							 infResLabel.setText(infResLabel.getText() + " " + ((Decomposition) i).getJustificationNum());
+						 }
+					 });
+				 }
+			  	
+			 }
+			 
+
+//		  	 if (i instanceof Branch) {
+//		  		 ((Branch) i).getBranches().forEach(branch -> {
+//		  			 branch.keySet().forEach(s -> {
+//		  				 children.forEach(child -> {
+//							 String inferenceResult = s.toSymbol();
+//							 child.searchForBranchInference(inferenceResult, ((Branch) i).getJustificationNum());
+//		  				 });
+//		  			 });
+//		  		 });
+//		  	 }
+//		  	++num;
 		  }
 		  
-	  });
-	  statements.values().forEach(label -> {
-		  if (!addedLabels.contains(label)) {
-			  this.add(label);
+		  if (statements.containsKey(iOriginFalse)) {
+			 this.add(statements.get(iOriginFalse));
+			 JLabel label = statements.get(iOriginFalse);
+			 String prefix;// = ((Integer)i.getInferenceNum()).toString();
+			 String suffix = "";
+			 if (i.getJustificationNum() == 0) {
+				 if (i.getInferenceNum() == 0) {
+					 prefix = "Goal";
+				 } else {
+					 prefix = "Premise " + (-1 * i.getInferenceNum());
+				 }
+//				 label.setText(prefix + ". " + label.getText());// + "  " + (i.getJustificationNum() < 0 ? "Premise" : ""));
+			  	 addedLabels.add(label);
+			 }
+			 else if (i.getJustificationNum() != 0) {
+			  	 if (i instanceof Decomposition) {
+					 ((Decomposition) i).getAdditions().keySet().forEach(s -> {
+						 String inferenceResult = s.toSymbol();
+						 JLabel infResLabel = statements.get(inferenceResult + " [true]");
+						 if (infResLabel == null) {
+							 infResLabel = statements.get(inferenceResult + " [false]");
+						 }
+						 if (infResLabel != null) {
+//							 infResLabel.setText(infResLabel.getText() + " " + ((Decomposition) i).getJustificationNum());
+						 }
+					 });
+				 }
+			  	
+			 }
+
+//			 if (i instanceof Branch) {
+//		  		 ((Branch) i).getBranches().forEach(branch -> {
+//		  			 branch.keySet().forEach(s -> {
+//		  				 children.forEach(child -> {
+//							 String inferenceResult = s.toSymbol();
+//							 child.searchForBranchInference(inferenceResult, ((Branch) i).getJustificationNum());
+//		  				 });
+//		  			 });
+//		  		 });
+//		  	 }
+//			 ++num;
 		  }
-	  });
+		  
+		  
+		  
+	  }
+	  for (JLabel label : statements.values()) {
+		  if (!addedLabels.contains(label)) {
+//			  if (!(label.getText().equals("✓") || label.getText().equals("✗"))) {
+//				  label.setText(num + ". " + label.getText());
+//			  }
+			  this.add(label);
+//			  ++num;
+		  }
+	  }
 	  children.forEach(c -> c.placeStatements());
+  }
+  
+  public void searchForBranchInference(String statement, int infNum) {
+	  JLabel infResLabel = statements.get(statement + " [true]");
+		 if (infResLabel == null) {
+			 infResLabel = statements.get(statement + " [false]");
+		 }
+		 if (infResLabel != null) {
+			 infResLabel.setText(infResLabel.getText() + " " + infNum);
+		 } else {
+			 children.forEach(c -> searchForBranchInference(statement, infNum));
+		 }
   }
 
   public void addStatement(String s) {
