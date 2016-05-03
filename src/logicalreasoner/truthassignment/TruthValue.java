@@ -20,6 +20,10 @@ public class TruthValue {
     vals = new HashMap<>(tv.vals);
     isDecomposed = false;
   }
+  
+  public HashMap<Boolean, Integer> getVals() {
+	  return new HashMap<Boolean, Integer>(vals);
+  }
 
   public void setTrue(int stepNum) {
     if (!vals.containsKey(true))

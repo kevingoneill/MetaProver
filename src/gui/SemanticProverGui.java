@@ -117,7 +117,6 @@ public class SemanticProverGui extends JFrame {
 
     ProofInfo result = null;
     if (meta) {
-//			System.out.println("not implemented yet");
       result = controller.MetaProve(premises, goal);
     } else {
       result = controller.TruthFunctionalProve(premises, goal);
@@ -135,7 +134,6 @@ public class SemanticProverGui extends JFrame {
         });
       }
     });
-    treePanel.add(new TreeViewer(proof.trees.get(1).get(0), "Truth Tree"));
     this.setSize(new Dimension(getWidth(), getHeight() - 1)); // stupid fix to show jlabels in truth tree, idk why, but it works
   }
 }

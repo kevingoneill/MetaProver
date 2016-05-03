@@ -1,16 +1,22 @@
 package gui.truthtreevisualization;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import logicalreasoner.inference.Inference;
 
 public class TreeBranch extends JPanel {
   private static final long serialVersionUID = -5667752505914020168L;
 
   private Map<String, JLabel> statements;
+  private Map<Inference, String> inferences;
   private List<TreeBranch> children;
   private TreeBranch parent;
   private boolean leftChild;
@@ -31,10 +37,42 @@ public class TreeBranch extends JPanel {
     // truth tree things
     statements = new LinkedHashMap<String, JLabel>();
     children = new ArrayList<TreeBranch>();
+    inferences = new LinkedHashMap<Inference, String>();
     this.parent = parent;
     this.leftChild = isLeft;
-
+    
     setVisible(true);
+  }
+  
+  public void setInferences(List<Inference> infers) {
+	  infers.forEach(i -> {
+		  inferences.put(i, i.getOrigin().toSymbol());
+	  });
+	  children.forEach(c -> c.setInferences(infers));
+  }
+  
+  public void placeStatements() {
+	  Set<JLabel> addedLabels = new HashSet<JLabel>(); 
+	  inferences.keySet().forEach(i -> {
+		  
+		  String iOriginTrue = inferences.get(i) + " [true]";
+		  String iOriginFalse = inferences.get(i) + " [false]";
+		  if (statements.containsKey(iOriginTrue)) {
+			 this.add(statements.get(iOriginTrue));
+		  	 addedLabels.add(statements.get(iOriginTrue));
+		  }
+		  if (statements.containsKey(iOriginFalse)) {
+			 this.add(statements.get(iOriginFalse));
+			 addedLabels.add(statements.get(iOriginFalse));
+		  }
+		  
+	  });
+	  statements.values().forEach(label -> {
+		  if (!addedLabels.contains(label)) {
+			  this.add(label);
+		  }
+	  });
+	  children.forEach(c -> c.placeStatements());
   }
 
   public void addStatement(String s) {
@@ -64,7 +102,6 @@ public class TreeBranch extends JPanel {
 //		});
     sLabel.setFont(sLabel.getFont().deriveFont(16.0f));
     statements.put(s, sLabel);
-    this.add(sLabel);
   }
 
   public void addChild(TreeBranch c) {

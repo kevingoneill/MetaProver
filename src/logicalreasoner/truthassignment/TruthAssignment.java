@@ -114,11 +114,11 @@ public class TruthAssignment {
   private TreeBranch makeBranch(Set<Sentence> sens, boolean isLeaf) {
     TreeBranch newBranch = new TreeBranch();
     sens.forEach(s -> {
-      String prefix = "";
-      if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
-        prefix = "¬";
-      }
-      newBranch.addStatement(prefix + s.toSymbol());
+//      String prefix = "";
+//      if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
+//        prefix = "¬";
+//      }
+      newBranch.addStatement(s.toSymbol() + " " + map.get(s).getVals().keySet().toString());
     });
 
     if (isLeaf) {

@@ -75,7 +75,7 @@ public class SemanticProver implements Runnable {
     this.print = print;
   }
 
-  List<Inference> getInferenceList() {
+  public List<Inference> getInferenceList() {
     return new ArrayList<>(inferenceList);
   }
 

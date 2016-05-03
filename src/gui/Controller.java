@@ -69,9 +69,13 @@ public class Controller {
     baos.reset();
     System.out.flush();
     System.setOut(System.out);
+    TruthTree tree = prover.getTruthAssignment().makeTruthTree();
+    tree.getRoot().setInferences(prover.getInferenceList());
+    tree.getRoot().placeStatements();
+    
     return new ProofInfo(text, new LinkedHashMap<Integer, List<TruthTree>>() {{
       put(-1, new ArrayList<TruthTree>() {{
-        add(prover.getTruthAssignment().makeTruthTree());
+        add(tree);
       }});
     }});
   }
