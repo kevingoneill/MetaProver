@@ -35,14 +35,13 @@ public class IS extends MetaSentence {
   }
 
   public MetaInference reason(Proof p, int inferenceNum) {
+    ArrayList<MetaSentence> a = new ArrayList<>();
     TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment());
 
-    TruthAssignmentVar child1 = t.addChild(new TruthAssignment()),
-            child2 = t.addChild(new TruthAssignment());
-
-    ArrayList<MetaSentence> a = new ArrayList<>();
-
     if (getConstant().getValue() == null) {
+      TruthAssignmentVar child1 = t.addChild(new TruthAssignment()),
+              child2 = t.addChild(new TruthAssignment());
+
       MODELS m1 = new MODELS(child1, getSentence(), true, inferenceNum, false),
               m2 = new MODELS(child2, getSentence(), false, inferenceNum, false);
 

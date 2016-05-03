@@ -66,6 +66,8 @@ public class TruthAssignment {
     return "h" + UID;
   }
 
+  public boolean isEmpty() { return map.isEmpty(); }
+
   public int hashCode() {
     return map.hashCode();
   }
@@ -84,6 +86,7 @@ public class TruthAssignment {
   }
 
   public void print() {
+    System.out.println(getName());
     print("", true);
   }
 

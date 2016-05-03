@@ -1,13 +1,13 @@
 package metareasoner.proof;
 
+import expression.metasentence.IFF;
 import expression.metasentence.MetaSentence;
+import expression.metasentence.TruthAssignmentVar;
 import gui.truthtreevisualization.TruthTree;
+import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -19,6 +19,7 @@ public class Proof {
   private ArrayList<MetaSentence> premises;
   private MetaSentence ultimateInterest;
   private ArrayList<Step> forwardsInferences, backwardsInferences;
+  private HashMap<String, TruthAssignment> truthAssignments;
 
   public Proof(ArrayList<MetaSentence> inferences, MetaSentence interest) {
     forwardsInferences = new ArrayList<>();
@@ -27,6 +28,7 @@ public class Proof {
     backwardsInferences.add(new Step(interest, null, null, false));
     premises = inferences;
     ultimateInterest = interest;
+    truthAssignments = new HashMap<>();
   }
 
   public int hashCode() {
@@ -41,6 +43,14 @@ public class Proof {
 
   public String toString() {
     return forwardsInferences.toString();
+  }
+
+  public HashMap<String, TruthAssignment> getTruthAssignments() {
+    return truthAssignments;
+  }
+
+  public void addTruthAssignment(TruthAssignmentVar v) {
+    truthAssignments.put(v.getName(), v.getTruthAssignment());
   }
 
   public void printInferences() {
@@ -182,6 +192,13 @@ public class Proof {
         }
       }
     }
+
+    proof.forEach(step -> {
+      if (!(step.getMetaSentence() instanceof IFF))
+        step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
+    });
+    System.out.println();
+    truthAssignments.forEach((n, v) -> v.print());
   }
 
   public ArrayList<Step> generateProof() {
