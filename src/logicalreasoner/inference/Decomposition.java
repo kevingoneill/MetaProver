@@ -52,6 +52,7 @@ public class Decomposition extends Inference {
 
   public String toString() {
     return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] inferences: { "
-            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " [" + inferenceNum + "] ").collect(Collectors.joining()) + "}";
+            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s)
+            + " [" + additions.getInferenceNum(s, additions.models(s)) + "] ").collect(Collectors.joining()) + "}";
   }
 }
