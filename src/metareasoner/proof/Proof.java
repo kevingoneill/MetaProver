@@ -1,6 +1,5 @@
 package metareasoner.proof;
 
-import expression.metasentence.IFF;
 import expression.metasentence.MetaSentence;
 import expression.metasentence.TruthAssignmentVar;
 import gui.truthtreevisualization.TruthTree;
@@ -194,7 +193,7 @@ public class Proof {
     }
 
     proof.forEach(step -> {
-      if (!(step.getMetaSentence() instanceof IFF))
+      //if (!(step.getMetaSentence() instanceof IFF))
         step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
     });
     System.out.println();
