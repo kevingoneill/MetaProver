@@ -3,7 +3,6 @@ package metareasoner.proof;
 import expression.metasentence.MetaSentence;
 import expression.metasentence.TruthAssignmentVar;
 import gui.truthtreevisualization.TruthTree;
-import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 
 import java.util.*;
@@ -18,7 +17,7 @@ public class Proof {
   private ArrayList<MetaSentence> premises;
   private MetaSentence ultimateInterest;
   private ArrayList<Step> forwardsInferences, backwardsInferences;
-  private HashMap<String, TruthAssignment> truthAssignments;
+  private HashMap<String, TruthAssignmentVar> truthAssignments;
 
   public Proof(ArrayList<MetaSentence> inferences, MetaSentence interest) {
     forwardsInferences = new ArrayList<>();
@@ -44,12 +43,12 @@ public class Proof {
     return forwardsInferences.toString();
   }
 
-  public HashMap<String, TruthAssignment> getTruthAssignments() {
+  public HashMap<String, TruthAssignmentVar> getTruthAssignments() {
     return truthAssignments;
   }
 
   public void addTruthAssignment(TruthAssignmentVar v) {
-    truthAssignments.put(v.getName(), v.getTruthAssignment());
+    truthAssignments.put(v.getName(), v);
   }
 
   public void printInferences() {
@@ -197,7 +196,7 @@ public class Proof {
         step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
     });
     System.out.println();
-    truthAssignments.forEach((n, v) -> v.print());
+    truthAssignments.forEach((n, v) -> v.getTruthAssignment().print());
   }
 
   public ArrayList<Step> generateProof() {

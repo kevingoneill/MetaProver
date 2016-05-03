@@ -1,8 +1,8 @@
 package metareasoner;
 
 import expression.metasentence.MetaSentence;
+import expression.metasentence.TruthAssignmentVar;
 import gui.truthtreevisualization.TruthTree;
-import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
@@ -82,7 +82,7 @@ public class MetaProver implements Runnable {
     return proof.getTruthTrees();
   }
   
-  public Map<String, TruthAssignment> getTruthAssignments() {
+  public Map<String, TruthAssignmentVar> getTruthAssignments() {
 	return proof.getTruthAssignments();
   }
 

@@ -3,11 +3,11 @@ package gui;
 import expression.Expression;
 import expression.metasentence.MetaSentence;
 import expression.metasentence.MetaSentenceReader;
+import expression.metasentence.TruthAssignmentVar;
 import expression.sentence.Sentence;
 import expression.sentence.SentenceReader;
 import gui.truthtreevisualization.TruthTree;
 import logicalreasoner.prover.SemanticProver;
-import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.MetaProver;
 
 import java.io.ByteArrayOutputStream;
@@ -50,10 +50,10 @@ public class Controller {
     baos.reset();
     System.out.flush();
     System.setOut(System.out);
-    Map<String, TruthAssignment> truthAssignments = prover.getTruthAssignments();
+    Map<String, TruthAssignmentVar> truthAssignments = prover.getTruthAssignments();
     Map<String, TruthTree> trees = new LinkedHashMap<String, TruthTree>();
     truthAssignments.forEach((n, ta) -> {
-    	TruthTree tt = ta.makeTruthTree();
+    	TruthTree tt = ta.getTruthAssignment().makeTruthTree();
     	tt.placeStatements();
     	trees.put(n, tt);
     });
