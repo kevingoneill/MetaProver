@@ -26,6 +26,14 @@ public class Decomposition extends Inference {
     additions.setTrue(s, inferenceNum);
   }
 
+  public void setFalse(Sentence s, int i) {
+    additions.setFalse(s, i);
+  }
+
+  public void setTrue(Sentence s, int i) {
+    additions.setTrue(s, i);
+  }
+
   public void setFalse(Sentence s) {
     additions.setFalse(s, inferenceNum);
   }

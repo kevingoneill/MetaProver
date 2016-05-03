@@ -15,7 +15,7 @@ import java.util.HashSet;
  */
 public class SUBCONTRARY extends MetaSentence {
   public SUBCONTRARY(Sentence s1, Sentence s2) {
-    super(new ArrayList<>(Arrays.asList(s1, s2)), "SUBCONTRARY", "SUBCONTRARY", new HashSet<>());
+    super(new ArrayList<>(Arrays.asList(s1, s2)), "SUBCONTRARY", "subcontrary", new HashSet<>());
   }
 
   public String toSymbol() {

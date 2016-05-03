@@ -17,7 +17,7 @@ import java.util.HashSet;
  */
 public class CONTRARY extends MetaSentence {
   public CONTRARY(Sentence s1, Sentence s2) {
-    super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRARY", "CONTRARY", new HashSet<>());
+    super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRARY", "contrary", new HashSet<>());
   }
 
   public String toSymbol() {
