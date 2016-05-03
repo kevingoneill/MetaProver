@@ -61,19 +61,18 @@ public class SemanticProver implements Runnable {
     inferenceCount = 1;
     masterFunction = new TruthAssignment();
 
-    Decomposition pInference = new Decomposition(masterFunction, null, -1, 0),
-            cInference = new Decomposition(masterFunction, null, 0, 0);
-    int premiseCount = -1;
+    Decomposition c = new Decomposition(masterFunction, null, 0, 0);
+    int premiseCount = 0;
     for (Sentence s : premises) {
-      pInference.setTrue(s, premiseCount--);
+      Decomposition p = new Decomposition(masterFunction, null, --premiseCount, 0);
+      p.setTrue(s);
+      p.infer(masterFunction);
+      inferenceList.add(p);
     }
 
-    interests.forEach(s -> cInference.setFalse(s));
-
-    pInference.infer(masterFunction);
-    cInference.infer(masterFunction);
-    inferenceList.add(pInference);
-    inferenceList.add(cInference);
+    interests.forEach(s -> c.setFalse(s));
+    c.infer(masterFunction);
+    inferenceList.add(c);
 
     openBranches = new ArrayList<>();
     openBranches.add(masterFunction);
@@ -169,7 +168,7 @@ public class SemanticProver implements Runnable {
         System.out.println("\nThe argument IS valid.\n");
       }
 
-      printInferences();
+      //printInferences();
       printInferenceList();
 //            printTruthTree();
     }
