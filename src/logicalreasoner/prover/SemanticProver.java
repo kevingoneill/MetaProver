@@ -62,9 +62,9 @@ public class SemanticProver implements Runnable {
     masterFunction = new TruthAssignment();
 
     Decomposition c = new Decomposition(masterFunction, null, 0, 0);
-    int premiseCount = 0;
+    int premiseCount = -1;
     for (Sentence s : premises) {
-      Decomposition p = new Decomposition(masterFunction, null, --premiseCount, 0);
+      Decomposition p = new Decomposition(masterFunction, null, premiseCount--, 0);
       p.setTrue(s);
       p.infer(masterFunction);
       inferenceList.add(p);
