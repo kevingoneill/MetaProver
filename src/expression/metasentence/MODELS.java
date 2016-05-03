@@ -85,8 +85,9 @@ public class MODELS extends MetaSentence {
 
           ArrayList<MetaSentence> a = new ArrayList<>();
           b.getBranches().forEach(c -> {
+            t.getTruthAssignment().print();
             if (c.keySet().size() == 1)
-              c.keySet().forEach(s -> a.add(new MODELS(t.addChild(c), s, c.models(s), inferenceNum, false)));
+              c.keySet().forEach(s -> a.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
           });
           OR or = new OR(a, new HashSet<>(Collections.singleton(t)));
           a.clear();

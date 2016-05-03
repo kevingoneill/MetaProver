@@ -21,14 +21,20 @@ import java.util.List;
  */
 public class TruthAssignmentVar extends MetaSentence {
   private TruthAssignment truthAssignment;
+  private TruthAssignmentVar parent;
   private ArrayList<Inference> inferences;
   private int currInference = 0;
 
-  public TruthAssignmentVar(TruthAssignment t) {
+  public TruthAssignmentVar(TruthAssignment t, TruthAssignmentVar v) {
     super(new ArrayList<>(), t.getRoot().getName(), t.getRoot().getName(), new HashSet<>());
     truthAssignment = t;
     inferences = new ArrayList<>();
+    parent = v;
     reduce();
+  }
+
+  public TruthAssignmentVar(TruthAssignment t) {
+    this(t, null);
   }
 
   public Boolean isConsistent(TruthAssignment h) {
@@ -36,19 +42,43 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public void setTrue(Sentence s, int inferenceNum) {
-    Decomposition d
-    truthAssignment.setTrue(s, inferenceNum);
+    //truthAssignment.setTrue(s, inferenceNum);
+    Decomposition d = new Decomposition(truthAssignment, s, inferenceNum, -1);
+    d.setTrue(s);
+    d.infer(truthAssignment);
+    addInference(d);
+    //System.out.println(getName() + "\n" + getInferences());
+    ++currInference;
     reduce();
   }
 
   public void setFalse(Sentence s, int inferenceNum) {
-    truthAssignment.setFalse(s, inferenceNum);
+    //truthAssignment.setFalse(s, inferenceNum);
+    Decomposition d = new Decomposition(truthAssignment, s, inferenceNum, -1);
+    d.setFalse(s);
+    d.infer(truthAssignment);
+    addInference(d);
+    ++currInference;
     reduce();
+  }
+
+  public void addInference(Inference i) {
+    inferences.add(i);
+    if (parent != null)
+      parent.addInference(i);
   }
 
   public TruthAssignmentVar addChild(TruthAssignment h) {
     truthAssignment.addChildren(Collections.singletonList(h));
-    return new TruthAssignmentVar(truthAssignment.getChildren().get(truthAssignment.getChildren().size() - 1));
+    return new TruthAssignmentVar(truthAssignment.getChildren().get(truthAssignment.getChildren().size() - 1), this);
+  }
+
+  public TruthAssignmentVar getChild(TruthAssignment h) {
+    for (TruthAssignment child : truthAssignment.getChildren()) {
+      if (child.assignmentsEqual(h))
+        return new TruthAssignmentVar(child, this);
+    }
+    return null;
   }
 
   public boolean models(Sentence s) {
@@ -72,6 +102,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public Inference getNextInference() {
+    //System.out.println(getName() + " " + getInferences());
     if (currInference < inferences.size())
       return inferences.get(currInference++);
     return null;

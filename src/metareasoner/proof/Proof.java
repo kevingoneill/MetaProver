@@ -196,7 +196,12 @@ public class Proof {
         step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
     });
     System.out.println();
-    truthAssignments.forEach((n, v) -> v.getTruthAssignment().print());
+    truthAssignments.forEach((n, v) -> {
+      v.getTruthAssignment().print();
+      System.out.println();
+      v.getInferences().forEach(System.out::println);
+      System.out.println();
+    });
   }
 
   public ArrayList<Step> generateProof() {

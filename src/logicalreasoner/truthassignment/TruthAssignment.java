@@ -72,6 +72,10 @@ public class TruthAssignment {
     return map.hashCode();
   }
 
+  public boolean assignmentsEqual(TruthAssignment t) {
+    return t.map.equals(map);
+  }
+
   public boolean equals(Object o) {
     if (o instanceof TruthAssignment) {
       TruthAssignment h = (TruthAssignment) o;
