@@ -108,7 +108,7 @@ public class SemanticProver implements Runnable {
   public boolean reason(TruthAssignment h) {
     List<Inference> inferences = h.getSentencesUpwards().stream()
             .filter(s -> !h.isDecomposed(s))
-            .map(s -> s.reason(h, inferenceCount++)).filter(i -> i != null)
+            .map(s -> s.reason(h, inferenceCount++, h.getInferenceNum(s, h.models(s)))).filter(i -> i != null)
             .collect(Collectors.toList());
 
     inferences.forEach(i -> {
@@ -157,7 +157,7 @@ public class SemanticProver implements Runnable {
         System.out.println("\nThe argument IS valid.\n");
       }
 
-//      printInferences();
+      printInferences();
       printInferenceList();
 //            printTruthTree();
     }

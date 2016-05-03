@@ -35,14 +35,14 @@ public class Not extends Sentence {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum) {
+  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Decomposition d = new Decomposition(h, this, inferenceNum);
+        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setFalse(args.get(0));
         return d;
       } else {
-        Decomposition d = new Decomposition(h, this, inferenceNum);
+        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setTrue(args.get(0));
         return d;
       }

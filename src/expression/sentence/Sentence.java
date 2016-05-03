@@ -20,7 +20,7 @@ public abstract class Sentence extends Expression {
 
   public abstract Boolean eval(TruthAssignment h);
 
-  public abstract Inference reason(TruthAssignment h, int inferenceNum);
+  public abstract Inference reason(TruthAssignment h, int inferenceNum, int justificationNum);
 
   public String toString() {
     //return toSymbol();

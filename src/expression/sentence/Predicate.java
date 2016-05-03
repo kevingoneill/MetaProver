@@ -44,7 +44,7 @@ public class Predicate extends Sentence {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum) {
+  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (!h.isDecomposed(this))
       h.setDecomposed(this);
     return null;

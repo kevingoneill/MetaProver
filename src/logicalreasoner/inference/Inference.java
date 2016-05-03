@@ -9,17 +9,20 @@ import logicalreasoner.truthassignment.TruthAssignment;
 public abstract class Inference {
   TruthAssignment parent;
   Sentence origin;
-  int inferenceNum;
+  int inferenceNum, justificationNum;
 
-  public Inference(TruthAssignment p, Sentence o, int i) {
+  public Inference(TruthAssignment p, Sentence o, int i, int j) {
     parent = p;
     origin = o;
     inferenceNum = i;
+    justificationNum = j;
   }
 
   public int getInferenceNum() {
     return inferenceNum;
   }
+
+  public int getJustificationNum() { return justificationNum; }
 
   public TruthAssignment getParent() {
     return parent;

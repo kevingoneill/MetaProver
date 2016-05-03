@@ -36,10 +36,10 @@ public class Iff extends Sentence {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum) {
+  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Branch b = new Branch(h, this, inferenceNum);
+        Branch b = new Branch(h, this, inferenceNum, justificationNum);
         TruthAssignment t = new TruthAssignment();
         t.setTrue(args.get(0), inferenceNum);
         t.setTrue(args.get(1), inferenceNum);
@@ -50,7 +50,7 @@ public class Iff extends Sentence {
         b.addBranch(t1);
         return b;
       } else {
-        Branch b = new Branch(h, this, inferenceNum);
+        Branch b = new Branch(h, this, inferenceNum, justificationNum);
         TruthAssignment t = new TruthAssignment();
         t.setTrue(args.get(0), inferenceNum);
         t.setFalse(args.get(1), inferenceNum);

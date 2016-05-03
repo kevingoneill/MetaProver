@@ -59,6 +59,12 @@ public class TruthValue {
     return vals.containsKey(false);
   }
 
+  public int getInferenceNum(boolean b) {
+    if (vals.containsKey(b))
+      return vals.get(b);
+    return -1;
+  }
+
   public boolean isModelled() {
     return vals.containsKey(true);
   }
@@ -72,7 +78,8 @@ public class TruthValue {
   }
 
   public String toString() {
-    return vals.keySet().toString() + " " + "decomposed: " + isDecomposed;
+    return vals.toString();
+    //return vals.keySet().toString() + " " + "decomposed: " + isDecomposed;
   }
 
   public int hashCode() {

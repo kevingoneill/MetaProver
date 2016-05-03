@@ -30,14 +30,14 @@ public class And extends Sentence {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum) {
+  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Decomposition d = new Decomposition(h, this, inferenceNum);
+        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         args.forEach(d::setTrue);
         return d;
       } else {
-        Branch b = new Branch(h, this, inferenceNum);
+        Branch b = new Branch(h, this, inferenceNum, justificationNum);
         args.forEach(arg -> {
           TruthAssignment t = new TruthAssignment();
           t.setFalse(arg, inferenceNum);

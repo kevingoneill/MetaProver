@@ -15,8 +15,8 @@ public class Branch extends Inference {
 
   private ArrayList<TruthAssignment> branches;
 
-  public Branch(TruthAssignment p, Sentence s, int i) {
-    super(p, s, i);
+  public Branch(TruthAssignment p, Sentence s, int i, int j) {
+    super(p, s, i, j);
     branches = new ArrayList<>();
   }
 
@@ -46,7 +46,7 @@ public class Branch extends Inference {
   }
 
   public String toString() {
-    return "Branch " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " to branches: " +
+    return "Branch " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] to branches: " +
             branches.stream().map(b -> "{" +
                     b.keySet().stream().map(s ->
                             s.toString() + "=" + b.models(s)).collect(Collectors.joining())

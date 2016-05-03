@@ -39,10 +39,10 @@ public class Implies extends Sentence {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum) {
+  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Branch b = new Branch(h, this, inferenceNum);
+        Branch b = new Branch(h, this, inferenceNum, justificationNum);
         TruthAssignment t = new TruthAssignment();
         t.setFalse(args.get(0), inferenceNum);
         b.addBranch(t);
@@ -52,7 +52,7 @@ public class Implies extends Sentence {
         return b;
 
       } else {
-        Decomposition d = new Decomposition(h, this, inferenceNum);
+        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setTrue(args.get(0));
         d.setFalse(args.get(1));
         return d;

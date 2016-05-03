@@ -141,6 +141,18 @@ public class TruthAssignment {
 
 
   /**
+   * Get the UID of the inference which created this assignment
+   * @param s the sentence assigned to models
+   * @param models the truth value of s
+   * @return the UID of the inference which mapped s to models, or -1 if no mapping exists
+   */
+  public int getInferenceNum(Sentence s, boolean models) {
+    if (models(s) == models)
+      return map.get(s).getInferenceNum(models);
+    return -1;
+  }
+
+  /**
    * Add a new mapping to the TruthAssignment
    *
    * @param s the Sentence to be set to true

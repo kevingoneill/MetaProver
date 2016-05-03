@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 public class Decomposition extends Inference {
   private TruthAssignment additions;
 
-  public Decomposition(TruthAssignment h, Sentence o, int i) {
-    super(h, o, i);
+  public Decomposition(TruthAssignment h, Sentence o, int i, int j) {
+    super(h, o, i, j);
     additions = new TruthAssignment(-1);
   }
 
@@ -43,7 +43,7 @@ public class Decomposition extends Inference {
   }
 
   public String toString() {
-    return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " inferences: { "
-            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " ").collect(Collectors.joining()) + "}";
+    return "Decomposition " + inferenceNum + "- origin: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] inferences: { "
+            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s) + " [" + inferenceNum + "] ").collect(Collectors.joining()) + "}";
   }
 }
