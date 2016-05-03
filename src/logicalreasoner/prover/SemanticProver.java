@@ -157,7 +157,7 @@ public class SemanticProver implements Runnable {
         System.out.println("\nThe argument IS valid.\n");
       }
 
-      printInferences();
+//      printInferences();
       printInferenceList();
 //            printTruthTree();
     }

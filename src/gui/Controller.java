@@ -7,6 +7,7 @@ import expression.sentence.Sentence;
 import expression.sentence.SentenceReader;
 import gui.truthtreevisualization.TruthTree;
 import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.MetaProver;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +50,14 @@ public class Controller {
     baos.reset();
     System.out.flush();
     System.setOut(System.out);
-    return new ProofInfo(text, prover.getTruthTrees());
+    Map<String, TruthAssignment> truthAssignments = prover.getTruthAssignments();
+    Map<String, TruthTree> trees = new LinkedHashMap<String, TruthTree>();
+    truthAssignments.forEach((n, ta) -> {
+    	TruthTree tt = ta.makeTruthTree();
+    	tt.placeStatements();
+    	trees.put(n, tt);
+    });
+    return new ProofInfo(text, trees);
   }
 
   public ProofInfo TruthFunctionalProve(List<String> premises, String goal) {
@@ -70,22 +78,18 @@ public class Controller {
     System.out.flush();
     System.setOut(System.out);
     TruthTree tree = prover.getTruthAssignment().makeTruthTree();
-    tree.getRoot().setInferences(prover.getInferenceList());
-    tree.getRoot().placeStatements();
+    tree.setInferences(prover.getInferenceList());
+    tree.placeStatements();
     
-    return new ProofInfo(text, new LinkedHashMap<Integer, List<TruthTree>>() {{
-      put(-1, new ArrayList<TruthTree>() {{
-        add(tree);
-      }});
-    }});
+    return new ProofInfo(text, new LinkedHashMap<String, TruthTree>() {{put("Truth Tree", tree);}});
   }
 }
 
 class ProofInfo {
   String text;
-  Map<Integer, List<TruthTree>> trees;
+  Map<String, TruthTree> trees;
 
-  public ProofInfo(String text, Map<Integer, List<TruthTree>> trees) {
+  public ProofInfo(String text, Map<String, TruthTree> trees) {
     this.text = text;
     this.trees = trees;
   }

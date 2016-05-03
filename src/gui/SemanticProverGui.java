@@ -9,6 +9,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,7 +33,7 @@ public class SemanticProverGui extends JFrame {
   private JTextArea textOutput;
   private JScrollPane scroll;
   private JTabbedPane treePanel;
-  private JPanel mainOutputPanel;
+  private JSplitPane mainOutputPanel;
   private Controller controller;
 
   public SemanticProverGui() {
@@ -50,18 +51,13 @@ public class SemanticProverGui extends JFrame {
 
     textOutput = new JTextArea();
     textOutput.setEditable(false);
-//		textOutput.setPreferredSize(new Dimension(WIDTH/2, HEIGHT));
     scroll = new JScrollPane(textOutput);
     scroll.setBorder(new TitledBorder(new EtchedBorder(), "Text Output"));
-//		scroll.setPreferredSize(new Dimension(WIDTH/2, HEIGHT));
-
 
     treePanel = new JTabbedPane();
 
-    mainOutputPanel = new JPanel();
-    mainOutputPanel.setLayout(new GridLayout(1, 2));
-    mainOutputPanel.add(scroll);
-    mainOutputPanel.add(treePanel);
+    mainOutputPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scroll, treePanel);
+    mainOutputPanel.setDividerLocation(500);
     this.add(mainOutputPanel, BorderLayout.CENTER);
   }
 
@@ -111,8 +107,8 @@ public class SemanticProverGui extends JFrame {
 
   protected void prove(ArrayList<String> premises, String goal, boolean meta) {
     textOutput.setText(null);
-    for (int i = 0; i < treePanel.getTabCount(); ++i) {
-      treePanel.remove(i);
+    while (treePanel.getTabCount() > 0) {
+    	treePanel.remove(0);
     }
 
     ProofInfo result = null;
@@ -123,17 +119,20 @@ public class SemanticProverGui extends JFrame {
     }
     final ProofInfo proof = result;
     textOutput.setText(proof.text);
-    proof.trees.keySet().forEach(step -> {
-      if (step == -1) {
-        // truth functional proof
-        treePanel.add(new TreeViewer(proof.trees.get(step).get(0), "TruthTree"));
-      } else {
-        proof.trees.get(step).forEach(tt -> {
-          treePanel.add(new TreeViewer(tt, "Step " + step + ", Tree " + proof.trees.get(step).indexOf(tt)));
-
-        });
-      }
+    proof.trees.forEach((n, tt) -> {
+    	treePanel.add(new TreeViewer(tt, n));
     });
+//    proof.trees.keySet().forEach(step -> {
+//      if (step == -1) {
+//        // truth functional proof
+//        treePanel.add(new TreeViewer(proof.trees.get(step).get(0), "TruthTree"));
+//      } else {
+//        proof.trees.get(step).forEach(tt -> {
+//          treePanel.add(new TreeViewer(tt, "Step " + step + ", Tree " + proof.trees.get(step).indexOf(tt)));
+//
+//        });
+//      }
+//    });
     this.setSize(new Dimension(getWidth(), getHeight() - 1)); // stupid fix to show jlabels in truth tree, idk why, but it works
   }
 }
