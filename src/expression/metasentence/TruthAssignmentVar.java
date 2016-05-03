@@ -2,6 +2,7 @@ package expression.metasentence;
 
 import expression.sentence.Atom;
 import expression.sentence.Sentence;
+import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.prover.SemanticProver;
 import logicalreasoner.truthassignment.TruthAssignment;
@@ -35,6 +36,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public void setTrue(Sentence s, int inferenceNum) {
+    Decomposition d
     truthAssignment.setTrue(s, inferenceNum);
     reduce();
   }
