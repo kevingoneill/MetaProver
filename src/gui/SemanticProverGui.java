@@ -15,9 +15,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Top level window that holds all graphical components of the main window
@@ -30,6 +35,7 @@ public class SemanticProverGui extends JFrame {
   final static int HEIGHT = 400;
 
   private JMenuBar menuBar;
+  private ShortcutButtonPanel shortcutButtons;
   private JTextArea textOutput;
   private JScrollPane scroll;
   private JTabbedPane treePanel;
@@ -48,6 +54,8 @@ public class SemanticProverGui extends JFrame {
 
     menuBar = initMenuBar();
     this.setJMenuBar(menuBar);
+    
+    shortcutButtons = new ShortcutButtonPanel();
 
     textOutput = new JTextArea();
     textOutput.setEditable(false);
@@ -58,6 +66,7 @@ public class SemanticProverGui extends JFrame {
 
     mainOutputPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scroll, treePanel);
     mainOutputPanel.setDividerLocation(500);
+    this.add(shortcutButtons, BorderLayout.PAGE_START);
     this.add(mainOutputPanel, BorderLayout.CENTER);
   }
 
@@ -104,6 +113,16 @@ public class SemanticProverGui extends JFrame {
     dialog.pack();
     dialog.setVisible(true);
   }
+  
+  private void exampleProofDialog() {
+	  JDialog dialog = new JDialog(this, "New Proof", true);
+	  ExampleProofInputPanel panel = new ExampleProofInputPanel(this);
+	  dialog.getContentPane().add(panel);
+	  dialog.setSize(1000, 1000);
+	  dialog.setResizable(false);
+	  dialog.pack();
+	  dialog.setVisible(true);
+  }
 
   protected void prove(ArrayList<String> premises, String goal, boolean meta) {
     textOutput.setText(null);
@@ -123,19 +142,36 @@ public class SemanticProverGui extends JFrame {
     proof.trees.forEach((n, tt) -> {
     	treePanel.add(new TreeViewer(tt, n));
     });
-//    proof.trees.keySet().forEach(step -> {
-//      if (step == -1) {
-//        // truth functional proof
-//        treePanel.add(new TreeViewer(proof.trees.get(step).get(0), "TruthTree"));
-//      } else {
-//        proof.trees.get(step).forEach(tt -> {
-//          treePanel.add(new TreeViewer(tt, "Step " + step + ", Tree " + proof.trees.get(step).indexOf(tt)));
-//
-//        });
-//      }
-//    });
     this.setSize(new Dimension(getWidth(), getHeight() - 1)); // stupid fix to show jlabels in truth tree, idk why, but it works
   }
+    
+  private class ShortcutButtonPanel extends JPanel {
+		private static final long serialVersionUID = 5054744071773955105L;
+
+		private JButton newProofButton;
+		private JButton exampleProofButton;
+		
+		public ShortcutButtonPanel() {
+			super();
+			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+			newProofButton = new JButton("New Proof");
+			newProofButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					newProofDialog();
+				}
+			});
+			exampleProofButton = new JButton("Example Proofs");
+			exampleProofButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					exampleProofDialog();
+				}
+			});
+			this.add(newProofButton);
+			this.add(exampleProofButton);
+		}
+	}
 }
 
 /**
@@ -366,4 +402,230 @@ class NewProofInputPanel extends JPanel {
     public void changedUpdate(DocumentEvent e) {
     }
   }
+}
+
+class ExampleProofInputPanel extends JPanel{
+	private static final long serialVersionUID = -7203033069586485578L;
+	Map<String, ProofTemplate> truthFunctionalProofs;
+	Map<String, ProofTemplate> metaProofs;
+	boolean meta;
+	public ExampleProofInputPanel(SemanticProverGui mainWindow) {
+		this.setLayout(new BorderLayout());
+		meta = false;
+		JPanel centerPanel = new JPanel();
+		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
+		
+		// create the selection lists
+		truthFunctionalProofs = new HashMap<String, ProofTemplate>();
+		getTruthFuncProofs();
+		metaProofs = new HashMap<String, ProofTemplate>();
+		getMetaProofs();
+		
+		DefaultListModel<String> tfProofModel = new DefaultListModel<String>();
+	    JList<String> tfProofList = new JList<String>(tfProofModel); // holds added premises
+	    tfProofList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	    tfProofList.addListSelectionListener(new ListSelectionListener() {
+	      @Override
+	      public void valueChanged(ListSelectionEvent e) {
+	        
+	      }
+	    });
+	    JScrollPane tfProofScrollPane = new JScrollPane(tfProofList);
+	    truthFunctionalProofs.keySet().forEach(p -> tfProofModel.addElement(p));
+	    
+	    DefaultListModel<String> mProofModel = new DefaultListModel<String>();
+	    JList<String> mProofList = new JList<String>(mProofModel); // holds added premises
+	    mProofList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	    mProofList.addListSelectionListener(new ListSelectionListener() {
+	      @Override
+	      public void valueChanged(ListSelectionEvent e) {
+	        
+	      }
+	    });
+	    JScrollPane mProofScrollPane = new JScrollPane(mProofList);
+	    metaProofs.keySet().forEach(p -> mProofModel.addElement(p));
+	    
+	    final String tfLabel = "Truth Functional Proofs";
+	    final String mLabel = "Meta Proofs";
+	    JPanel proofSelectionPane = new JPanel(new CardLayout());
+	    proofSelectionPane.add(tfProofScrollPane, tfLabel);
+	    proofSelectionPane.add(mProofScrollPane, mLabel);
+	    
+	    JPanel comboBoxPane = new JPanel(); //use FlowLayout
+	    String comboBoxItems[] = {tfLabel, mLabel};
+	    JComboBox<String> cb = new JComboBox<String>(comboBoxItems);
+	    cb.setEditable(false);
+	    cb.addItemListener(new ItemListener() {
+	    	@Override
+	    	public void itemStateChanged(ItemEvent evt) {
+		        CardLayout cl = (CardLayout)(proofSelectionPane.getLayout());
+		        cl.show(proofSelectionPane, (String)evt.getItem());
+		        if (((String)evt.getItem()).equals(mLabel)) {
+		        	meta = true;
+		        } else { 
+		        	meta = false; 
+		        }
+		    }
+	    });
+	    comboBoxPane.add(cb);
+	    JPanel selectionPaneWithCBox = new JPanel();
+	    selectionPaneWithCBox.setLayout(new BoxLayout(selectionPaneWithCBox, BoxLayout.Y_AXIS));
+	    selectionPaneWithCBox.add(comboBoxPane);
+	    selectionPaneWithCBox.add(proofSelectionPane);
+	    
+	    
+	    // create panel for buttons
+	    JPanel buttonPane = new JPanel();
+	    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
+	    buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+	    JButton proveButton = new JButton("Prove!");
+	    proveButton.addActionListener(new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+	        closeWindow();
+	        
+	        ProofTemplate currTemp;
+	        if (meta) {
+	        	currTemp = metaProofs.get(mProofList.getSelectedValue());
+	        } else {
+	        	currTemp = truthFunctionalProofs.get(tfProofList.getSelectedValue());
+	        }
+	        ArrayList<String> premises = new ArrayList<String>();
+	        for (String premise : currTemp.premises) {
+	          premises.add(premise);
+	        }
+	        String goal = currTemp.goal;
+	        mainWindow.prove(premises, goal, meta);
+	      }
+	    });
+	    JButton cancelButton = new JButton("Cancel");
+	    cancelButton.addActionListener(new ActionListener() {
+	      @Override
+	      public void actionPerformed(ActionEvent e) {
+	        closeWindow();
+	      }
+	    });
+	    buttonPane.add(Box.createHorizontalGlue());
+	    buttonPane.add(cancelButton);
+	    buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+	    buttonPane.add(proveButton);
+	    
+	    
+	    centerPanel.add(selectionPaneWithCBox);
+	    
+	    this.add(centerPanel, BorderLayout.CENTER);
+	    this.add(buttonPane, BorderLayout.PAGE_END);
+	}
+	
+	private void closeWindow() {
+	  this.getRootPane().getParent().setVisible(false);
+	}
+	
+	private void getTruthFuncProofs() {
+		Set<String> premises = new HashSet<String>();
+		premises.add("(implies A (and B C))");
+	    premises.add("(iff C B)");
+	    premises.add("(not C)");
+		truthFunctionalProofs.put("Problem 1A", new ProofTemplate(premises, "(not A)"));
+		premises.clear();
+		
+		premises.add("(implies (or J M) (not (and J M)))");
+	    premises.add("(iff M (implies M J))");
+		truthFunctionalProofs.put("Problem 8A", new ProofTemplate(premises, "(implies M J)"));
+		premises.clear();
+		
+		premises.add("(and B (or H Z))");
+	    premises.add("(implies (not Z) K)");
+	    premises.add("(implies (iff B Z) (not Z))");
+	    premises.add("(not K)");
+		truthFunctionalProofs.put("Problem 15A", new ProofTemplate(premises, "(and M N)"));
+		premises.clear();
+		
+		premises.add("(or (iff G H) (iff (not G) H))");
+		truthFunctionalProofs.put("Problem 15A", new ProofTemplate(premises, "(or (iff (not G) (not H)) (not (iff G H)))"));
+		premises.clear();
+	
+		premises.add("(iff K (not L))");
+	    premises.add("(not (and L (not K)))");
+	    truthFunctionalProofs.put("Problem 5B", new ProofTemplate(premises, "(implies K L)"));
+		premises.clear();
+		
+		premises.add("(implies J (implies K L))");
+	    premises.add("(implies K (implies J L))");
+	    truthFunctionalProofs.put("Problem 10B", new ProofTemplate(premises, "(implies (or J K) L)"));
+		premises.clear();
+
+		premises.add("(implies W X)");
+	    premises.add("(implies X W)");
+	    premises.add("(implies X Y)");
+	    premises.add("(implies Y X)");
+	    truthFunctionalProofs.put("Problem 17B", new ProofTemplate(premises, "(iff W Y)"));
+	    premises.clear();
+	    
+	    premises.add("(and (or A B) (not C))");
+	    premises.add("(implies (not C) (and D (not A)))");
+	    premises.add("(implies B (or A E))");
+	    truthFunctionalProofs.put("Problem 17B", new ProofTemplate(premises, "(or E F)"));
+	    premises.clear();
+	    
+	    premises.add("(implies (or (not A) B) (not (and C D)))");
+	    premises.add("(implies (and A C) E)");
+	    premises.add("(and A (not E))");
+	    truthFunctionalProofs.put("Problem 20D", new ProofTemplate(premises, "(not (or D E))"));
+	    premises.clear();
+	}
+	
+	private void getMetaProofs() {
+		Set<String> premises = new HashSet<String>();
+		premises.add("[EQUIVALENT φ ψ]");
+	    metaProofs.put("Example 1", new ProofTemplate(premises, "[AND [SUBSUMES φ ψ] [SUBSUMES ψ φ]]"));
+	    premises.clear();
+	    
+	    premises.add("[IS φ TAUTOLOGY]");
+	    metaProofs.put("Example 2", new ProofTemplate(premises, "[IS (not φ) CONTRADICTION]"));
+	    premises.clear();
+	    
+	    premises.add("[IS φ CONTRADICTION]");
+	    metaProofs.put("Example 3", new ProofTemplate(premises, "[IS (not φ) TAUTOLOGY]"));
+	    premises.clear();
+
+	    premises.add("[IS φ CONTINGENCY]");
+	    metaProofs.put("Example 4", new ProofTemplate(premises, "[IS (not φ) CONTINGENCY]"));
+	    premises.clear();
+	    
+	    premises.add("[IS ψ TAUTOLOGY]");
+	    metaProofs.put("Example 5", new ProofTemplate(premises, "[SUBSUMES true ψ]"));
+	    premises.clear();
+	    
+	    premises.add("[IS φ CONTRADICTION]");
+	    metaProofs.put("Example 6", new ProofTemplate(premises, "[SUBSUMES φ false]"));
+	    premises.clear();
+	    
+	    premises.add("[IS (implies φ ψ) TAUTOLOGY]");
+	    metaProofs.put("Example 7", new ProofTemplate(premises, "[SUBSUMES φ ψ]"));
+	    premises.clear();
+	    
+	    premises.add("[CONTRADICTORY φ ψ]");
+	    metaProofs.put("Example 8", new ProofTemplate(premises, "[AND [CONTRARY φ ψ] [SUBCONTRARY φ ψ]]"));
+	    premises.clear();
+	    
+	    premises.add("[EQUIVALENT φ ψ]");
+	    metaProofs.put("Example 9", new ProofTemplate(premises, "[CONTRADICTORY φ (not ψ)]"));
+	    premises.clear();
+	    
+	    premises.add("[SUBSUMES φ ψ]");
+	    metaProofs.put("Example 10", new ProofTemplate(premises, "[SUBSUMES (not ψ) (not φ)]"));
+	    premises.clear();
+	}
+	
+	private class ProofTemplate {
+		Set<String> premises;
+		String goal;
+		
+		ProofTemplate(Set<String> premises, String goal) {
+			this.premises = new LinkedHashSet<String>(premises);
+			this.goal = new String(goal);
+		}
+		
+	}
 }
