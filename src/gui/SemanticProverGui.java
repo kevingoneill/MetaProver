@@ -110,6 +110,7 @@ public class SemanticProverGui extends JFrame {
     while (treePanel.getTabCount() > 0) {
     	treePanel.remove(0);
     }
+    
 
     ProofInfo result = null;
     if (meta) {

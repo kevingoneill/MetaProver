@@ -1,8 +1,7 @@
 package gui.truthtreevisualization;
 
-import javax.swing.*;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,7 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import logicalreasoner.inference.Branch;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 
@@ -67,107 +70,45 @@ public class TreeBranch extends JPanel {
 		  
 		  String iOriginTrue = inferences.get(i) + " [true]";
 		  String iOriginFalse = inferences.get(i) + " [false]";
-		  if (statements.containsKey(iOriginTrue)) {
-			 this.add(statements.get(iOriginTrue));
-			 JLabel label = statements.get(iOriginTrue);
-			 String prefix = "";// = ((Integer)i.getInferenceNum()).toString();
-			 String suffix = "";
-			 if (i.getJustificationNum() == 0) {
-				 if (i.getInferenceNum() == 0) {
-					 prefix = "Goal";
-				 } else {
-					 prefix = "Premise " + (-1 * i.getInferenceNum());
-				 }
-//				 label.setText(prefix + ". " + label.getText());// + "  " + (i.getJustificationNum() < 0 ? "Premise" : ""));
-			  	 addedLabels.add(label);
-			 }
-			 else if (i.getJustificationNum() != 0) {
-			  	 if (i instanceof Decomposition) {
-					 ((Decomposition) i).getAdditions().keySet().forEach(s -> {
-						 String inferenceResult = s.toSymbol();
-						 JLabel infResLabel = statements.get(inferenceResult + " [true]");
-						 if (infResLabel == null) {
-							 infResLabel = statements.get(inferenceResult + " [false]");
-						 }
-						 if (infResLabel != null) {
-//							 infResLabel.setText(infResLabel.getText() + " " + ((Decomposition) i).getJustificationNum());
-						 }
-					 });
-				 }
-			  	
-			 }
-			 
-
-//		  	 if (i instanceof Branch) {
-//		  		 ((Branch) i).getBranches().forEach(branch -> {
-//		  			 branch.keySet().forEach(s -> {
-//		  				 children.forEach(child -> {
-//							 String inferenceResult = s.toSymbol();
-//							 child.searchForBranchInference(inferenceResult, ((Branch) i).getJustificationNum());
-//		  				 });
-//		  			 });
-//		  		 });
-//		  	 }
-//		  	++num;
-		  }
 		  
-		  if (statements.containsKey(iOriginFalse)) {
-			 this.add(statements.get(iOriginFalse));
-			 JLabel label = statements.get(iOriginFalse);
-			 String prefix;// = ((Integer)i.getInferenceNum()).toString();
-			 String suffix = "";
-			 if (i.getJustificationNum() == 0) {
-				 if (i.getInferenceNum() == 0) {
-					 prefix = "Goal";
-				 } else {
-					 prefix = "Premise " + (-1 * i.getInferenceNum());
-				 }
-//				 label.setText(prefix + ". " + label.getText());// + "  " + (i.getJustificationNum() < 0 ? "Premise" : ""));
-			  	 addedLabels.add(label);
-			 }
-			 else if (i.getJustificationNum() != 0) {
-			  	 if (i instanceof Decomposition) {
-					 ((Decomposition) i).getAdditions().keySet().forEach(s -> {
-						 String inferenceResult = s.toSymbol();
-						 JLabel infResLabel = statements.get(inferenceResult + " [true]");
-						 if (infResLabel == null) {
-							 infResLabel = statements.get(inferenceResult + " [false]");
-						 }
-						 if (infResLabel != null) {
-//							 infResLabel.setText(infResLabel.getText() + " " + ((Decomposition) i).getJustificationNum());
-						 }
-					 });
-				 }
-			  	
-			 }
-
-//			 if (i instanceof Branch) {
-//		  		 ((Branch) i).getBranches().forEach(branch -> {
-//		  			 branch.keySet().forEach(s -> {
-//		  				 children.forEach(child -> {
-//							 String inferenceResult = s.toSymbol();
-//							 child.searchForBranchInference(inferenceResult, ((Branch) i).getJustificationNum());
-//		  				 });
-//		  			 });
-//		  		 });
-//		  	 }
-//			 ++num;
-		  }
-		  
-		  
-		  
+		  if (placeStatementHelper(i, iOriginTrue, addedLabels)) {}
+		  else {placeStatementHelper(i, iOriginFalse, addedLabels);}
 	  }
+
 	  for (JLabel label : statements.values()) {
 		  if (!addedLabels.contains(label)) {
-//			  if (!(label.getText().equals("✓") || label.getText().equals("✗"))) {
-//				  label.setText(num + ". " + label.getText());
-//			  }
 			  this.add(label);
-//			  ++num;
 		  }
 	  }
 	  children.forEach(c -> c.placeStatements());
   }
+  
+  private boolean placeStatementHelper(Inference i, String origin, Set<JLabel> addedLabels) {
+	 if (!statements.containsKey(origin)) {
+	    return false;
+	 }
+	 
+	 JLabel label = statements.get(origin);
+	 String prefix = "";
+	 if (i.getJustificationNum() == 0) {
+		 int inference = i.getInferenceNum();
+		 if (inference == 0) {
+			 prefix = "Goal";
+		 } else if (inference <= -1) {
+			 prefix = "Premise " + (-1 * inference);
+			 System.out.println("here");
+		 }
+		 if (!prefix.equals("")) {
+			 label.setText(prefix + ". " + label.getText());
+		 }
+		 
+		 this.add(label);
+	  	 addedLabels.add(label);
+	 }
+	 
+	 return true;
+  }
+  
   
   public void searchForBranchInference(String statement, int infNum) {
 	  JLabel infResLabel = statements.get(statement + " [true]");
@@ -182,31 +123,7 @@ public class TreeBranch extends JPanel {
   }
 
   public void addStatement(String s) {
-    JLabel sLabel = new JLabel(s);
-    sLabel.setOpaque(true);
-    if (s.equals("✓")) {
-      sLabel.setForeground(Color.GREEN);
-    } else if (s.equals("✗")) {
-      sLabel.setForeground(Color.RED);
-    }
-//		sLabel.addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseEntered(MouseEvent e) {
-//				System.out.println("entered");
-//				sLabel.setBackground(Color.CYAN);
-//				sLabel.setText("hi");
-////				sLabel.repaint();
-//			}
-//
-//			@Override
-//			public void mouseExited(MouseEvent e) {
-//				System.out.println("exited");
-//				sLabel.setBackground(Color.white);
-//				sLabel.setText("bye");
-////				sLabel.repaint();
-//			}
-//		});
-    sLabel.setFont(sLabel.getFont().deriveFont(16.0f));
+    Statement sLabel = new Statement(s);
     statements.put(s, sLabel);
   }
 
@@ -260,16 +177,6 @@ public class TreeBranch extends JPanel {
     return statements;
   }
 
-//	@Override
-//	public void paintComponent(Graphics g) {
-//		super.paintComponent(g);
-//		
-//		for (JLabel s : statements.values()) {
-//			s.revalidate();
-//			s.repaint();
-//		}
-//	}
-
   @Override
   public String toString() {
     String toReturn = "[";
@@ -285,4 +192,23 @@ public class TreeBranch extends JPanel {
     System.out.println(output);
     children.forEach(child -> child.print(prefix + "\t"));
   }
+}
+
+class Statement extends JLabel {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 924561991566707885L;
+
+	Statement(String s) {
+		super(s);
+	    this.setOpaque(true);
+	    if (s.equals("✓")) {
+    	  this.setForeground(Color.GREEN);
+    	} else if (s.equals("✗")) {
+    	  this.setForeground(Color.RED);
+    	}
+//	    this.addMouseListener(this);
+	    this.setFont(this.getFont().deriveFont(16.0f));
+	}
 }
