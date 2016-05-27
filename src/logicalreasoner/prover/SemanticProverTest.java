@@ -17,10 +17,9 @@ import java.util.Set;
  * -Note, problem 20d is NOT valid
  */
 public class SemanticProverTest {
-  private static void runProver(Set<String> premises, String interest, boolean validArgument) {
-    Set<Sentence> p = new HashSet<Sentence>() {{
-      premises.forEach(premise -> this.add(SentenceReader.parse(premise)));
-    }};
+  public static void runProver(Set<String> premises, String interest, boolean validArgument) {
+    Set<Sentence> p = new HashSet<>();
+    premises.forEach(premise -> p.add(SentenceReader.parse(premise)));
 
     SemanticProver prover = new SemanticProver(p, SentenceReader.parse(interest), true);
     prover.run();
@@ -173,7 +172,7 @@ public class SemanticProverTest {
   public void prob16a() {
     HashSet<String> premises = new HashSet<>();
     premises.add("(and (iff D (not G)) G)");
-    premises.add("implies (or G (and (implies A D) A)) (not D))");
+    premises.add("(implies (or G (and (implies A D) A)) (not D))");
 
     runProver(premises, "(implies G (not D))", true);
   }

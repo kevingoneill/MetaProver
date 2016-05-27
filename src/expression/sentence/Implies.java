@@ -1,5 +1,6 @@
 package expression.sentence;
 
+import expression.Sort;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
@@ -7,6 +8,8 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The Implies class represents logical implication,
@@ -16,26 +19,17 @@ import java.util.Arrays;
  */
 public class Implies extends Sentence {
   public Implies(Sentence ifExpr, Sentence thenExpr) {
-    super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶");
+    super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶", Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
-    //return pre-mapped value for this
-    //if (h.isMapped(this))
-    //    return h.models(this);
-
     Boolean antecedent = h.models(args.get(0)),
             consequent = h.models(args.get(1));
 
     //Return null if any atoms are unmapped
     if (antecedent == null || consequent == null)
       return null;
-
-    //Add mapping for new evaluation of this
-    //boolean val =
     return !(antecedent && !consequent);
-    //h.set(this, val);
-    //return val;
   }
 
   @Override
@@ -62,4 +56,15 @@ public class Implies extends Sentence {
     return null;
   }
 
+  @Override
+  public Set<Constant> getConstants() {
+    Set<Constant> s = new HashSet<>();
+    args.forEach(a -> s.addAll(a.getConstants()));
+    return s;
+  }
+
+  @Override
+  public Sentence instantiate(Constant c, Variable v) {
+    return new Implies(args.get(0).instantiate(c, v), args.get(1).instantiate(c, v));
+  }
 }

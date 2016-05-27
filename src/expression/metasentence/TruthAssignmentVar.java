@@ -1,6 +1,6 @@
 package expression.metasentence;
 
-import expression.sentence.Atom;
+import expression.sentence.Proposition;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
@@ -126,7 +126,7 @@ public class TruthAssignmentVar extends MetaSentence {
     if (o instanceof TruthAssignmentVar) {
       TruthAssignment t = ((TruthAssignmentVar) o).truthAssignment;
 
-      return truthAssignment.keySet().stream().filter(s -> s instanceof Atom).allMatch(s -> truthAssignment.models(s) == t.models(s));
+      return truthAssignment.keySet().stream().filter(s -> s instanceof Proposition).allMatch(s -> truthAssignment.models(s) == t.models(s));
     }
     return false;
   }

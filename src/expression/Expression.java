@@ -1,9 +1,10 @@
 package expression;
 
 /**
- * Created by kevin on 3/22/16.
+ * An Expression is a statement which makes a claim or
+ * captures an idea or object.
  */
-public abstract class Expression {
+public abstract class Expression implements Comparable<Expression> {
   protected String name, symbol;
 
   public Expression(String n, String s) {
@@ -34,5 +35,9 @@ public abstract class Expression {
       return this.name.equals(((Expression) o).name);
 
     return false;
+  }
+
+  public int compareTo(Expression e) {
+    return name.compareTo(e.getName());
   }
 }

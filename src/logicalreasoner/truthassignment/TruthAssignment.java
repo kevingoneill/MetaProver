@@ -1,8 +1,7 @@
 package logicalreasoner.truthassignment;
 
-import expression.sentence.Atom;
+import expression.sentence.BooleanSentence;
 import expression.sentence.Constant;
-import expression.sentence.Predicate;
 import expression.sentence.Sentence;
 import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
@@ -26,6 +25,8 @@ public class TruthAssignment {
   private TruthAssignment parent;
   private List<TruthAssignment> children;
 
+  private Set<Constant> constants;
+
   /**
    * Create a new, empty TruthAssignment
    */
@@ -34,6 +35,7 @@ public class TruthAssignment {
     map = new HashMap<>();
     parent = null;
     children = new ArrayList<>();
+    constants = new HashSet<>();
   }
 
   /**
@@ -46,6 +48,7 @@ public class TruthAssignment {
     map = new HashMap<>();
     parent = null;
     children = new ArrayList<>();
+    constants = new HashSet<>();
   }
 
   /**
@@ -58,8 +61,8 @@ public class TruthAssignment {
     this.map = new HashMap<>();
     ta.map.forEach((k, v) -> map.put(k, new TruthValue(v)));
     this.parent = ta.parent;
-    children = new ArrayList<>();
-    ta.children.forEach(c -> children.add(c));
+    children = new ArrayList<>(ta.children);
+    constants = new HashSet<>(ta.constants);
   }
 
   public String getName() {
@@ -106,6 +109,10 @@ public class TruthAssignment {
     if (itr.hasNext()) {
       itr.next().print(prefix + (isTail ? "    " : "│   "), true);
     }
+  }
+
+  public Set<Constant> getConstants() {
+    return constants;
   }
 
   public TruthTree makeTruthTree() {
@@ -170,8 +177,10 @@ public class TruthAssignment {
       map.put(s, t);
     }
 
-    if (s instanceof Atom || s instanceof Predicate)
+    if (s.isAtomic())
       setDecomposed(s);
+
+    constants.addAll(s.getConstants());
   }
 
   /**
@@ -188,8 +197,10 @@ public class TruthAssignment {
       map.put(s, t);
     }
 
-    if (s instanceof Atom || s instanceof Predicate)
+    if (s.isAtomic())
       setDecomposed(s);
+
+    constants.addAll(s.getConstants());
   }
 
   /**
@@ -207,8 +218,10 @@ public class TruthAssignment {
       map.put(s, t);
     }
 
-    if (s instanceof Atom || s instanceof Predicate)
+    if (s.isAtomic())
       setDecomposed(s);
+
+    constants.addAll(s.getConstants());
   }
 
   /**
@@ -260,6 +273,18 @@ public class TruthAssignment {
     return s;
   }
 
+  public Map<Sentence, Boolean> getCounterExample() {
+    if (!isConsistent())
+      return null;
+
+    Map<Sentence, Boolean> s = new HashMap<>();
+    map.entrySet().stream().filter(e -> e.getKey().isAtomic()).forEach(e -> s.put(e.getKey(), e.getValue().isModelled()));
+
+    if (parent != null)
+      s.putAll(parent.getCounterExample());
+    return s;
+  }
+
   /**
    * Get a Stream of all true Sentences in this
    *
@@ -289,6 +314,7 @@ public class TruthAssignment {
         map.put(k, new TruthValue(v));
       else
         map.get(k).putAll(v);
+      constants.addAll(k.getConstants());
     });
   }
 
@@ -300,9 +326,9 @@ public class TruthAssignment {
    */
   public boolean isConsistent() {
     return map.keySet().stream().allMatch(s -> {
-      if (s.equals(Constant.TRUE) && !map.get(s).isModelled())
+      if (s.equals(BooleanSentence.TRUE) && !map.get(s).isModelled())
         return false;
-      if (s.equals(Constant.FALSE) && map.get(s).isModelled())
+      if (s.equals(BooleanSentence.FALSE) && map.get(s).isModelled())
         return false;
       if (!map.get(s).isConsistent())
         return false;

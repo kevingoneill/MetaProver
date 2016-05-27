@@ -4,42 +4,22 @@ import expression.Sort;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The Predicate class represents a logical predicate over
- * some constants (assume no objects are variables)
- * <p>
- * ie, (P x), (W x y z), and (H a) are all predicates
+ * The Proposition class represents a single atomic sentence.
+ * It can be a proposition, constant, or variable.
  */
-public class Predicate extends Sentence {
+public class Proposition extends Atom {
+
   /**
    * Create a new Proposition object with the given name
    *
    * @param n the name of the Proposition
    */
-  public Predicate(String n, ArrayList<Sentence> vars) {
-    super(vars, n, n, Sort.BOOLEAN);
-  }
-
-  public String toSymbol() {
-    /*
-    StringBuilder builder = new StringBuilder();
-    builder.append(name).append("(");
-    args.forEach(arg -> builder.append(" ").append(arg));
-    builder.append(")");
-    return builder.toString();
-    */
-    return toString();
-  }
-
-  @Override
-  public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>();
-    args.stream().filter(a -> a instanceof Constant).forEach(a -> s.add((Constant) a));
-    return s;
+  public Proposition(String n) {
+    super(n.toUpperCase(), Sort.BOOLEAN);
   }
 
   /**
@@ -63,10 +43,26 @@ public class Predicate extends Sentence {
     return null;
   }
 
+
+  public String toString() {
+    return name;
+  }
+
+  public String toSymbol() {
+    return name;
+  }
+
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override
+  public Set<Constant> getConstants() {
+    return new HashSet<>();
+  }
+
   @Override
   public Sentence instantiate(Constant c, Variable v) {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.instantiate(c, v)));
-    return new Predicate(name, a);
+    return this;
   }
 }

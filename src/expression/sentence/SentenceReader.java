@@ -1,18 +1,22 @@
 package expression.sentence;
 
+import expression.Sort;
+
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * SentenceReader is an interface for the parsing of logical Sentences
  */
 public interface SentenceReader {
 
+  ArrayList<String> PROPOSITIONS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff"));
+  ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
+
   static Sentence parse(String s) {
-    return parse(tokenize(s));
+    return parse(tokenize(s), new HashMap<>());
   }
 
   static LinkedList<String> tokenize(String s) {
@@ -49,7 +53,7 @@ public interface SentenceReader {
     return tokenStack;
   }
 
-  static Sentence parse(LinkedList<String> stack) {
+  static Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     //System.out.println("Parse: " + stack);
     if (stack.isEmpty())
       return null;
@@ -57,30 +61,110 @@ public interface SentenceReader {
     if (stack.peek().equals("(")) {
       stack.pop();
       String exprName = stack.pop();
-      ArrayList<Sentence> args = parseList(exprName, stack);
-      stack.pop();
-      return makeSentence(exprName, args);
+      if (QUANTIFIERS.contains(exprName))   // Parse the quantifier
+        return parseQuantifier(exprName, stack, quantifiedVars);
+      else if (PROPOSITIONS.contains(exprName))  // Parse the proposition
+        return parseProposition(exprName, stack, quantifiedVars);
+      return parsePredicate(exprName, stack, quantifiedVars); // The sentence must now be a Predicate
     } else if (stack.peek().equalsIgnoreCase("true")) {
       stack.pop();
-      return Constant.TRUE;
+      return BooleanSentence.TRUE;
     } else if (stack.peek().equalsIgnoreCase("false")) {
       stack.pop();
-      return Constant.FALSE;
-    } else {
-      return new Atom(stack.pop());
+      return BooleanSentence.FALSE;
+    } else if (stack.peek().charAt(0) == stack.peek().toUpperCase().charAt(0)) {
+      return new Proposition(stack.pop());
     }
+    throw new SentenceParseException("Proposition: " + stack.peek() + " must begin with an uppercase character");
   }
 
-  static ArrayList<Sentence> parseList(String exprName, LinkedList<String> stack) {
-    //System.out.println("ParseList: " + stack);
+  static Sentence parseQuantifier(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    ArrayList<Sentence> args = new ArrayList<>();
+
+    if (quantifiedVars.containsKey(stack.peek()))
+      throw new SentenceParseException("Variable: " + stack.peek() + " quantified over twice.");
+    Sentence s = parseVariable(stack, quantifiedVars);
+    args.add(s);
+    quantifiedVars.put(s.toString(), (Variable) s);
+
+    args.add(parse(stack, quantifiedVars));
+    return makeSentence(exprName, args);
+  }
+
+  static Variable parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    String exprName = stack.pop();
+    String sort = null;
+    if (exprName.charAt(0) != exprName.toLowerCase().charAt(0))
+      throw new SentenceParseException("Term: " + exprName + " must begin with a lowercase character.");
+    if (stack.peek().equals(":")) {
+      stack.pop();
+      sort = stack.pop();
+    }
+    //System.out.println("ParseVariable: " + stack);
+    if (quantifiedVars.containsKey(exprName)) {
+      Variable v = quantifiedVars.get(exprName);
+      if (sort != null && !v.getSort().isSuperSort(Sort.getSort(sort)))
+        throw new SentenceParseException("Cannot create a variable of multiple sorts");
+      return v;
+    }
+    if (sort == null)
+      sort = "OBJECT";
+    return new Variable(exprName, Sort.getSort(sort));
+  }
+
+  static Sentence parsePredicate(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    if (exprName.charAt(0) != exprName.toUpperCase().charAt(0))
+      throw new SentenceParseException("Predicate: " + exprName + " must begin with an uppercase character.");
+
+    //System.out.println("ParsePredicate: " + stack);
     ArrayList<Sentence> list = new ArrayList<>();
     while (!stack.peek().equals(")")) {
       if (stack.peek() == null)
         throw new SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
-      list.add(parse(stack));
+
+      list.add(parseTerm(stack, quantifiedVars));
+    }
+    stack.pop();
+
+    return new Predicate(exprName, list);
+  }
+
+  static Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    String exprName = stack.pop();
+    String sort = null;
+
+    if (exprName.charAt(0) != exprName.toLowerCase().charAt(0))
+      throw new SentenceParseException("Term: " + exprName + " must begin with a lowercase character.");
+
+    if (stack.peek().equals(":")) {
+      stack.pop();
+      sort = stack.pop();
     }
 
-    return list;
+    //System.out.println("ParseTerm: " + stack);
+
+    if (quantifiedVars.containsKey(exprName)) {
+      Variable v = quantifiedVars.get(exprName);
+      if (sort != null && !v.getSort().isSuperSort(Sort.getSort(sort)))
+        throw new SentenceParseException("Cannot create a variable of multiple sorts");
+      return v;
+    }
+
+    if (sort == null)
+      sort = "OBJECT";
+    return Constant.getConstant(exprName, Sort.getSort(sort));
+  }
+
+  static Sentence parseProposition(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    //System.out.println("ParseProposition: " + stack);
+    ArrayList<Sentence> list = new ArrayList<>();
+    while (!stack.peek().equals(")")) {
+      if (stack.peek() == null)
+        throw new SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
+      list.add(parse(stack, quantifiedVars));
+    }
+    stack.pop();
+    return makeSentence(exprName, list);
   }
 
   static Sentence makeSentence(String name, ArrayList<Sentence> args) {
@@ -112,8 +196,14 @@ public interface SentenceReader {
           throw new SentenceParseException("Iff Sentence must have exactly two arguments.");
         return new Iff(args.get(0), args.get(1));
       }
+      case "forAll": {
+        return new ForAll((Variable) args.get(0), args.get(1));
+      }
+      case "exists": {
+        return new Exists((Variable) args.get(0), args.get(1));
+      }
       default:
-        return new Predicate(name, args);
+        return null;
     }
   }
 

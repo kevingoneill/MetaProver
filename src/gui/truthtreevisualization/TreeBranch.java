@@ -1,21 +1,12 @@
 package gui.truthtreevisualization;
 
-import java.awt.Color;
-import java.awt.Point;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class TreeBranch extends JPanel {
   private static final long serialVersionUID = -5667752505914020168L;
@@ -96,8 +87,8 @@ public class TreeBranch extends JPanel {
 			 prefix = "Goal";
 		 } else if (inference <= -1) {
 			 prefix = "Premise " + (-1 * inference);
-			 System.out.println("here");
-		 }
+       //System.out.println("here");
+     }
 		 if (!prefix.equals("")) {
 			 label.setText(prefix + ". " + label.getText());
 		 }

@@ -1,5 +1,6 @@
 package logicalreasoner.prover;
 
+import expression.sentence.Constant;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
@@ -25,6 +26,7 @@ public class SemanticProver implements Runnable {
   }
 
   private Set<Sentence> premises, interests;
+  private Set<Constant> constants;
 
   //Stores the initial/root TruthAssignment
   private TruthAssignment masterFunction;
@@ -116,9 +118,9 @@ public class SemanticProver implements Runnable {
    * @param h the TruthAssignment to reason over
    * @return true if changes to h have been made as a result of this call, false otherwise
    */
-  public boolean reason(TruthAssignment h) {
+  public boolean reasonPropositionally(TruthAssignment h) {
     List<Inference> inferences = h.getSentencesUpwards().stream()
-            .filter(s -> !h.isDecomposed(s))
+            .filter(s -> !h.isDecomposed(s)) // && !s.isQuantifier())
             .map(s -> s.reason(h, inferenceCount++, h.getInferenceNum(s, h.models(s)))).filter(i -> i != null)
             .collect(Collectors.toList());
 
@@ -149,7 +151,7 @@ public class SemanticProver implements Runnable {
       // Always decompose all statements before branching
       while (!openBranches.isEmpty() && updated) {
         //closeBranches();
-        updated = openBranches.stream().map(this::reason).collect(Collectors.toList()).contains(true);
+        updated = openBranches.stream().map(this::reasonPropositionally).collect(Collectors.toList()).contains(true);
       }
 
       closeBranches();
@@ -163,14 +165,14 @@ public class SemanticProver implements Runnable {
     //without inconsistencies, the argument is invalid
     if (print) {
       if (isConsistent()) {
-        System.out.println("\nThe argument is NOT valid.\n");
+        System.out.println("\nThe argument is NOT valid. Counterexamples: \n");
+        getCounterExamples();
       } else {
         System.out.println("\nThe argument IS valid.\n");
       }
 
-      //printInferences();
+      printInferences();
       printInferenceList();
-//            printTruthTree();
     }
   }
 
@@ -219,14 +221,6 @@ public class SemanticProver implements Runnable {
     }
   }
 
-//    private void printTruthTree() {
-//    	if (print) {
-//    		System.out.println("Truth tree: ");
-//    		masterFunction.makeTruthTree().print();
-//    		System.out.println();
-//    	}
-//    }
-
   public TruthAssignment getTruthAssignment() {
     return masterFunction;
   }
@@ -255,5 +249,12 @@ public class SemanticProver implements Runnable {
 
   private void closeBranches() {
     openBranches.removeIf(b -> !b.isConsistent());
+  }
+
+  private void getCounterExamples() {
+    if (!masterFunction.isConsistent())
+      return;
+
+    masterFunction.getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
   }
 }

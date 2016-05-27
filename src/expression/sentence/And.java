@@ -1,11 +1,14 @@
 package expression.sentence;
 
+import expression.Sort;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The And class represents the generalized logical conjunction
@@ -14,7 +17,7 @@ import java.util.ArrayList;
  */
 public class And extends Sentence {
   public And(ArrayList<Sentence> a) {
-    super(a, "and", "∧");
+    super(a, "and", "∧", Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -48,5 +51,19 @@ public class And extends Sentence {
     }
 
     return null;
+  }
+
+  @Override
+  public Set<Constant> getConstants() {
+    Set<Constant> s = new HashSet<>();
+    args.forEach(a -> s.addAll(a.getConstants()));
+    return s;
+  }
+
+  @Override
+  public Sentence instantiate(Constant c, Variable v) {
+    ArrayList<Sentence> a = new ArrayList<>();
+    args.forEach(arg -> a.add(arg.instantiate(c, v)));
+    return new And(a);
   }
 }

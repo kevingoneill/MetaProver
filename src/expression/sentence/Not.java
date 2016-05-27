@@ -1,11 +1,14 @@
 package expression.sentence;
 
+import expression.Sort;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The Not class represents a logical negation
@@ -15,11 +18,11 @@ import java.util.Arrays;
 public class Not extends Sentence {
 
   public Not(Sentence e) {
-    super(new ArrayList<>(Arrays.asList(e)), "not", "¬");
+    super(new ArrayList<>(Arrays.asList(e)), "not", "¬", Sort.BOOLEAN);
   }
 
   public String toSymbol() {
-    if (args.get(0) instanceof Atom || args.get(0) instanceof Predicate)
+    if (args.get(0) instanceof Proposition || args.get(0) instanceof Predicate)
       return symbol + args.get(0).toSymbol();
     return symbol + "(" + args.get(0).toSymbol() + ")";
   }
@@ -50,4 +53,15 @@ public class Not extends Sentence {
     return null;
   }
 
+  @Override
+  public Set<Constant> getConstants() {
+    Set<Constant> s = new HashSet<>();
+    args.forEach(a -> s.addAll(a.getConstants()));
+    return s;
+  }
+
+  @Override
+  public Sentence instantiate(Constant c, Variable v) {
+    return new Not(args.get(0).instantiate(c, v));
+  }
 }

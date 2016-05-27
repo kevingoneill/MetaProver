@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -71,9 +72,7 @@ public interface MetaSentenceReader {
     } else if (stack.peek().equals("(")) {
       stack.pop();
       String exprName = stack.pop();
-      ArrayList<Sentence> args = SentenceReader.parseList(exprName, stack);
-      stack.pop();
-      return SentenceReader.makeSentence(exprName, args);
+      return SentenceReader.parseProposition(exprName, stack, new HashMap<>());
     } else if (stack.peek().equalsIgnoreCase("TAUTOLOGY")) {
       stack.pop();
       return MetaConstant.TAUTOLOGY;
