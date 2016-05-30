@@ -23,6 +23,10 @@ public class ForAll extends Sentence {
     instantiations = new HashSet<>();
   }
 
+  public String toSymbol() {
+    return symbol + getVariable().toSymbol() + getSentence().toSymbol();
+  }
+
   public Sentence getSentence() {
     return args.get(1);
   }
@@ -41,14 +45,16 @@ public class ForAll extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        System.out.println(h.getConstants());
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        h.getConstants().stream().filter(c -> !instantiations.contains(c)).forEach(c -> {
+        System.out.println(h.getConstants());
+        h.getConstants().stream().filter(c ->
+                !instantiations.contains(c)).forEach(c -> {
           Sentence s = getSentence().instantiate(c, getVariable());
           System.out.println(s);
           d.setTrue(s);
           instantiations.add(c);
         });
+
         if (!d.getAdditions().isEmpty())
           return d;
       } else {

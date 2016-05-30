@@ -15,6 +15,7 @@ import java.util.Set;
 public class Constant extends Atom {
 
   public static Map<String, Constant> constants = new HashMap<>();
+  private static long newConstants = 1;
 
   private Constant(String name, Sort s) {
     super(name, s);
@@ -33,6 +34,16 @@ public class Constant extends Atom {
     }
 
     constants.put(name, new Constant(name, s));
+    return constants.get(name);
+  }
+
+  public static Constant getNewUniqueConstant() {
+    String name = "#" + newConstants;
+    while (constants.containsKey(name)) { // Increment until a unique constant is found
+      ++newConstants;
+      name = "#" + newConstants;
+    }
+    constants.put(name, new Constant(name));
     return constants.get(name);
   }
 

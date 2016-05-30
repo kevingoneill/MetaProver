@@ -25,14 +25,13 @@ public class Predicate extends Sentence {
   }
 
   public String toSymbol() {
-    /*
-    StringBuilder builder = new StringBuilder();
-    builder.append(name).append("(");
+
+    StringBuilder builder = new StringBuilder().append("(").append(name);
     args.forEach(arg -> builder.append(" ").append(arg));
     builder.append(")");
     return builder.toString();
-    */
-    return toString();
+
+    //return toString();
   }
 
   @Override

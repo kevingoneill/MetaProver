@@ -2,6 +2,7 @@ package logicalreasoner.truthassignment;
 
 import expression.sentence.BooleanSentence;
 import expression.sentence.Constant;
+import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
@@ -115,6 +116,10 @@ public class TruthAssignment {
     return constants;
   }
 
+  public void addConstant(Constant c) {
+    constants.add(c);
+  }
+
   public TruthTree makeTruthTree() {
     TreeBranch root = makeBranch(map.keySet(), children.isEmpty());
     children.forEach(child -> {
@@ -158,6 +163,11 @@ public class TruthAssignment {
    * @return the UID of the inference which mapped s to models, or -1 if no mapping exists
    */
   public int getInferenceNum(Sentence s, boolean models) {
+    if (!map.containsKey(s)) {
+      if (parent != null)
+        return parent.getInferenceNum(s, models);
+      return -1;
+    }
     if (models(s) == models)
       return map.get(s).getInferenceNum(models);
     return -1;
@@ -356,8 +366,11 @@ public class TruthAssignment {
    * false otherwise
    */
   public Boolean isDecomposed(Sentence s) {
-    if (map.containsKey(s))
+    if (map.containsKey(s)) {
+      if (s instanceof ForAll && !map.get(s).isDecomposed())
+        return constants.size() > 0 && s.getConstants().size() >= constants.size();
       return map.get(s).isDecomposed();
+    }
     if (parent != null)
       return parent.isDecomposed(s);
     return false;
@@ -370,6 +383,15 @@ public class TruthAssignment {
    */
   public boolean decomposedAll() {
     return map.keySet().stream().allMatch(this::isDecomposed) && (parent == null || parent.decomposedAll());
+  }
+
+  /**
+   * Check if all mappings in this TruthAssignment have been decomposed
+   *
+   * @return true if all Sentences in this and its parents have been decomposed
+   */
+  public boolean decomposedAllPropositions() {
+    return map.keySet().stream().filter(s -> !s.isQuantifier()).allMatch(this::isDecomposed) && (parent == null || parent.decomposedAllPropositions());
   }
 
   /**

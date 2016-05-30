@@ -35,11 +35,14 @@ public abstract class Sentence extends Expression {
   public abstract Inference reason(TruthAssignment h, int inferenceNum, int justificationNum);
 
   public String toString() {
+    return toSymbol();
+    /*
     StringBuilder builder = new StringBuilder();
     builder.append("(").append(name);
     args.forEach(arg -> builder.append(" ").append(arg));
     builder.append(")");
     return builder.toString();
+    */
   }
 
   public String toSymbol() {

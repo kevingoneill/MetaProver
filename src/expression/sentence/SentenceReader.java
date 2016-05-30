@@ -88,6 +88,10 @@ public interface SentenceReader {
     quantifiedVars.put(s.toString(), (Variable) s);
 
     args.add(parse(stack, quantifiedVars));
+    if (!stack.peek().equals(")"))
+      throw new SentenceParseException("Missing parentheses after quantifier: " + exprName + ".");
+    stack.pop();
+    quantifiedVars.remove(s.toString());
     return makeSentence(exprName, args);
   }
 
@@ -95,7 +99,8 @@ public interface SentenceReader {
     String exprName = stack.pop();
     String sort = null;
     if (exprName.charAt(0) != exprName.toLowerCase().charAt(0))
-      throw new SentenceParseException("Term: " + exprName + " must begin with a lowercase character.");
+      throw new SentenceParseException("Term: " + exprName +
+              " must begin with a lowercase character.");
     if (stack.peek().equals(":")) {
       stack.pop();
       sort = stack.pop();
@@ -114,7 +119,8 @@ public interface SentenceReader {
 
   static Sentence parsePredicate(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     if (exprName.charAt(0) != exprName.toUpperCase().charAt(0))
-      throw new SentenceParseException("Predicate: " + exprName + " must begin with an uppercase character.");
+      throw new SentenceParseException("Predicate: " + exprName
+              + " must begin with an uppercase character.");
 
     //System.out.println("ParsePredicate: " + stack);
     ArrayList<Sentence> list = new ArrayList<>();
@@ -125,7 +131,6 @@ public interface SentenceReader {
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
-
     return new Predicate(exprName, list);
   }
 
@@ -134,7 +139,8 @@ public interface SentenceReader {
     String sort = null;
 
     if (exprName.charAt(0) != exprName.toLowerCase().charAt(0))
-      throw new SentenceParseException("Term: " + exprName + " must begin with a lowercase character.");
+      throw new SentenceParseException("Term: " + exprName
+              + " must begin with a lowercase character.");
 
     if (stack.peek().equals(":")) {
       stack.pop();

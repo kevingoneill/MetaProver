@@ -78,8 +78,8 @@ public class TruthValue {
   }
 
   public String toString() {
-    return vals.toString();
-    //return vals.keySet().toString() + " " + "decomposed: " + isDecomposed;
+    //return vals.toString();
+    return vals.keySet().toString() + " " + (isDecomposed ? "✓" : "");
   }
 
   public int hashCode() {
