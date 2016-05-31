@@ -61,7 +61,7 @@ public class Constant extends Atom {
   }
 
   @Override
-  public Sentence instantiate(Constant c, Variable v) {
+  public Sentence instantiate(Sentence c, Variable v) {
     return this;
   }
 

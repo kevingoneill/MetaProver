@@ -67,7 +67,7 @@ public class Iff extends Sentence {
   }
 
   @Override
-  public Sentence instantiate(Constant c, Variable v) {
+  public Sentence instantiate(Sentence c, Variable v) {
     return new Iff(args.get(0).instantiate(c, v), args.get(1).instantiate(c, v));
   }
 }

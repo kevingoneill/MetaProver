@@ -72,10 +72,10 @@ public interface SentenceReader {
     } else if (stack.peek().equalsIgnoreCase("false")) {
       stack.pop();
       return BooleanSentence.FALSE;
-    } else if (stack.peek().charAt(0) == stack.peek().toUpperCase().charAt(0)) {
+    } //else if (stack.peek().charAt(0) == stack.peek().toUpperCase().charAt(0)) {
       return new Proposition(stack.pop());
-    }
-    throw new SentenceParseException("Proposition: " + stack.peek() + " must begin with an uppercase character");
+    //}
+    //throw new SentenceParseException("Proposition: " + stack.peek() + " must begin with an uppercase character");
   }
 
   static Sentence parseQuantifier(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -88,8 +88,8 @@ public interface SentenceReader {
     quantifiedVars.put(s.toString(), (Variable) s);
 
     args.add(parse(stack, quantifiedVars));
-    if (!stack.peek().equals(")"))
-      throw new SentenceParseException("Missing parentheses after quantifier: " + exprName + ".");
+    if (stack.peek() == null || !stack.peek().equals(")"))
+      throw new SentenceParseException("Missing parentheses after quantifier: " + exprName + " " + args.get(0) + ".");
     stack.pop();
     quantifiedVars.remove(s.toString());
     return makeSentence(exprName, args);

@@ -6,6 +6,7 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Set;
 
 /**
@@ -100,5 +101,31 @@ public abstract class Sentence extends Expression {
 
   public abstract Set<Constant> getConstants();
 
-  public abstract Sentence instantiate(Constant c, Variable v);
+  public abstract Sentence instantiate(Sentence c, Variable v);
+
+  public int quantifierCount() {
+    return args.stream().mapToInt(Sentence::quantifierCount).reduce(isQuantifier() ? 1 : 0, (a, b) -> a + b);
+  }
+
+  public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {
+    if (e1 instanceof Exists) {   // Always instantiate existential quantifiers before universals
+      if (e2 instanceof Exists)
+        return ((Exists) e1).getSentence().size() - ((Exists) e2).getSentence().size();
+      return -1;
+    }
+    if (e2 instanceof Exists)
+      return 1;
+
+    int q1 = e1.quantifierCount(),
+            q2 = e2.quantifierCount();
+    if (q1 != q2)
+      return q1 - q2;
+
+    ForAll f1 = (ForAll) e1,
+            f2 = (ForAll) e2;
+
+    if (f1.getSentence().numArgs() != f2.getSentence().numArgs())
+      return f1.getSentence().numArgs() - f2.getSentence().numArgs();
+    return f1.getSentence().size() - f2.getSentence().size();
+  };
 }

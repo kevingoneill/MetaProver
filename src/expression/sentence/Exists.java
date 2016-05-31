@@ -81,10 +81,30 @@ public class Exists extends Sentence {
   }
 
   @Override
-  public Sentence instantiate(Constant c, Variable v) {
+  public Sentence instantiate(Sentence c, Variable v) {
     if (v.equals(getVariable()))
       return getSentence().instantiate(c, v);
 
     return new Exists(getVariable(), getSentence().instantiate(c, v));
+  }
+
+  public boolean equals(Object o) {
+    if (o instanceof Exists) {
+      Exists e = (Exists) o;
+      if (e.getVariable().equals(getVariable()))
+        return e.getSentence().equals(getSentence());
+      return e.instantiate(getVariable(), e.getVariable()).equals(getSentence());
+    }
+    return false;
+  }
+
+  /**
+   * This method is overridden to ensure that equal statements
+   * quantified over different variables are equal
+   *
+   * @return a unique hashcode for this Exists.
+   */
+  public int hashCode() {
+    return instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 }

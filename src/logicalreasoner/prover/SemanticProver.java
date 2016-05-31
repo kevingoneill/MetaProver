@@ -1,7 +1,6 @@
 package logicalreasoner.prover;
 
 import expression.sentence.Constant;
-import expression.sentence.Exists;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Branch;
@@ -28,7 +27,6 @@ public class SemanticProver implements Runnable {
   }
 
   private Set<Sentence> premises, interests;
-  private Set<Constant> constants;
 
   //Stores the initial/root TruthAssignment
   private TruthAssignment masterFunction;
@@ -84,7 +82,12 @@ public class SemanticProver implements Runnable {
     branchQueue = new PriorityQueue<>((b1, b2) -> {
       if (b1.size() != b2.size())
         return b2.size() - b1.size();
-      return b2.getOrigin().size() - b1.getOrigin().size();
+      if (b1.getOrigin().size() != b2.getOrigin().size())
+        return b2.getOrigin().size() - b1.getOrigin().size();
+
+      int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
+              j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
+      return j - i;
     });
 
     this.print = print;
@@ -108,7 +111,10 @@ public class SemanticProver implements Runnable {
     branchQueue = new PriorityQueue<>((b1, b2) -> {
       if (b1.size() != b2.size())
         return b2.size() - b1.size();
-      return b2.getOrigin().size() - b1.getOrigin().size();
+      if (b1.getOrigin().size() != b2.getOrigin().size())
+        return b2.getOrigin().size() - b1.getOrigin().size();
+      return (int) (b1.getOrigin().getConstants().stream().filter(c -> !c.toString().startsWith("#")).count() -
+              b2.getOrigin().getConstants().stream().filter(c -> !c.toString().startsWith("#")).count());
     });
 
     print = false;
@@ -123,15 +129,15 @@ public class SemanticProver implements Runnable {
   public boolean reason(TruthAssignment h, boolean overQuantifiers) {
     List<Inference> inferences = h.getSentencesUpwards().stream()
             .filter(s -> !h.isDecomposed(s) && (s.isQuantifier() == overQuantifiers))
-            .map(s -> s.reason(h, ++inferenceCount, h.getInferenceNum(s, h.models(s)))).filter(i -> i != null)
+            .map(s -> s.reason(h.getParentContaining(s), ++inferenceCount, h.getInferenceNum(s, h.models(s)))).filter(i -> i != null)
             .collect(Collectors.toList());
 
-    inferences.forEach(i -> infer(i, h));
+    inferences.forEach(i -> infer(i, h.getParentContaining(i.getOrigin())));
     return !inferences.isEmpty();
   }
 
   public boolean instantiateQuantifier(TruthAssignment h) {
-    System.out.println("instantiateQuantifier");
+    //System.out.println("instantiateQuantifier");
 
     PriorityQueue<Sentence> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
       if (!h.models(e1)) {      // Always remove negations (false assignments) first
@@ -142,14 +148,7 @@ public class SemanticProver implements Runnable {
       if (!h.models(e2))
         return 1;
 
-      if (e1 instanceof Exists) {   // Always instantiate existential quantifiers before universals
-        if (e2 instanceof Exists)
-          return ((Exists) e1).getSentence().size() - ((Exists) e2).getSentence().size();
-        return -1;
-      }
-      if (e2 instanceof Exists)
-        return 1;
-      return ((ForAll) e1).getSentence().size() - ((ForAll) e2).getSentence().size();
+      return Sentence.quantifierComparator.compare(e1, e2);
     });
 
     h.getSentencesUpwards().stream().filter(s -> s.isQuantifier() && !h.isDecomposed(s)).forEach(s -> {
@@ -162,38 +161,45 @@ public class SemanticProver implements Runnable {
 
     while (i == null) {
       s = quantifierQueue.poll();
-
       if (s == null)
         return false;
-      System.out.println("Instantiating: " + s);
-      printInferences();
-      printInferenceList();
+
+      //System.out.println("Instantiating: " + s);
+      //printInferences();
+      //printInferenceList();
 
       if (s instanceof ForAll && h.models(s) && h.getConstants().isEmpty())
         h.addConstant(Constant.getNewUniqueConstant());
 
-      i = s.reason(h, ++inferenceCount, h.getInferenceNum(s, h.models(s)));
-      //if (i == null)
-      //  throw new RuntimeException("Null inference!");
+      i = s.reason(h.getParentContaining(s), ++inferenceCount, h.getInferenceNum(s, h.models(s)));
     }
 
-    infer(i, h);
-    System.out.println(i + "\n----------------------------------------------");
-
-    printInferences();
+    infer(i, h.getParentContaining(i.getOrigin()));
+    //System.out.println(i + "\n----------------------------------------------");
+    //printInferences();
 
     return true;
   }
 
   private void infer(Inference i, TruthAssignment h) {
-    if (!(i.getOrigin() instanceof ForAll && h.models(i.getOrigin())))
-      h.setDecomposed(i.getOrigin());
+    if (i.getOrigin() instanceof ForAll && h.models(i.getOrigin())) {
+      inferInstantiations((Decomposition) i, h);
+      return;
+    }
+    h.setDecomposed(i.getOrigin());
     if (i instanceof Decomposition) {
       inferenceList.add(i);
       i.infer(h);
     } else if (i instanceof Branch) {
       branchQueue.offer((Branch) i);
     }
+  }
+
+  private void inferInstantiations(Decomposition d, TruthAssignment h) {
+    if (!(d.getOrigin() instanceof ForAll))
+      throw new RuntimeException("Can only instantiate Universal Quanitifers");
+    inferenceList.add(d);
+    d.infer(h.getParentContaining(d.getOrigin()));
   }
 
   /**
@@ -211,8 +217,9 @@ public class SemanticProver implements Runnable {
       if (!openBranches.isEmpty()) {
         if (!branchQueue.isEmpty())
           throw new RuntimeException("Branch queue is not empty before first-order reasoning!");
-        printBranches();
-        openBranches.forEach(this::instantiateQuantifier);
+
+        // Instantiate a single quantifier (anyMatch terminates after first successful call)
+        openBranches.stream().anyMatch(this::instantiateQuantifier);
         while (!branchQueue.isEmpty())
           addBranches();
       }
@@ -235,10 +242,10 @@ public class SemanticProver implements Runnable {
   }
 
   public void runPropositionally() {
-    System.out.println("runPropositionally");
+    closeBranches();
+    //System.out.println("runPropositionally");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
       boolean updated = true;
-      System.out.println("loop");
       // Always decompose all statements before branching
       while (!openBranches.isEmpty() && updated) {
         updated = openBranches.stream().map(b -> reason(b, false)).collect(Collectors.toList()).contains(true);
@@ -246,11 +253,14 @@ public class SemanticProver implements Runnable {
       }
 
       closeBranches();
+      //printInferences();
 
       //Branch once on the largest branching statement then loop back around
       if (!openBranches.isEmpty() && !branchQueue.isEmpty())
         addBranches();
     }
+    //printInferences();
+    printInferenceList();
   }
 
   /**
@@ -269,7 +279,6 @@ public class SemanticProver implements Runnable {
    * @return true if all open branches are fully decomposed
    */
   private boolean propositionalReasoningCompleted() {
-    System.out.println(openBranches);
     return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAllPropositions));
   }
 
@@ -325,7 +334,7 @@ public class SemanticProver implements Runnable {
     if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
       return;
 
-    b.getParent().getLeaves().forEach(leaf -> {
+    b.getParent().getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(leaf -> {
       b.infer(leaf);
       leaf.getChildren().forEach(l -> openBranches.add(l));
       openBranches.remove(leaf);
@@ -335,7 +344,7 @@ public class SemanticProver implements Runnable {
   }
 
   private void closeBranches() {
-    openBranches.removeIf(b -> !b.isConsistent());
+    openBranches.removeIf(b -> !b.isConsistent() || !b.areParentsConsistent());
   }
 
   private void getCounterExamples() {

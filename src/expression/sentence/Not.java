@@ -61,7 +61,7 @@ public class Not extends Sentence {
   }
 
   @Override
-  public Sentence instantiate(Constant c, Variable v) {
+  public Sentence instantiate(Sentence c, Variable v) {
     return new Not(args.get(0).instantiate(c, v));
   }
 }

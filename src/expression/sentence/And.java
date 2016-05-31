@@ -61,7 +61,7 @@ public class And extends Sentence {
   }
 
   @Override
-  public Sentence instantiate(Constant c, Variable v) {
+  public Sentence instantiate(Sentence c, Variable v) {
     ArrayList<Sentence> a = new ArrayList<>();
     args.forEach(arg -> a.add(arg.instantiate(c, v)));
     return new And(a);
