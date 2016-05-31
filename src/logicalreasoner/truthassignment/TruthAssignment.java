@@ -113,7 +113,11 @@ public class TruthAssignment {
   }
 
   public Set<Constant> getConstants() {
-    return constants;
+    if (parent == null)
+      return constants;
+    Set<Constant> s = new HashSet<>(constants);
+    s.addAll(parent.getConstants());
+    return s;
   }
 
   public void addConstant(Constant c) {

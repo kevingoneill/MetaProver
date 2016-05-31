@@ -6,6 +6,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -24,14 +25,37 @@ public class Predicate extends Sentence {
     super(vars, n, n, Sort.BOOLEAN);
   }
 
+  public String toString() {
+    return print(true);
+  }
+
   public String toSymbol() {
+    return print(true);
+  }
 
-    StringBuilder builder = new StringBuilder().append("(").append(name);
-    args.forEach(arg -> builder.append(" ").append(arg));
-    builder.append(")");
+  private String print(boolean prefix) {
+    StringBuilder builder;
+    if (prefix)
+      builder = new StringBuilder().append(name).append("(");
+    else
+      builder = new StringBuilder().append("(").append(name).append(" ");
+
+    String delim = prefix ? ", " : " ";
+    Iterator<Sentence> itr = args.iterator();
+    int i = 0;
+    while (i < args.size() - 1 && itr.hasNext()) {
+      ++i;
+      if (prefix)
+        builder.append(itr.next().toSymbol()).append(delim);
+      else
+        builder.append(itr.next().toString()).append(delim);
+    }
+
+    if (itr.hasNext())
+      builder.append(itr.next().toSymbol()).append(")");
+    else
+      builder.append(")");
     return builder.toString();
-
-    //return toString();
   }
 
   @Override
