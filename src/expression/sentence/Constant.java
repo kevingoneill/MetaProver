@@ -4,10 +4,7 @@ import expression.Sort;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Constant is a known object with a unique name.
@@ -16,6 +13,17 @@ public class Constant extends Atom {
 
   public static Map<String, Constant> constants = new HashMap<>();
   private static long newConstants = 1;
+  public static Comparator<Constant> constantComparator = (c1, c2) -> {
+    if (c1.getName().startsWith("#")) {
+      if (c2.getName().startsWith("#"))
+        return Integer.parseInt(c1.getName().replaceAll("#", "")) - Integer.parseInt(c2.getName().replaceAll("#", ""));
+      return 1;
+    }
+    if (c2.getName().startsWith("#"))
+      return -1;
+    return c1.getName().charAt(0) - c2.getName().charAt(0);
+  };
+
 
   private Constant(String name, Sort s) {
     super(name, s);
@@ -48,7 +56,9 @@ public class Constant extends Atom {
   }
 
   public String toString() {
-    return name;
+    if (TOSTRING == null)
+      TOSTRING = name;
+    return TOSTRING;
   }
 
   public String toSymbol() {

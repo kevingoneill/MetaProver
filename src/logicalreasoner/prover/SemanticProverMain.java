@@ -55,11 +55,11 @@ public class SemanticProverMain {
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }
 
-  private static String usage(String arg0) {
+  public static String usage(String arg0) {
     return "usage: java " + arg0 + " <premisesFile> <interestsFile>";
   }
 
-  private static Set<Sentence> readSentences(String fileName) throws IOException {
+  public static Set<Sentence> readSentences(String fileName) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(fileName));
     String line;
 
@@ -71,7 +71,7 @@ public class SemanticProverMain {
     return sentences;
   }
 
-  private static Sentence readSentence(String fileName) throws IOException {
+  public static Sentence readSentence(String fileName) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(fileName));
     String line;
 

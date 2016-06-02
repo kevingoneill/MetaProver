@@ -6,6 +6,8 @@ package expression;
  */
 public abstract class Expression implements Comparable<Expression> {
   protected String name, symbol;
+  protected Integer HASH_CODE = null;
+  protected String TOSTRING = null;
 
   public Expression(String n, String s) {
     name = n;
@@ -13,7 +15,9 @@ public abstract class Expression implements Comparable<Expression> {
   }
 
   public String toString() {
-    return name;
+    if (TOSTRING == null)
+      TOSTRING = name;
+    return TOSTRING;
   }
 
   public abstract String toSymbol();
@@ -27,7 +31,10 @@ public abstract class Expression implements Comparable<Expression> {
   }
 
   public int hashCode() {
-    return toString().hashCode();
+    if (HASH_CODE == null) {
+      HASH_CODE = toString().hashCode();
+    }
+    return HASH_CODE;
   }
 
   public boolean equals(Object o) {

@@ -89,7 +89,7 @@ public class TruthAssignment {
     if (o instanceof TruthAssignment) {
       TruthAssignment h = (TruthAssignment) o;
 
-      return map.equals(h.map) && parent == h.parent && children.equals(h.children);
+      return parent == h.parent && map.equals(h.map) && children.equals(h.children);
     }
     return false;
   }
@@ -118,31 +118,43 @@ public class TruthAssignment {
   }
 
   public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>(constants);
+    return constants;
+  }
+
+  private void addConstantDownwards(Constant c) {
+    constants.add(c);
+    children.forEach(child -> child.addConstantDownwards(c));
+  }
+
+  private void addConstantUpwards(Constant c) {
+    constants.add(c);
     if (parent != null)
-      s.addAll(parent.getConstantsUpwards());
-    children.forEach(c -> s.addAll(c.getConstantsDownwards()));
-    return s;
-  }
-
-  private Set<Constant> getConstantsDownwards() {
-    if (children.isEmpty())
-      return constants;
-    Set<Constant> s = new HashSet<>(constants);
-    children.forEach(c -> s.addAll(c.getConstantsDownwards()));
-    return s;
-  }
-
-  private Set<Constant> getConstantsUpwards() {
-    if (parent == null)
-      return constants;
-    Set<Constant> s = new HashSet<>(constants);
-    s.addAll(parent.getConstantsUpwards());
-    return s;
+      parent.addConstantUpwards(c);
   }
 
   public void addConstant(Constant c) {
     constants.add(c);
+    if (parent != null)
+      parent.addConstantUpwards(c);
+    children.forEach(child -> child.addConstantDownwards(c));
+  }
+
+  private void addConstantsDownwards(Collection<Constant> c) {
+    constants.addAll(c);
+    children.forEach(child -> child.addConstantsDownwards(c));
+  }
+
+  private void addConstantsUpwards(Collection<Constant> c) {
+    constants.addAll(c);
+    if (parent != null)
+      parent.addConstantsUpwards(c);
+  }
+
+  public void addConstants(Collection<Constant> c) {
+    constants.addAll(c);
+    if (parent != null)
+      parent.addConstantsUpwards(c);
+    children.forEach(child -> child.addConstantsDownwards(c));
   }
 
   public TruthTree makeTruthTree() {
@@ -208,14 +220,14 @@ public class TruthAssignment {
       map.get(s).setTrue(inferenceNum);
     else {
       TruthValue t = new TruthValue();
-      t.set(true, inferenceNum);
+      t.setTrue(inferenceNum);
       map.put(s, t);
     }
 
     if (s.isAtomic())
       setDecomposed(s);
 
-    constants.addAll(s.getConstants());
+    addConstants(s.getConstants());
   }
 
   /**
@@ -228,14 +240,14 @@ public class TruthAssignment {
       map.get(s).setFalse(inferenceNum);
     else {
       TruthValue t = new TruthValue();
-      t.set(false, inferenceNum);
+      t.setFalse(inferenceNum);
       map.put(s, t);
     }
 
     if (s.isAtomic())
       setDecomposed(s);
 
-    constants.addAll(s.getConstants());
+    addConstants(s.getConstants());
   }
 
   /**
@@ -256,7 +268,7 @@ public class TruthAssignment {
     if (s.isAtomic())
       setDecomposed(s);
 
-    constants.addAll(s.getConstants());
+    addConstants(s.getConstants());
   }
 
   /**
@@ -302,8 +314,7 @@ public class TruthAssignment {
     if (parent == null)
       return map.keySet();
 
-    Set<Sentence> s = new HashSet<>();
-    s.addAll(map.keySet());
+    Set<Sentence> s = new HashSet<>(map.keySet());
     s.addAll(parent.getSentencesUpwards());
     return s;
   }
@@ -349,8 +360,8 @@ public class TruthAssignment {
         map.put(k, new TruthValue(v));
       else
         map.get(k).putAll(v);
-      constants.addAll(k.getConstants());
     });
+    addConstants(h.getConstants());
   }
 
   /**
@@ -361,20 +372,20 @@ public class TruthAssignment {
    */
   public boolean isConsistent() {
     return map.keySet().stream().allMatch(s -> {
+      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
+        return false;
       if (s.equals(BooleanSentence.TRUE) && !map.get(s).isModelled())
         return false;
       if (s.equals(BooleanSentence.FALSE) && map.get(s).isModelled())
         return false;
-      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
-        return false;
-      return !(parent != null && parent.isMapped(s)) || parent.models(s).equals(models(s));
+      return !(parent != null && parent.isMapped(s)) || parent.models(s) == models(s);
     }) && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistent));
   }
 
   public boolean areParentsConsistent() {
     if (parent == null)
       return isConsistent();
-    return isConsistent() && parent.areParentsConsistent();
+    return parent.areParentsConsistent() && isConsistent();
   }
 
   /**
@@ -398,6 +409,7 @@ public class TruthAssignment {
    */
   public Boolean isDecomposed(Sentence s) {
     if (map.containsKey(s)) {
+      // Check for finished Universal Quantifiers
       if (s instanceof ForAll && !map.get(s).isDecomposed())
         return getConstants().size() > 0 && ((ForAll) s).getInstantiations().size() == getParentContaining(s).getConstants().size();
       return map.get(s).isDecomposed();
@@ -439,16 +451,18 @@ public class TruthAssignment {
    *
    * @param h the children of the leaves of this to add
    */
-  public void addChildren(List<TruthAssignment> h) {
+  public void addChildren(Collection<TruthAssignment> h) {
     h.forEach(c -> {
-      TruthAssignment c1 = new TruthAssignment(c);
-      children.add(c1);
-      c1.setParent(this);
+      TruthAssignment child = new TruthAssignment(c);
+      children.add(child);
+      child.setParent(this);
+      addConstants(child.getConstants());
+      child.addConstantsDownwards(constants);
     });
   }
 
   /**
-   * Get all descendents of this which have noe children
+   * Get all descendants of this which have noe children
    *
    * @return the set of leaf TruthAssignments under this
    */
@@ -464,7 +478,7 @@ public class TruthAssignment {
   }
 
   /**
-   * Get the toplevel TruthAssignment in this tree
+   * Get the top-level TruthAssignment in this tree
    *
    * @return
    */
@@ -482,5 +496,9 @@ public class TruthAssignment {
     if (parent != null)
       return parent.getParentContaining(s);
     return null;
+  }
+
+  public boolean isSatisfied() {
+    return decomposedAll() && isConsistent();
   }
 }

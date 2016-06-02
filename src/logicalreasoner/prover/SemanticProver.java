@@ -1,7 +1,5 @@
 package logicalreasoner.prover;
 
-import expression.sentence.Constant;
-import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
@@ -26,22 +24,32 @@ public class SemanticProver implements Runnable {
     inferences.addAll(prover.inferenceList);
   }
 
-  private Set<Sentence> premises, interests;
+  protected Comparator<Branch> branchComparator = (b1, b2) -> {
+    if (b1.size() != b2.size())
+      return b2.size() - b1.size();
+    if (b1.getOrigin().size() != b2.getOrigin().size())
+      return b2.getOrigin().size() - b1.getOrigin().size();
+    int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
+            j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
+    return i - j;
+  };
+
+  protected Set<Sentence> premises, interests;
 
   //Stores the initial/root TruthAssignment
-  private TruthAssignment masterFunction;
+  protected TruthAssignment masterFunction;
 
   //The leaves of the TruthAssignment tree
-  private List<TruthAssignment> openBranches;
+  protected List<TruthAssignment> openBranches;
 
   //All statements which can be branched upon (in descending order of size)
-  private PriorityQueue<Branch> branchQueue;
-  private int inferenceCount;
+  protected PriorityQueue<Branch> branchQueue;
+  protected int inferenceCount;
 
   //Keep an ordered list of inferences for proof printing
-  private List<Inference> inferenceList;
+  protected List<Inference> inferenceList;
 
-  private boolean print;
+  protected boolean print;
 
   /**
    * Initialize the reasoner with the premises and the negation of all interests
@@ -79,17 +87,7 @@ public class SemanticProver implements Runnable {
     openBranches = new ArrayList<>();
     openBranches.add(masterFunction);
 
-    branchQueue = new PriorityQueue<>((b1, b2) -> {
-      if (b1.size() != b2.size())
-        return b2.size() - b1.size();
-      if (b1.getOrigin().size() != b2.getOrigin().size())
-        return b2.getOrigin().size() - b1.getOrigin().size();
-
-      int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
-              j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
-      return j - i;
-    });
-
+    branchQueue = new PriorityQueue<>(branchComparator);
     this.print = print;
   }
 
@@ -108,15 +106,7 @@ public class SemanticProver implements Runnable {
     openBranches = new ArrayList<>();
     openBranches.add(masterFunction);
 
-    branchQueue = new PriorityQueue<>((b1, b2) -> {
-      if (b1.size() != b2.size())
-        return b2.size() - b1.size();
-      if (b1.getOrigin().size() != b2.getOrigin().size())
-        return b2.getOrigin().size() - b1.getOrigin().size();
-      return (int) (b1.getOrigin().getConstants().stream().filter(c -> !c.toString().startsWith("#")).count() -
-              b2.getOrigin().getConstants().stream().filter(c -> !c.toString().startsWith("#")).count());
-    });
-
+    branchQueue = new PriorityQueue<>(branchComparator);
     print = false;
   }
 
@@ -136,56 +126,7 @@ public class SemanticProver implements Runnable {
     return !inferences.isEmpty();
   }
 
-  public boolean instantiateQuantifier(TruthAssignment h) {
-    //System.out.println("instantiateQuantifier");
-
-    PriorityQueue<Sentence> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
-      if (!h.models(e1)) {      // Always remove negations (false assignments) first
-        if (!h.models(e2))
-          return 0;
-        return -1;
-      }
-      if (!h.models(e2))
-        return 1;
-
-      return Sentence.quantifierComparator.compare(e1, e2);
-    });
-
-    h.getSentencesUpwards().stream().filter(s -> s.isQuantifier() && !h.isDecomposed(s)).forEach(s -> {
-      if (!quantifierQueue.contains(s))
-        quantifierQueue.add(s);
-    });
-
-    Inference i = null;
-    Sentence s;
-
-    while (i == null) {
-      s = quantifierQueue.poll();
-      if (s == null)
-        return false;
-
-      //System.out.println("Instantiating: " + s);
-      //printInferences();
-      //printInferenceList();
-
-      if (s instanceof ForAll && h.models(s) && h.getConstants().isEmpty())
-        h.addConstant(Constant.getNewUniqueConstant());
-
-      i = s.reason(h.getParentContaining(s), ++inferenceCount, h.getInferenceNum(s, h.models(s)));
-    }
-
-    infer(i, h.getParentContaining(i.getOrigin()));
-    //System.out.println(i + "\n----------------------------------------------");
-    //printInferences();
-
-    return true;
-  }
-
-  private void infer(Inference i, TruthAssignment h) {
-    if (i.getOrigin() instanceof ForAll && h.models(i.getOrigin())) {
-      inferInstantiations((Decomposition) i, h);
-      return;
-    }
+  protected void infer(Inference i, TruthAssignment h) {
     h.setDecomposed(i.getOrigin());
     if (i instanceof Decomposition) {
       inferenceList.add(i);
@@ -193,13 +134,6 @@ public class SemanticProver implements Runnable {
     } else if (i instanceof Branch) {
       branchQueue.offer((Branch) i);
     }
-  }
-
-  private void inferInstantiations(Decomposition d, TruthAssignment h) {
-    if (!(d.getOrigin() instanceof ForAll))
-      throw new RuntimeException("Can only instantiate Universal Quanitifers");
-    inferenceList.add(d);
-    d.infer(h.getParentContaining(d.getOrigin()));
   }
 
   /**
@@ -211,19 +145,7 @@ public class SemanticProver implements Runnable {
       System.out.println("Interests: " + interests);
     }
 
-    while (!reasoningCompleted()) {
-      runPropositionally();
-
-      if (!openBranches.isEmpty()) {
-        if (!branchQueue.isEmpty())
-          throw new RuntimeException("Branch queue is not empty before first-order reasoning!");
-
-        // Instantiate a single quantifier (anyMatch terminates after first successful call)
-        openBranches.stream().anyMatch(this::instantiateQuantifier);
-        while (!branchQueue.isEmpty())
-          addBranches();
-      }
-    }
+    runPropositionally();
 
     //If the tree has been completely decomposed
     //without inconsistencies, the argument is invalid
@@ -237,7 +159,6 @@ public class SemanticProver implements Runnable {
 
       printInferences();
       printInferenceList();
-      System.out.println(masterFunction.getConstants());
     }
   }
 
@@ -258,8 +179,11 @@ public class SemanticProver implements Runnable {
       //Branch once on the largest branching statement then loop back around
       if (!openBranches.isEmpty() && !branchQueue.isEmpty())
         addBranches();
+
+      if (isInvalid())
+        break;
     }
-    //printInferences();
+    printInferences();
     printInferenceList();
   }
 
@@ -268,7 +192,7 @@ public class SemanticProver implements Runnable {
    *
    * @return true if all open branches are fully decomposed
    */
-  private boolean reasoningCompleted() {
+  protected boolean reasoningCompleted() {
     return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAll));
   }
 
@@ -278,7 +202,7 @@ public class SemanticProver implements Runnable {
    *
    * @return true if all open branches are fully decomposed
    */
-  private boolean propositionalReasoningCompleted() {
+  protected boolean propositionalReasoningCompleted() {
     return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAllPropositions));
   }
 
@@ -289,7 +213,7 @@ public class SemanticProver implements Runnable {
   /**
    * Print the TruthAssignment tree generated by the argument
    */
-  private void printInferences() {
+  protected void printInferences() {
     if (print) {
       masterFunction.print();
       System.out.println();
@@ -303,14 +227,14 @@ public class SemanticProver implements Runnable {
     if (print) {
       System.out.println("Branches: ");
       openBranches.forEach(System.out::println);
-      System.out.println("Branch Queue: " + branchQueue + "\n");
+      //System.out.println("Branch Queue: " + branchQueue + "\n");
     }
   }
 
   /**
    * Print the list of inferences made to build the truth tree
    */
-  private void printInferenceList() {
+  protected void printInferenceList() {
     if (print) {
       System.out.println("Inference List: ");
       inferenceList.forEach(System.out::println);
@@ -326,7 +250,7 @@ public class SemanticProver implements Runnable {
    * Branch the Sentence on the top of the branchQueue
    * and update the openBranches Set to contain those children.
    */
-  private void addBranches() {
+  protected void addBranches() {
     Branch b = branchQueue.poll();
     //System.out.println("Branching on: " + b);
 
@@ -334,7 +258,7 @@ public class SemanticProver implements Runnable {
     if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
       return;
 
-    b.getParent().getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(leaf -> {
+    b.getParent().getLeaves().stream().filter(openBranches::contains).forEach(leaf -> {
       b.infer(leaf);
       leaf.getChildren().forEach(l -> openBranches.add(l));
       openBranches.remove(leaf);
@@ -343,14 +267,18 @@ public class SemanticProver implements Runnable {
     closeBranches();    //Clean up any inconsistent branches
   }
 
-  private void closeBranches() {
+  protected void closeBranches() {
     openBranches.removeIf(b -> !b.isConsistent() || !b.areParentsConsistent());
   }
 
-  private void getCounterExamples() {
+  protected void getCounterExamples() {
     if (!masterFunction.isConsistent())
       return;
 
     masterFunction.getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
+  }
+
+  protected boolean isInvalid() {
+    return branchQueue.isEmpty() && openBranches.stream().anyMatch(TruthAssignment::isSatisfied);
   }
 }

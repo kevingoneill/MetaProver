@@ -3,6 +3,7 @@ package expression.sentence;
 import expression.Sort;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
+import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
@@ -15,27 +16,17 @@ import java.util.stream.Collectors;
 public class ForAll extends Sentence {
 
   private Set<Constant> instantiations;
-  private static Comparator<Constant> constantComparator =
-          (c1, c2) -> {
-            if (c1.getName().startsWith("#")) {
-              if (c2.getName().startsWith("#"))
-                return Integer.parseInt(c1.getName().replaceAll("#", "")) - Integer.parseInt(c2.getName().replaceAll("#", ""));
-              return 1;
-            }
-            if (c2.getName().startsWith("#"))
-              return -1;
-            return 0;
-          };
-
 
   public ForAll(Variable v, Sentence s) {
     super(new ArrayList<>(Arrays.asList(v, s)), "forAll", "∀", Sort.BOOLEAN);
     instantiations = new HashSet<>();
+    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 
   public ForAll(ForAll f) {
     super(new ArrayList<>(Arrays.asList(f.getVariable(), f.getSentence())), "forAll", "∀", Sort.BOOLEAN);
     instantiations = new HashSet<>();
+    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 
   public String toSymbol() {
@@ -60,23 +51,19 @@ public class ForAll extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        //System.out.println(h.getConstants());
         List<Constant> a = h.getConstants().stream().filter(c ->
                 !instantiations.contains(c)).collect(Collectors.toList());
 
         if (a.isEmpty())
           return null;
 
-        Collections.sort(a, constantComparator);
+        Collections.sort(a, Constant.constantComparator);
         Constant c = a.get(0);
-        Sentence s = getSentence().instantiate(c, getVariable());
-        //System.out.println(s);
-        d.setTrue(s);
+        UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, c, getVariable());
         instantiations.add(c);
 
-        if (!d.getAdditions().isEmpty())
-          return d;
+        if (!i.getAdditions().isEmpty())
+          return i;
       } else {
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setTrue(new Exists(getVariable(), new Not(getSentence())));
@@ -116,15 +103,5 @@ public class ForAll extends Sentence {
       return f.instantiate(getVariable(), f.getVariable()).equals(getSentence());
     }
     return false;
-  }
-
-  /**
-   * This method is overridden to ensure that equal statements
-   * quantified over different variables are equal
-   *
-   * @return a unique hashcode for this Exists.
-   */
-  public int hashCode() {
-    return instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 }

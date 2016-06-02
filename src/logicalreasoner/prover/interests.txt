@@ -1,1 +1,1 @@
-(implies (F a) (G a))
+(exists x (P x))

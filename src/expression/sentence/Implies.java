@@ -13,7 +13,7 @@ import java.util.Set;
 
 /**
  * The Implies class represents logical implication,
- * (if X then Y)
+ * if X then Y
  * <p>
  * For example, (implies A B), (implies X Y)
  */

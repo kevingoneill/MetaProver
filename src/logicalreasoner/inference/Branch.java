@@ -4,6 +4,7 @@ import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class Branch extends Inference {
 
-  private ArrayList<TruthAssignment> branches;
+  protected List<TruthAssignment> branches;
 
   public Branch(TruthAssignment p, Sentence s, int i, int j) {
     super(p, s, i, j);
@@ -33,7 +34,7 @@ public class Branch extends Inference {
     branches.add(h);
   }
 
-  public ArrayList<TruthAssignment> getBranches() {
+  public List<TruthAssignment> getBranches() {
     return branches;
   }
 

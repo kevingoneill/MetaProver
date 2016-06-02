@@ -1,8 +1,8 @@
 package expression.sentence;
 
 import expression.Sort;
-import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
+import logicalreasoner.inference.ExistentialInstantiation;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
@@ -17,6 +17,7 @@ public class Exists extends Sentence {
 
   public Exists(Variable v, Sentence s) {
     super(new ArrayList<>(Arrays.asList(v, s)), "exists", "∃", Sort.BOOLEAN);
+    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 
   public String toSymbol() {
@@ -40,28 +41,15 @@ public class Exists extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        System.out.println(h.getConstants());
-
-        if (h.getConstants().isEmpty()) {
-          System.out.println("----------------CREATING NEW CONSTANT------------------");
+        Set<Constant> s = h.getConstants();
+        if (s.isEmpty()) {
           Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
           d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
           return d;
         }
-
-        Branch b = new Branch(h, this, inferenceNum, justificationNum);
-        h.getConstants().forEach(c -> {
-          TruthAssignment t = new TruthAssignment();
-          t.setTrue(getSentence().instantiate(c, getVariable()), inferenceNum);
-          b.addBranch(t);
-        });
-        TruthAssignment t = new TruthAssignment();
-        t.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()), inferenceNum);
-        b.addBranch(t);
-        return b;
+        return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
       } else {
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        ArrayList<Sentence> a = new ArrayList<>();
         d.setTrue(new ForAll(getVariable(), new Not(getSentence())));
         return d;
       }
@@ -96,15 +84,5 @@ public class Exists extends Sentence {
       return e.instantiate(getVariable(), e.getVariable()).equals(getSentence());
     }
     return false;
-  }
-
-  /**
-   * This method is overridden to ensure that equal statements
-   * quantified over different variables are equal
-   *
-   * @return a unique hashcode for this Exists.
-   */
-  public int hashCode() {
-    return instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
 }

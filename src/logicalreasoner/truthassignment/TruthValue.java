@@ -22,22 +22,19 @@ public class TruthValue {
   }
   
   public HashMap<Boolean, Integer> getVals() {
-	  return new HashMap<Boolean, Integer>(vals);
+    return new HashMap<>(vals);
   }
 
   public void setTrue(int stepNum) {
-    if (!vals.containsKey(true))
-      vals.put(true, stepNum);
+    vals.putIfAbsent(true, stepNum);
   }
 
   public void setFalse(int stepNum) {
-    if (!vals.containsKey(false))
-      vals.put(false, stepNum);
+    vals.putIfAbsent(false, stepNum);
   }
 
   public void set(Boolean b, int i) {
-    if (!vals.containsKey(b))
-      vals.put(b, i);
+    vals.putIfAbsent(b, i);
   }
 
   public boolean isConsistent() {
@@ -45,10 +42,7 @@ public class TruthValue {
   }
 
   public void putAll(TruthValue truthValue) {
-    truthValue.vals.forEach((k, v) -> {
-      if (!vals.containsKey(k))
-        vals.put(k, v);
-    });
+    truthValue.vals.forEach(vals::putIfAbsent);
   }
 
   public boolean containsTrue() {
@@ -89,7 +83,7 @@ public class TruthValue {
   public boolean equals(Object o) {
     if (o instanceof TruthValue) {
       TruthValue tv = (TruthValue) o;
-      return vals.equals(tv.vals) && isDecomposed == tv.isDecomposed;
+      return isDecomposed == tv.isDecomposed && vals.keySet().equals(tv.vals.keySet());
     }
     return false;
   }

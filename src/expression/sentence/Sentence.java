@@ -29,6 +29,7 @@ public abstract class Sentence extends Expression {
     super(n, s);
     args = a;
     sort = type;
+    HASH_CODE = toString().hashCode();
   }
 
   public abstract Boolean eval(TruthAssignment h);
@@ -36,7 +37,9 @@ public abstract class Sentence extends Expression {
   public abstract Inference reason(TruthAssignment h, int inferenceNum, int justificationNum);
 
   public String toString() {
-    return toSymbol();
+    if (TOSTRING == null)
+      TOSTRING = toSymbol();
+    return TOSTRING;
     /*
     StringBuilder builder = new StringBuilder();
     builder.append("(").append(name);
@@ -57,10 +60,6 @@ public abstract class Sentence extends Expression {
       return builder.toString();
     }
     return symbol;
-  }
-
-  public int hashCode() {
-    return toString().hashCode();
   }
 
   public boolean equals(Object o) {

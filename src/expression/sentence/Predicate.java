@@ -6,7 +6,6 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -26,11 +25,15 @@ public class Predicate extends Sentence {
   }
 
   public String toString() {
-    return print(true);
+    if (TOSTRING == null)
+      TOSTRING = print(true);
+    return TOSTRING;
   }
 
   public String toSymbol() {
-    return print(true);
+    if (TOSTRING == null)
+      TOSTRING = print(true);
+    return TOSTRING;
   }
 
   private String print(boolean prefix) {
@@ -41,18 +44,19 @@ public class Predicate extends Sentence {
       builder = new StringBuilder().append("(").append(name).append(" ");
 
     String delim = prefix ? ", " : " ";
-    Iterator<Sentence> itr = args.iterator();
-    int i = 0;
-    while (i < args.size() - 1 && itr.hasNext()) {
-      ++i;
-      if (prefix)
-        builder.append(itr.next().toSymbol()).append(delim);
-      else
-        builder.append(itr.next().toString()).append(delim);
-    }
+    ArrayList<Sentence> a = new ArrayList<>(args);
+    if (!a.isEmpty())
+      a.remove(a.size() - 1);
 
-    if (itr.hasNext())
-      builder.append(itr.next().toSymbol()).append(")");
+    a.forEach(arg -> {
+      if (prefix)
+        builder.append(arg.toSymbol()).append(delim);
+      else
+        builder.append(arg.toString()).append(delim);
+    });
+
+    if (!args.isEmpty())
+      builder.append(args.get(args.size() - 1).toSymbol()).append(")");
     else
       builder.append(")");
     return builder.toString();

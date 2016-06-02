@@ -17,7 +17,7 @@ import java.util.Set;
  * -Note, problem 20d is NOT valid
  */
 public class SemanticProverTest {
-  public static void runProver(Set<String> premises, String interest, boolean validArgument) {
+  static void runProver(Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(SentenceReader.parse(premise)));
 

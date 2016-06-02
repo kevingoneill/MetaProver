@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * Sentences from another Sentence.
  */
 public class Decomposition extends Inference {
-  private TruthAssignment additions;
+  protected TruthAssignment additions;
 
   public Decomposition(TruthAssignment h, Sentence o, int i, int j) {
     super(h, o, i, j);
