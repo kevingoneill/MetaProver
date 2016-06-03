@@ -20,6 +20,11 @@ public class BooleanSentence extends Proposition {
     value = b;
   }
 
+  @Override
+  public Sentence makeCopy() {
+    return this;
+  }
+
   public Boolean eval(TruthAssignment h) {
     return value;
   }
@@ -32,7 +37,7 @@ public class BooleanSentence extends Proposition {
   }
 
   @Override
-  public Set<Constant> getConstants() {
+  public Set<Sentence> getConstants() {
     return new HashSet<>();
   }
 

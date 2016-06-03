@@ -7,7 +7,6 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,6 +18,10 @@ public class Not extends Sentence {
 
   public Not(Sentence e) {
     super(new ArrayList<>(Arrays.asList(e)), "not", "¬", Sort.BOOLEAN);
+  }
+
+  public Sentence makeCopy() {
+    return new Not(args.get(0).makeCopy());
   }
 
   public String toSymbol() {
@@ -54,10 +57,8 @@ public class Not extends Sentence {
   }
 
   @Override
-  public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>();
-    args.forEach(a -> s.addAll(a.getConstants()));
-    return s;
+  public Set<Sentence> getConstants() {
+    return args.get(0).getConstants();
   }
 
   @Override

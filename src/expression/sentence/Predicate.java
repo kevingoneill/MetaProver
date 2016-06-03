@@ -5,8 +5,6 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The Predicate class represents a logical predicate over
@@ -16,12 +14,17 @@ import java.util.Set;
  */
 public class Predicate extends Sentence {
   /**
-   * Create a new Proposition object with the given name
-   *
-   * @param n the name of the Proposition
+   * Create a new Predicate object with the given name
+   * @param n the name of the Predicate
    */
   public Predicate(String n, ArrayList<Sentence> vars) {
     super(vars, n, n, Sort.BOOLEAN);
+  }
+
+  public Sentence makeCopy() {
+    ArrayList<Sentence> a = new ArrayList<>();
+    args.forEach(arg -> a.add(arg.makeCopy()));
+    return new Predicate(name, a);
   }
 
   public String toString() {
@@ -60,13 +63,6 @@ public class Predicate extends Sentence {
     else
       builder.append(")");
     return builder.toString();
-  }
-
-  @Override
-  public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>();
-    args.stream().filter(a -> a instanceof Constant).forEach(a -> s.add((Constant) a));
-    return s;
   }
 
   /**

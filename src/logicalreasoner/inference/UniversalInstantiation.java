@@ -14,14 +14,22 @@ import java.util.stream.Collectors;
  */
 public class UniversalInstantiation extends Decomposition {
 
-  Sentence instance;
-  Variable var;
+  private Sentence instance;
+  private Variable var;
 
   public UniversalInstantiation(TruthAssignment h, ForAll o, int i, int j, Sentence s, Variable v) {
     super(h, o, i, j);
     setTrue(o.getSentence().instantiate(s, v));
     instance = s;
     var = v;
+  }
+
+  public Sentence getInstance() {
+    return instance;
+  }
+
+  public Variable getVar() {
+    return var;
   }
 
   public boolean equals(Object o) {

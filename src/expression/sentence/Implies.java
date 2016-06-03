@@ -8,8 +8,6 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The Implies class represents logical implication,
@@ -20,6 +18,10 @@ import java.util.Set;
 public class Implies extends Sentence {
   public Implies(Sentence ifExpr, Sentence thenExpr) {
     super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶", Sort.BOOLEAN);
+  }
+
+  public Sentence makeCopy() {
+    return new Implies(args.get(0).makeCopy(), args.get(1).makeCopy());
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -54,13 +56,6 @@ public class Implies extends Sentence {
     }
 
     return null;
-  }
-
-  @Override
-  public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>();
-    args.forEach(a -> s.addAll(a.getConstants()));
-    return s;
   }
 
   @Override

@@ -15,16 +15,10 @@ import java.util.stream.Collectors;
  */
 public class ForAll extends Sentence {
 
-  private Set<Constant> instantiations;
+  private Set<Sentence> instantiations;
 
   public ForAll(Variable v, Sentence s) {
     super(new ArrayList<>(Arrays.asList(v, s)), "forAll", "∀", Sort.BOOLEAN);
-    instantiations = new HashSet<>();
-    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
-  }
-
-  public ForAll(ForAll f) {
-    super(new ArrayList<>(Arrays.asList(f.getVariable(), f.getSentence())), "forAll", "∀", Sort.BOOLEAN);
     instantiations = new HashSet<>();
     HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
   }
@@ -42,6 +36,11 @@ public class ForAll extends Sentence {
   }
 
   @Override
+  public Sentence makeCopy() {
+    return new ForAll(getVariable(), getSentence().makeCopy());
+  }
+
+  @Override
   public Boolean eval(TruthAssignment h) {
 
     return null;
@@ -51,14 +50,14 @@ public class ForAll extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        List<Constant> a = h.getConstants().stream().filter(c ->
+        List<Sentence> a = h.getConstants().stream().filter(c ->
                 !instantiations.contains(c)).collect(Collectors.toList());
 
         if (a.isEmpty())
           return null;
 
         Collections.sort(a, Constant.constantComparator);
-        Constant c = a.get(0);
+        Sentence c = a.get(0);
         UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, c, getVariable());
         instantiations.add(c);
 
@@ -79,11 +78,11 @@ public class ForAll extends Sentence {
   }
 
   @Override
-  public Set<Constant> getConstants() {
+  public Set<Sentence> getConstants() {
     return getSentence().getConstants();
   }
 
-  public Set<Constant> getInstantiations() {
+  public Set<Sentence> getInstantiations() {
     return instantiations;
   }
 

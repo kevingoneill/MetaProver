@@ -22,6 +22,10 @@ public class Proposition extends Atom {
     super(n.toUpperCase(), Sort.BOOLEAN);
   }
 
+  public Sentence makeCopy() {
+    return this;
+  }
+
   /**
    * Return the value of this in the given TruthAssignment
    *
@@ -57,7 +61,7 @@ public class Proposition extends Atom {
   }
 
   @Override
-  public Set<Constant> getConstants() {
+  public Set<Sentence> getConstants() {
     return new HashSet<>();
   }
 

@@ -13,15 +13,24 @@ public class Constant extends Atom {
 
   public static Map<String, Constant> constants = new HashMap<>();
   private static long newConstants = 1;
-  public static Comparator<Constant> constantComparator = (c1, c2) -> {
-    if (c1.getName().startsWith("#")) {
-      if (c2.getName().startsWith("#"))
-        return Integer.parseInt(c1.getName().replaceAll("#", "")) - Integer.parseInt(c2.getName().replaceAll("#", ""));
-      return 1;
-    }
-    if (c2.getName().startsWith("#"))
+
+  public static Comparator<Sentence> constantComparator = (c1, c2) -> {
+    if (c1 instanceof Constant) {
+      if (c2 instanceof Constant) {
+        if (c1.getName().startsWith("#")) {
+          if (c2.getName().startsWith("#"))
+            return Integer.parseInt(c1.getName().replaceAll("#", "")) - Integer.parseInt(c2.getName().replaceAll("#", ""));
+          return 1;
+        }
+        if (c2.getName().startsWith("#"))
+          return -1;
+        return c1.getName().charAt(0) - c2.getName().charAt(0);
+      }
       return -1;
-    return c1.getName().charAt(0) - c2.getName().charAt(0);
+    }
+    if (c2 instanceof Constant)
+      return 1;
+    return 0;
   };
 
 
@@ -66,12 +75,19 @@ public class Constant extends Atom {
   }
 
   @Override
-  public Set<Constant> getConstants() {
-    return new HashSet<>();
+  public Set<Sentence> getConstants() {
+    Set<Sentence> s = new HashSet<>();
+    s.add(this);
+    return s;
   }
 
   @Override
   public Sentence instantiate(Sentence c, Variable v) {
+    return this;
+  }
+
+  @Override
+  public Sentence makeCopy() {
     return this;
   }
 

@@ -7,8 +7,6 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The Iff class represents the logical iff
@@ -17,6 +15,10 @@ import java.util.Set;
 public class Iff extends Sentence {
   public Iff(Sentence expr1, Sentence expr2) {
     super(new ArrayList<>(Arrays.asList(expr1, expr2)), "iff", "⟷", Sort.BOOLEAN);
+  }
+
+  public Sentence makeCopy() {
+    return new Iff(args.get(0).makeCopy(), args.get(1).makeCopy());
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -57,13 +59,6 @@ public class Iff extends Sentence {
     }
 
     return null;
-  }
-
-  @Override
-  public Set<Constant> getConstants() {
-    Set<Constant> s = new HashSet<>();
-    args.forEach(a -> s.addAll(a.getConstants()));
-    return s;
   }
 
   @Override

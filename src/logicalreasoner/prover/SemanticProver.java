@@ -164,7 +164,7 @@ public class SemanticProver implements Runnable {
 
   public void runPropositionally() {
     closeBranches();
-    //System.out.println("runPropositionally");
+    System.out.println("\nrunPropositionally\n");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
       boolean updated = true;
       // Always decompose all statements before branching
@@ -183,8 +183,8 @@ public class SemanticProver implements Runnable {
       if (isInvalid())
         break;
     }
-    printInferences();
-    printInferenceList();
+    //printInferences();
+    //printInferenceList();
   }
 
   /**
@@ -252,7 +252,7 @@ public class SemanticProver implements Runnable {
    */
   protected void addBranches() {
     Branch b = branchQueue.poll();
-    //System.out.println("Branching on: " + b);
+    //System.out.println("Branching on: " + b + "\n" + openBranches);
 
     inferenceList.add(b);
     if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
@@ -261,7 +261,8 @@ public class SemanticProver implements Runnable {
     b.getParent().getLeaves().stream().filter(openBranches::contains).forEach(leaf -> {
       b.infer(leaf);
       leaf.getChildren().forEach(l -> openBranches.add(l));
-      openBranches.remove(leaf);
+      if (!leaf.getChildren().isEmpty())
+        openBranches.remove(leaf);
     });
 
     closeBranches();    //Clean up any inconsistent branches

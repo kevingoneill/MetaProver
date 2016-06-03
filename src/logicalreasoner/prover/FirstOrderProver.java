@@ -7,9 +7,9 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 /**
  * The FirstOrderProver class provides the same functionality of
@@ -33,50 +33,74 @@ public class FirstOrderProver extends SemanticProver {
     super(truthAssignment);
   }
 
-  public boolean instantiateQuantifier(TruthAssignment h) {
-    System.out.println("instantiateQuantifier");
-    PriorityQueue<Sentence> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
-      if (!h.models(e1)) {      // Always remove negations (false assignments) first
-        if (!h.models(e2))
+  private PriorityQueue<Map.Entry<Sentence, TruthAssignment>> makeQuantifierQueue() {
+    PriorityQueue<Map.Entry<Sentence, TruthAssignment>> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
+      if (!e1.getValue().models(e1.getKey())) {      // Always remove negations (false assignments) first
+        if (!e2.getValue().models(e2.getKey()))
           return 0;
         return -1;
       }
-      if (!h.models(e2))
+      if (!e2.getValue().models(e2.getKey()))
         return 1;
-
-      return Sentence.quantifierComparator.compare(e1, e2);
+      return Sentence.quantifierComparator.compare(e1.getKey(), e2.getKey());
     });
 
-    h.getSentencesUpwards().stream().filter(s -> s.isQuantifier() && !h.isDecomposed(s)).forEach(s -> {
-      if (!quantifierQueue.contains(s))
-        quantifierQueue.add(s);
-    });
+    openBranches.forEach(h ->
+            h.getUnfinishedQuantifiersUpwards().entrySet().forEach(e -> {
+              if (!quantifierQueue.contains(e))
+                quantifierQueue.add(e);
+            }));
+    return quantifierQueue;
+  }
 
-    System.out.println("################################################\n" + quantifierQueue);
+  private void printQueue(PriorityQueue<Map.Entry<Sentence, TruthAssignment>> queue) {
+    System.out.print("[");
+    PriorityQueue<Map.Entry<Sentence, TruthAssignment>> q = new PriorityQueue<>(queue);
+    if (!q.isEmpty())
+      System.out.print(q.poll().getKey());
+    while (!q.isEmpty()) {
+      System.out.print(", " + q.poll().getKey());
+    }
+    System.out.println("]");
+  }
 
+  private boolean instantiateQuantifier(PriorityQueue<Map.Entry<Sentence, TruthAssignment>> quantifierQueue) {
+    System.out.println("instantiateQuantifier");
+    System.out.println("################################################\n");
+    printQueue(quantifierQueue);
     Inference i = null;
     Sentence s = null;
+    TruthAssignment h = null;
 
     while (i == null) {
-      s = quantifierQueue.poll();
+      Map.Entry<Sentence, TruthAssignment> e = quantifierQueue.poll();
+      s = e.getKey();
+      h = e.getValue();
       if (s == null)
         return false;
       if (s instanceof ForAll && h.models(s) && h.getConstants().isEmpty()) {
         h.addConstant(Constant.getNewUniqueConstant());
       }
-      i = s.reason(h.getParentContaining(s), ++inferenceCount, h.getInferenceNum(s, h.models(s)));
+      i = s.reason(h, ++inferenceCount, h.getInferenceNum(s, h.models(s)));
     }
 
     infer(i, h.getParentContaining(i.getOrigin()));
-    System.out.println(i + "\n----------------------------------------------\nInstantiating: " + s);
-    printInferenceList();
+    System.out.println(i + "\n----------------------------------------------\n");
+    if (h.models(s))
+      System.out.println("Instantiating: " + s + "\n");
+
     return true;
   }
 
   protected void infer(Inference i, TruthAssignment h) {
     if (i instanceof UniversalInstantiation) {
       inferenceList.add(i);
-      i.infer(h.getParentContaining(i.getOrigin()));
+      TruthAssignment origin = h.getConstantOrigin(((UniversalInstantiation) i).getInstance());
+      if (origin == null)
+        i.infer(h);
+      else
+        i.infer(origin);
+      //h.getLeaves().stream().filter(l -> l.getConstants().contains(((UniversalInstantiation)i).getInstance())).forEach(i::infer);
     } else
       super.infer(i, h);
   }
@@ -102,17 +126,25 @@ public class FirstOrderProver extends SemanticProver {
 
         // Instantiate a single quantifier (anyMatch terminates after first successful call)
         //updated = openBranches.stream().anyMatch(this::instantiateQuantifier);
-        updated = IntStream.range(0, openBranches.size() - 1).map(i -> openBranches.size() - 2 - i).anyMatch(i -> instantiateQuantifier(openBranches.get(i)));
+        //updated = IntStream.rangeClosed(0, openBranches.size() - 1).map(i -> (openBranches.size() - 1) - i).anyMatch(i -> instantiateQuantifier(openBranches.get(i)));
+        PriorityQueue<Map.Entry<Sentence, TruthAssignment>> quantifierQueue = makeQuantifierQueue();
+
+        do {
+          updated = instantiateQuantifier(quantifierQueue);
+        }
+        while (!(quantifierQueue.isEmpty() || quantifierQueue.peek().getValue().models(quantifierQueue.peek().getKey())));
 
         while (updated && !branchQueue.isEmpty())
           addBranches();
 
         if (isInvalid())
           break;
-      }
 
-      if (inferenceCount >= 9)
-        System.exit(1);
+        printInferences();
+        printInferenceList();
+      }
+      //if (inferenceCount >= 20)
+      //  System.exit(1);
     }
 
     //If the tree has been completely decomposed

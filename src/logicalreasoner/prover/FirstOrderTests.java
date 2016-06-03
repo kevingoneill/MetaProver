@@ -185,7 +185,7 @@ public class FirstOrderTests {
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (implies (A x) (H x)))");
     premises.add("(implies (exists x (A x)) (not (exists y (G y))))");
-    runProver(premises, "(forAll x (implies (exists y (A y)) (not (G y))))", true);
+    runProver(premises, "(forAll x (implies (exists y (A y)) (not (G x))))", true);
   }
 
   @Test
@@ -204,7 +204,7 @@ public class FirstOrderTests {
     runProver(premises, "(forAll y (exists x (G y x)))", true);
   }
 
-  @Test
+  //@Test
   public void prob23a() {
     //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();

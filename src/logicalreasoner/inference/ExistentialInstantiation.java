@@ -18,38 +18,35 @@ import java.util.stream.Collectors;
  * that branch.
  */
 public class ExistentialInstantiation extends Branch {
-  private List<Constant> constants;
-  private Constant newConstant;
+  private List<Sentence> constants;
 
-  public ExistentialInstantiation(TruthAssignment h, Exists o, int i, int j, Set<Constant> s) {
+  public ExistentialInstantiation(TruthAssignment h, Exists o, int i, int j, Set<Sentence> s) {
     super(h, o, i, j);
     constants = new ArrayList<>(s);
+    constants.add(Constant.getNewUniqueConstant());
     constants.forEach(constant -> {
       TruthAssignment t = new TruthAssignment();
       t.setTrue(o.instantiate(constant, o.getVariable()), i);
       addBranch(t);
     });
-    newConstant = Constant.getNewUniqueConstant();
-    TruthAssignment t = new TruthAssignment();
-    t.setTrue(o.instantiate(newConstant, o.getVariable()), i);
-    addBranch(t);
   }
 
   @Override
   public void infer(TruthAssignment h) {
-    Set<Constant> s = h.getConstants();
+    Set<Sentence> s = h.getConstants();
     List<TruthAssignment> l = new ArrayList<>();
     for (int i = 0; i < constants.size(); ++i) {
       if (s.contains(constants.get(i)))
         l.add(branches.get(i));
     }
     l.add(branches.get(branches.size() - 1)); // add branch for new constant
-    if (l.size() < 2)
-      throw new RuntimeException("Tried to create a single branch!");
-    h.addChildren(l);
+    if (l.size() == 1)
+      h.merge(new TruthAssignment(l.get(0)));
+    else
+      h.addChildren(l);
   }
 
-  public List<Constant> getConstants() {
+  public List<Sentence> getConstants() {
     return constants;
   }
 
@@ -60,6 +57,6 @@ public class ExistentialInstantiation extends Branch {
 
   public String toString() {
     return "ExistentialInstantiation " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] over constants: " +
-            branches.stream().map(b -> b.getConstants().stream().map(Sentence::toString).collect(Collectors.joining()) + " ").collect(Collectors.joining());
+            constants.stream().map(s -> s.toString() + " ").collect(Collectors.joining());
   }
 }

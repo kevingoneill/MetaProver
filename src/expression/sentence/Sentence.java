@@ -8,6 +8,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The Sentence class represents any type of logical
@@ -31,6 +32,8 @@ public abstract class Sentence extends Expression {
     sort = type;
     HASH_CODE = toString().hashCode();
   }
+
+  public abstract Sentence makeCopy();
 
   public abstract Boolean eval(TruthAssignment h);
 
@@ -98,7 +101,9 @@ public abstract class Sentence extends Expression {
     return false;
   }
 
-  public abstract Set<Constant> getConstants();
+  public Set<Sentence> getConstants() {
+    return args.stream().flatMap(s -> s.getConstants().stream()).collect(Collectors.toSet());
+  }
 
   public abstract Sentence instantiate(Sentence c, Variable v);
 

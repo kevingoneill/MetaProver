@@ -26,7 +26,7 @@ public class Variable extends Atom {
   }
 
   @Override
-  public Set<Constant> getConstants() {
+  public Set<Sentence> getConstants() {
     return new HashSet<>();
   }
 
@@ -34,6 +34,11 @@ public class Variable extends Atom {
   public Sentence instantiate(Sentence c, Variable v) {
     if (this.equals(v))
       return c;
+    return this;
+  }
+
+  @Override
+  public Sentence makeCopy() {
     return this;
   }
 
