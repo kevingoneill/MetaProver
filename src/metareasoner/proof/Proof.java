@@ -195,10 +195,11 @@ public class Proof {
       //if (!(step.getMetaSentence() instanceof IFF))
         step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
     });
-    System.out.println();
+
+    System.out.println("\n\n\n\nTruth Assignments used in the above proof: ");
     truthAssignments.forEach((n, v) -> {
       v.getTruthAssignment().print();
-      System.out.println();
+      //System.out.println();
       v.getInferences().forEach(System.out::println);
       System.out.println();
     });

@@ -498,20 +498,23 @@ public class TruthAssignment {
     return null;
   }
 
-  public TruthAssignment getConstantOrigin(Sentence s) {
-    if (hasImmediateConstant(s))
-      return this;
+  public ArrayList<TruthAssignment> getConstantOrigins(Sentence s) {
+    ArrayList<TruthAssignment> a = new ArrayList<>();
+    if (hasImmediateConstant(s)) {
+      a.add(this);
+      return a;
+    }
     for (int i = 0; i < children.size(); ++i) {
       TruthAssignment h = children.get(i);
-      if (h.hasImmediateConstant(s))
-        return h;
-      else if (h.constants.contains(s)) {
-        TruthAssignment t = h.getConstantOrigin(s);
-        if (t != null)
-          return t;
+      if (h.hasImmediateConstant(s)) {
+        a.add(h);
+        //return h;
+      } else if (h.constants.contains(s)) {
+        a.addAll(h.getConstantOrigins(s));
       }
     }
-    return null;
+
+    return a;
   }
 
   public boolean isSatisfied() {

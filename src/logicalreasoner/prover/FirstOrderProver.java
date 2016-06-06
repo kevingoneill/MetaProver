@@ -7,6 +7,7 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -95,11 +96,11 @@ public class FirstOrderProver extends SemanticProver {
   protected void infer(Inference i, TruthAssignment h) {
     if (i instanceof UniversalInstantiation) {
       inferenceList.add(i);
-      TruthAssignment origin = h.getConstantOrigin(((UniversalInstantiation) i).getInstance());
-      if (origin == null)
+      ArrayList<TruthAssignment> origin = h.getConstantOrigins(((UniversalInstantiation) i).getInstance());
+      if (origin.isEmpty())
         i.infer(h);
       else
-        i.infer(origin);
+        origin.stream().filter(TruthAssignment::isConsistent).forEach(i::infer);
       //h.getLeaves().stream().filter(l -> l.getConstants().contains(((UniversalInstantiation)i).getInstance())).forEach(i::infer);
     } else
       super.infer(i, h);
@@ -139,9 +140,10 @@ public class FirstOrderProver extends SemanticProver {
 
         if (isInvalid())
           break;
+        closeBranches();
 
-        printInferences();
-        printInferenceList();
+        //printInferences();
+        //printInferenceList();
       }
       //if (inferenceCount >= 20)
       //  System.exit(1);

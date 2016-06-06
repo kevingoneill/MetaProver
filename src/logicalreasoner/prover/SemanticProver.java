@@ -164,7 +164,7 @@ public class SemanticProver implements Runnable {
 
   public void runPropositionally() {
     closeBranches();
-    System.out.println("\nrunPropositionally\n");
+    //System.out.println("\nrunPropositionally\n");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
       boolean updated = true;
       // Always decompose all statements before branching
@@ -182,6 +182,7 @@ public class SemanticProver implements Runnable {
 
       if (isInvalid())
         break;
+      closeBranches();
     }
     //printInferences();
     //printInferenceList();
@@ -273,10 +274,9 @@ public class SemanticProver implements Runnable {
   }
 
   protected void getCounterExamples() {
-    if (!masterFunction.isConsistent())
-      return;
-
-    masterFunction.getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
+    if (masterFunction.isConsistent()) {
+      masterFunction.getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
+    }
   }
 
   protected boolean isInvalid() {

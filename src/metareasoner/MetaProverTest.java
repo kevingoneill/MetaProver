@@ -103,11 +103,5 @@ public class MetaProverTest {
     runProver(premises, "[SUBSUMES (not ψ) (not φ)]");
   }
 
-  @Test
-  public void test11() {
-    ArrayList<String> premises = new ArrayList<>();
-    premises.add("[SUBSUMES φ ψ]");
-    runProver(premises, "[SUBSUMES (not ψ) (not φ)]");
-  }
 
 }
