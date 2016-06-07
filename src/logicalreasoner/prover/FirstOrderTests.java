@@ -204,7 +204,7 @@ public class FirstOrderTests {
     runProver(premises, "(forAll y (exists x (G y x)))", true);
   }
 
-  //@Test
+  @Test
   public void prob23a() {
     //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();
@@ -341,7 +341,7 @@ public class FirstOrderTests {
   }
 
   // VALID
-  //@Test
+  @Test
   public void prob16b() {
     //try {Thread.sleep(10000);} catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();

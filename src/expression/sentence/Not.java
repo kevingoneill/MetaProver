@@ -25,9 +25,9 @@ public class Not extends Sentence {
   }
 
   public String toSymbol() {
-    if (args.get(0) instanceof Proposition || args.get(0) instanceof Predicate)
-      return symbol + args.get(0).toSymbol();
-    return symbol + "(" + args.get(0).toSymbol() + ")";
+    //if (args.get(0) instanceof Proposition || args.get(0) instanceof Predicate)
+    return symbol + args.get(0).toSymbol();
+    //return symbol + "(" + args.get(0).toSymbol() + ")";
   }
 
   public Boolean eval(TruthAssignment h) {

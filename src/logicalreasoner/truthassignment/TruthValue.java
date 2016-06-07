@@ -1,6 +1,7 @@
 package logicalreasoner.truthassignment;
 
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * The TruthValue class represents the assignment of a Sentence in
@@ -73,7 +74,7 @@ public class TruthValue {
 
   public String toString() {
     //return vals.keySet().toString() + " " + (isDecomposed ? "✓" : "");
-    return (isModelled() ? "T" : "F") + " " + (isDecomposed ? "✓" : "");
+    return vals.keySet().stream().map(v -> (v ? "T " : "F ")).collect(Collectors.joining()) + (isDecomposed ? "✓" : "");
   }
 
   public int hashCode() {

@@ -2,7 +2,6 @@ package expression.sentence;
 
 import expression.Sort;
 import logicalreasoner.inference.Decomposition;
-import logicalreasoner.inference.ExistentialInstantiation;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
@@ -46,15 +45,18 @@ public class Exists extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        Set<Sentence> s = h.getConstants();
+        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+        d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
+        return d;
         /*
+        Set<Sentence> s = h.getConstants();
         if (s.isEmpty()) {
           Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
           d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
           return d;
         }
-        */
         return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
+        */
       } else {
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setTrue(new ForAll(getVariable(), new Not(getSentence())));

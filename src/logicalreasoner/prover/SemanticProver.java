@@ -140,26 +140,9 @@ public class SemanticProver implements Runnable {
    * Run the prover over the given premises & conclusion
    */
   public void run() {
-    if (print) {
-      System.out.println("Premises: " + premises);
-      System.out.println("Interests: " + interests);
-    }
-
+    printArgument();
     runPropositionally();
-
-    //If the tree has been completely decomposed
-    //without inconsistencies, the argument is invalid
-    if (print) {
-      if (isConsistent()) {
-        System.out.println("\nThe argument is NOT valid. Counterexamples: \n");
-        getCounterExamples();
-      } else {
-        System.out.println("\nThe argument IS valid.\n");
-      }
-
-      printInferences();
-      printInferenceList();
-    }
+    printResult();
   }
 
   public void runPropositionally() {
@@ -184,8 +167,10 @@ public class SemanticProver implements Runnable {
         break;
       closeBranches();
     }
+
     //printInferences();
     //printInferenceList();
+    //printBranches();
   }
 
   /**
@@ -208,7 +193,7 @@ public class SemanticProver implements Runnable {
   }
 
   public boolean isConsistent() {
-    return !openBranches.isEmpty() && openBranches.stream().allMatch(TruthAssignment::isConsistent);
+    return !openBranches.isEmpty() && masterFunction.isConsistent();
   }
 
   /**
@@ -221,13 +206,36 @@ public class SemanticProver implements Runnable {
     }
   }
 
+  protected void printArgument() {
+    if (print) {
+      System.out.println("Premises: " + premises);
+      System.out.println("Interests: " + interests);
+    }
+  }
+
+  protected void printResult() {
+    //If the tree has been completely decomposed
+    //without inconsistencies, the argument is invalid
+    if (print) {
+      if (isConsistent()) {
+        System.out.println("\nThe argument is NOT valid. Counterexamples: \n");
+        getCounterExamples();
+      } else {
+        System.out.println("\nThe argument IS valid.\n");
+      }
+
+      printInferences();
+      printInferenceList();
+    }
+  }
+
   /**
    * Print the Set of open Branches
    */
   public void printBranches() {
     if (print) {
       System.out.println("Branches: ");
-      openBranches.forEach(System.out::println);
+      openBranches.forEach(TruthAssignment::print);
       //System.out.println("Branch Queue: " + branchQueue + "\n");
     }
   }
@@ -270,7 +278,7 @@ public class SemanticProver implements Runnable {
   }
 
   protected void closeBranches() {
-    openBranches.removeIf(b -> !b.isConsistent() || !b.areParentsConsistent());
+    openBranches.removeIf(b -> !b.areParentsConsistent());
   }
 
   protected void getCounterExamples() {

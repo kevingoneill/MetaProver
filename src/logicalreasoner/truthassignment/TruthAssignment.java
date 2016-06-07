@@ -21,10 +21,8 @@ public class TruthAssignment {
 
   private int UID;
   private Map<Sentence, TruthValue> map;     // The explicit Sentence -> Boolean mapping
-
   private TruthAssignment parent;
   private List<TruthAssignment> children;
-
   private Set<Sentence> constants;
 
   /**
@@ -59,7 +57,11 @@ public class TruthAssignment {
   public TruthAssignment(TruthAssignment ta) {
     UID = ta.UID;
     this.map = new HashMap<>();
-    ta.map.forEach((k, v) -> map.put(k.makeCopy(), new TruthValue(v)));
+    ta.map.forEach((k, v) -> {
+      map.put(k.makeCopy(), new TruthValue(v));
+      if (k.isAtomic())
+        setDecomposed(k);
+    });
     this.parent = ta.parent;
     children = new ArrayList<>(ta.children);
     constants = new HashSet<>(ta.constants);
@@ -137,17 +139,25 @@ public class TruthAssignment {
   }
 
   private void addConstantsDownwards(Collection<Sentence> c) {
+    if (c.isEmpty())
+      return;
     constants.addAll(c);
     children.forEach(child -> child.addConstantsDownwards(c));
   }
 
   private void addConstantsUpwards(Collection<Sentence> c) {
+    if (c.isEmpty())
+      return;
+    //System.out.println("Adding constants: " + c + " to parent: ");
+    //print();
     constants.addAll(c);
     if (parent != null)
       parent.addConstantsUpwards(c);
   }
 
   public void addConstants(Collection<Sentence> c) {
+    if (c.isEmpty() || c.stream().allMatch(constants::contains))
+      return;
     constants.addAll(c);
     if (parent != null)
       parent.addConstantsUpwards(c);
@@ -170,11 +180,9 @@ public class TruthAssignment {
 //      }
       newBranch.addStatement(s.toSymbol() + " " + map.get(s).getVals().keySet().toString());
     });
-
     if (isLeaf) {
       newBranch.addStatement((isConsistent() ? "✓" : "✗"));
     }
-
     return newBranch;
   }
 
@@ -275,7 +283,7 @@ public class TruthAssignment {
   public Boolean models(Sentence s) {
     if (map.containsKey(s))
       return map.get(s).isModelled();
-    else if (parent != null)
+    if (parent != null)
       return parent.models(s);
     return false;
   }
@@ -356,8 +364,11 @@ public class TruthAssignment {
    */
   public void merge(TruthAssignment h) {
     h.map.forEach((k, v) -> {
-      if (!map.containsKey(k))
+      if (!map.containsKey(k)) {
         map.put(k.makeCopy(), new TruthValue(v));
+        if (k.isAtomic())
+          setDecomposed(k);
+      }
       else
         map.get(k).putAll(v);
     });
@@ -374,18 +385,14 @@ public class TruthAssignment {
     return map.keySet().stream().allMatch(s -> {
       if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
         return false;
-      if (s.equals(BooleanSentence.TRUE) && !map.get(s).isModelled())
+      else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
         return false;
-      if (s.equals(BooleanSentence.FALSE) && map.get(s).isModelled())
-        return false;
-      return !(parent != null && parent.isMapped(s)) || parent.models(s) == models(s);
+      return parent == null || !parent.isMapped(s) || parent.models(s) == models(s);
     }) && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistent));
   }
 
   public boolean areParentsConsistent() {
-    if (parent == null)
-      return isConsistent();
-    return parent.areParentsConsistent() && isConsistent();
+    return isConsistent() && (parent == null || parent.areParentsConsistent());
   }
 
   /**
@@ -498,22 +505,32 @@ public class TruthAssignment {
     return null;
   }
 
+  public TruthAssignment getParentContainingConstant(Sentence s) {
+    if (hasImmediateConstant(s))
+      return this;
+    if (parent != null)
+      return parent.getParentContainingConstant(s);
+    return null;
+  }
+
   public ArrayList<TruthAssignment> getConstantOrigins(Sentence s) {
+    if (hasImmediateConstant(s))
+      return new ArrayList<>(Arrays.asList(this));
+    TruthAssignment h = getParentContainingConstant(s);
+    if (h != null)
+      return new ArrayList<>(Arrays.asList(h));
+    return getChildrenContainingConstant(s);
+  }
+
+  public ArrayList<TruthAssignment> getChildrenContainingConstant(Sentence s) {
     ArrayList<TruthAssignment> a = new ArrayList<>();
-    if (hasImmediateConstant(s)) {
-      a.add(this);
-      return a;
-    }
     for (int i = 0; i < children.size(); ++i) {
       TruthAssignment h = children.get(i);
-      if (h.hasImmediateConstant(s)) {
+      if (h.hasImmediateConstant(s))
         a.add(h);
-        //return h;
-      } else if (h.constants.contains(s)) {
-        a.addAll(h.getConstantOrigins(s));
-      }
+      else if (h.constants.contains(s))
+        a.addAll(h.getChildrenContainingConstant(s));
     }
-
     return a;
   }
 

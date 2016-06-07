@@ -85,6 +85,10 @@ public abstract class Sentence extends Expression {
     return this instanceof Atom || this instanceof Predicate;
   }
 
+  public boolean isLiteral() {
+    return isAtomic() || this instanceof Not && args.get(0).isLiteral();
+  }
+
   public int numArgs() {
     return args.size();
   }
@@ -102,34 +106,57 @@ public abstract class Sentence extends Expression {
   }
 
   public Set<Sentence> getConstants() {
-    return args.stream().flatMap(s -> s.getConstants().stream()).collect(Collectors.toSet());
+    return args.stream()
+            .flatMap(s -> s.getConstants().stream())
+            .collect(Collectors.toSet());
   }
 
   public abstract Sentence instantiate(Sentence c, Variable v);
 
   public int quantifierCount() {
-    return args.stream().mapToInt(Sentence::quantifierCount).reduce(isQuantifier() ? 1 : 0, (a, b) -> a + b);
+    return args.stream().mapToInt(Sentence::quantifierCount)
+            .reduce(isQuantifier() ? 1 : 0, (a, b) -> a + b);
+  }
+
+  public int atomCount() {
+    return args.stream().mapToInt(Sentence::atomCount)
+            .reduce(isAtomic() ? 1 : 0, (a, b) -> a + b);
   }
 
   public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {
     if (e1 instanceof Exists) {   // Always instantiate existential quantifiers before universals
       if (e2 instanceof Exists)
-        return ((Exists) e1).getSentence().size() - ((Exists) e2).getSentence().size();
+        return ((Exists) e1).getSentence().size()
+                - ((Exists) e2).getSentence().size();
       return -1;
-    }
-    if (e2 instanceof Exists)
+    } else if (e2 instanceof Exists)
       return 1;
-
-    int q1 = e1.quantifierCount(),
-            q2 = e2.quantifierCount();
-    if (q1 != q2)
-      return q1 - q2;
-
     ForAll f1 = (ForAll) e1,
             f2 = (ForAll) e2;
 
-    if (f1.getSentence().numArgs() != f2.getSentence().numArgs())
-      return f1.getSentence().numArgs() - f2.getSentence().numArgs();
-    return f1.getSentence().size() - f2.getSentence().size();
+    if (f1.getSentence().isLiteral() && !f2.getSentence().isLiteral())
+      return -1;
+    else if (!f1.getSentence().isLiteral() && f2.getSentence().isLiteral())
+      return 1;
+
+    if (f1.getInstantiations().size() != f2.getInstantiations().size())
+      return f1.getInstantiations().size() - f2.getInstantiations().size();
+
+
+    int q1 = f1.quantifierCount(),
+            q2 = f2.quantifierCount();   // Always instantiate statements with less quantifiers
+
+    if (q1 != q2)
+      return q2 - q1;
+
+    if (f1.getSentence().size() != f2.getSentence().size())
+      return f1.getSentence().size() - f2.getSentence().size();
+
+    q1 = f1.atomCount();
+    q2 = f2.atomCount();   // Always instantiate statements with less atoms
+    if (q1 != q2)
+      return q1 - q2;
+
+    return f1.getSentence().numArgs() - f2.getSentence().numArgs();
   };
 }

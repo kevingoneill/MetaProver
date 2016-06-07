@@ -43,6 +43,15 @@ public class FirstOrderProver extends SemanticProver {
       }
       if (!e2.getValue().models(e2.getKey()))
         return 1;
+
+
+      /*
+      if (e1 instanceof ForAll && e2 instanceof ForAll) {
+        ForAll f1 = (ForAll) e1,
+                f2 = (ForAll) e2;
+      }
+      */
+
       return Sentence.quantifierComparator.compare(e1.getKey(), e2.getKey());
     });
 
@@ -85,7 +94,7 @@ public class FirstOrderProver extends SemanticProver {
       i = s.reason(h, ++inferenceCount, h.getInferenceNum(s, h.models(s)));
     }
 
-    infer(i, h.getParentContaining(i.getOrigin()));
+    infer(i, h);
     System.out.println(i + "\n----------------------------------------------\n");
     if (h.models(s))
       System.out.println("Instantiating: " + s + "\n");
@@ -96,12 +105,17 @@ public class FirstOrderProver extends SemanticProver {
   protected void infer(Inference i, TruthAssignment h) {
     if (i instanceof UniversalInstantiation) {
       inferenceList.add(i);
-      ArrayList<TruthAssignment> origin = h.getConstantOrigins(((UniversalInstantiation) i).getInstance());
-      if (origin.isEmpty())
+      ArrayList<TruthAssignment> origins = h.getConstantOrigins(((UniversalInstantiation) i).getInstance());
+
+      if (i.getInferenceNum() == 25) {
+        i.getParent().print();
+        System.out.println("ORIGINS: " + origins);
+      }
+
+      if (origins.isEmpty())
         i.infer(h);
       else
-        origin.stream().filter(TruthAssignment::isConsistent).forEach(i::infer);
-      //h.getLeaves().stream().filter(l -> l.getConstants().contains(((UniversalInstantiation)i).getInstance())).forEach(i::infer);
+        origins.stream().filter(TruthAssignment::isConsistent).forEach(i::infer);
     } else
       super.infer(i, h);
   }
@@ -110,26 +124,21 @@ public class FirstOrderProver extends SemanticProver {
    * Run the prover over the given premises & conclusion
    */
   public void run() {
-    if (print) {
-      System.out.println("Premises: " + premises);
-      System.out.println("Interests: " + interests);
-    }
+    printArgument();
     boolean updated = true;
     while (!reasoningCompleted()) {
       runPropositionally();
-
       if (isInvalid())
         break;
+
+      printInferences();
+      printInferenceList();
 
       if (updated && !openBranches.isEmpty()) {
         if (!branchQueue.isEmpty())
           throw new RuntimeException("Branch queue is not empty before first-order reasoning!");
 
-        // Instantiate a single quantifier (anyMatch terminates after first successful call)
-        //updated = openBranches.stream().anyMatch(this::instantiateQuantifier);
-        //updated = IntStream.rangeClosed(0, openBranches.size() - 1).map(i -> (openBranches.size() - 1) - i).anyMatch(i -> instantiateQuantifier(openBranches.get(i)));
         PriorityQueue<Map.Entry<Sentence, TruthAssignment>> quantifierQueue = makeQuantifierQueue();
-
         do {
           updated = instantiateQuantifier(quantifierQueue);
         }
@@ -142,25 +151,11 @@ public class FirstOrderProver extends SemanticProver {
           break;
         closeBranches();
 
-        //printInferences();
-        //printInferenceList();
-      }
-      //if (inferenceCount >= 20)
-      //  System.exit(1);
-    }
-
-    //If the tree has been completely decomposed
-    //without inconsistencies, the argument is invalid
-    if (print) {
-      if (isConsistent()) {
-        System.out.println("\nThe argument is NOT valid. Counterexamples: \n");
-        getCounterExamples();
-      } else {
-        System.out.println("\nThe argument IS valid.\n");
+        //if (inferenceCount > 30)
+        //  System.exit(0);
       }
 
-      printInferences();
-      printInferenceList();
     }
+    printResult();
   }
 }

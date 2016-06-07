@@ -44,6 +44,11 @@ public class And extends Sentence {
         args.forEach(d::setTrue);
         return d;
       } else {
+        if (args.stream().allMatch(a -> a.equals(args.get(0)))) {
+          Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+          d.setFalse(args.get(0));
+          return d;
+        }
         Branch b = new Branch(h, this, inferenceNum, justificationNum);
         args.forEach(arg -> {
           TruthAssignment t = new TruthAssignment();

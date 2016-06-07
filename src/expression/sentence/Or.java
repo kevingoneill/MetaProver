@@ -45,6 +45,11 @@ public class Or extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
+        if (args.stream().allMatch(a -> a.equals(args.get(0)))) {
+          Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+          d.setTrue(args.get(0));
+          return d;
+        }
         Branch b = new Branch(h, this, inferenceNum, justificationNum);
         args.forEach(arg -> {
           TruthAssignment t = new TruthAssignment();
