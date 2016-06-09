@@ -7,6 +7,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
  * The inference stores changes to be made to a parent TruthAssignment.
  */
 public abstract class Inference {
+  private Integer HASH_CODE;
   TruthAssignment parent;
   Sentence origin;
   int inferenceNum, justificationNum;
@@ -35,19 +36,21 @@ public abstract class Inference {
   public abstract void infer(TruthAssignment h);
 
   public int hashCode() {
-	if (origin == null) {
-		return parent.hashCode();
-	}
-    return origin.hashCode();
+    if (HASH_CODE == null) {
+      if (origin == null)
+        HASH_CODE = parent.hashCode();
+      else
+        HASH_CODE = origin.hashCode();
+    }
+    return HASH_CODE;
   }
 
   public boolean equals(Object o) {
     if (o instanceof Inference) {
       Inference i = (Inference) o;
-      if (i.origin == null) {
-    	  return i.parent.equals(parent);
-      }
-      return i.origin.equals(origin) && i.parent.equals(parent);
+      if (i.origin == null)
+        return origin == null && justificationNum == i.justificationNum && i.parent == parent;
+      return justificationNum == i.justificationNum && i.origin.equals(origin) && i.parent == parent;
     }
     return false;
   }

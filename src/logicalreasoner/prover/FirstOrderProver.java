@@ -4,10 +4,8 @@ import expression.sentence.Constant;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -43,14 +41,6 @@ public class FirstOrderProver extends SemanticProver {
       }
       if (!e2.getValue().models(e2.getKey()))
         return 1;
-
-
-      /*
-      if (e1 instanceof ForAll && e2 instanceof ForAll) {
-        ForAll f1 = (ForAll) e1,
-                f2 = (ForAll) e2;
-      }
-      */
 
       return Sentence.quantifierComparator.compare(e1.getKey(), e2.getKey());
     });
@@ -91,33 +81,18 @@ public class FirstOrderProver extends SemanticProver {
       if (s instanceof ForAll && h.models(s) && h.getConstants().isEmpty()) {
         h.addConstant(Constant.getNewUniqueConstant());
       }
-      i = s.reason(h, ++inferenceCount, h.getInferenceNum(s, h.models(s)));
+      TruthAssignment parent = h.getParentContaining(s);
+      i = s.reason(parent, inferenceCount, parent.getInferenceNum(s, parent.models(s)));
+      if (i != null)
+        ++inferenceCount;
     }
 
-    infer(i, h);
+    infer(i);
     System.out.println(i + "\n----------------------------------------------\n");
-    if (h.models(s))
+    if (i.getParent().models(s))
       System.out.println("Instantiating: " + s + "\n");
 
     return true;
-  }
-
-  protected void infer(Inference i, TruthAssignment h) {
-    if (i instanceof UniversalInstantiation) {
-      inferenceList.add(i);
-      ArrayList<TruthAssignment> origins = h.getConstantOrigins(((UniversalInstantiation) i).getInstance());
-
-      if (i.getInferenceNum() == 25) {
-        i.getParent().print();
-        System.out.println("ORIGINS: " + origins);
-      }
-
-      if (origins.isEmpty())
-        i.infer(h);
-      else
-        origins.stream().filter(TruthAssignment::isConsistent).forEach(i::infer);
-    } else
-      super.infer(i, h);
   }
 
   /**
@@ -146,10 +121,6 @@ public class FirstOrderProver extends SemanticProver {
 
         while (updated && !branchQueue.isEmpty())
           addBranches();
-
-        if (isInvalid())
-          break;
-        closeBranches();
 
         //if (inferenceCount > 30)
         //  System.exit(0);

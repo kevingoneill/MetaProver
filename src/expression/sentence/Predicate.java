@@ -21,6 +21,13 @@ public class Predicate extends Sentence {
     super(vars, n, n, Sort.BOOLEAN);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Predicate)
+      return super.equals(o);
+    return false;
+  }
+
   public Sentence makeCopy() {
     ArrayList<Sentence> a = new ArrayList<>();
     args.forEach(arg -> a.add(arg.makeCopy()));
@@ -81,8 +88,7 @@ public class Predicate extends Sentence {
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (!h.isDecomposed(this))
-      h.setDecomposed(this);
+    h.setDecomposed(this);
     return null;
   }
 

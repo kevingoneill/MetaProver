@@ -17,6 +17,13 @@ public class Variable extends Atom {
     super(name, s);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Variable)
+      return super.equals(o);
+    return false;
+  }
+
   public String toString() {
     return name;
   }

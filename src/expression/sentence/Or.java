@@ -19,6 +19,13 @@ public class Or extends Sentence {
     super(a, "or", "∨", Sort.BOOLEAN);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Or)
+      return super.equals(o);
+    return false;
+  }
+
   public Sentence makeCopy() {
     ArrayList<Sentence> a = new ArrayList<>();
     args.forEach(arg -> a.add(arg.makeCopy()));
@@ -43,29 +50,25 @@ public class Or extends Sentence {
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (h.isMapped(this)) {
-      if (h.models(this)) {
-        if (args.stream().allMatch(a -> a.equals(args.get(0)))) {
-          Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-          d.setTrue(args.get(0));
-          return d;
-        }
-        Branch b = new Branch(h, this, inferenceNum, justificationNum);
-        args.forEach(arg -> {
-          TruthAssignment t = new TruthAssignment();
-          t.setTrue(arg, inferenceNum);
-          b.addBranch(t);
-        });
-
-        return b;
-      } else {
+    h.setDecomposed(this);
+    if (h.models(this)) {
+      if (args.stream().allMatch(a -> a.equals(args.get(0)))) {
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        args.forEach(d::setFalse);
+        d.setTrue(args.get(0));
         return d;
       }
+      Branch b = new Branch(h, this, inferenceNum, justificationNum);
+      args.forEach(arg -> {
+        TruthAssignment t = new TruthAssignment();
+        t.setTrue(arg, inferenceNum);
+        b.addBranch(t);
+      });
+      return b;
+    } else {
+      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      args.forEach(d::setFalse);
+      return d;
     }
-
-    return null;
   }
 
   @Override

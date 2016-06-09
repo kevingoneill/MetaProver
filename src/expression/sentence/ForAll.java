@@ -59,12 +59,11 @@ public class ForAll extends Sentence {
         Collections.sort(a, Constant.constantComparator);
         Sentence c = a.get(0);
 
-        System.out.println(this + "   instantiations: " + instantiations + "   constants: " + a);
-
         UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, c, getVariable());
         instantiations.add(c);
         return i;
       } else {
+        h.setDecomposed(this);
         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
         d.setTrue(new Exists(getVariable(), new Not(getSentence())));
         return d;

@@ -20,6 +20,10 @@ public class BooleanSentence extends Proposition {
     value = b;
   }
 
+  public boolean equals(Object o) {
+    return this == o;
+  }
+
   @Override
   public Sentence makeCopy() {
     return this;
@@ -31,8 +35,7 @@ public class BooleanSentence extends Proposition {
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (!h.isDecomposed(this))
-      h.setDecomposed(this);
+    h.setDecomposed(this);
     return null;
   }
 

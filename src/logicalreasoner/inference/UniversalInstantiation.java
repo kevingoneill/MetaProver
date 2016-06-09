@@ -5,6 +5,7 @@ import expression.sentence.Sentence;
 import expression.sentence.Variable;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +23,16 @@ public class UniversalInstantiation extends Decomposition {
     setTrue(o.getSentence().instantiate(s, v));
     instance = s;
     var = v;
+  }
+
+
+  @Override
+  public void infer(TruthAssignment h) {
+    ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
+    if (origins.isEmpty())
+      super.infer(h);
+    else
+      origins.stream().forEach(super::infer);
   }
 
   public Sentence getInstance() {

@@ -22,6 +22,13 @@ public class Proposition extends Atom {
     super(n.toUpperCase(), Sort.BOOLEAN);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Proposition)
+      return super.equals(o);
+    return false;
+  }
+
   public Sentence makeCopy() {
     return this;
   }
@@ -42,8 +49,7 @@ public class Proposition extends Atom {
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (!h.isDecomposed(this))
-      h.setDecomposed(this);
+    h.setDecomposed(this);
     return null;
   }
 

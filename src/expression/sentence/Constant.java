@@ -64,14 +64,27 @@ public class Constant extends Atom {
     return constants.get(name);
   }
 
+  public boolean equals(Object o) {
+    if (o instanceof Constant) {
+      return this == o;
+    }
+    return false;
+  }
+
   public String toString() {
     if (TOSTRING == null) {
-      if (name.startsWith("#"))
-        TOSTRING = name.replace("#", "");
-      else
+      if (name.startsWith("#")) {
+        int i = Integer.parseInt(name.replace("#", ""));
+        //TOSTRING = getCharForNumber(i % 26) + (i < 26 ? "" : i / 26);
+        TOSTRING = "" + i;
+      } else
         TOSTRING = name;
     }
     return TOSTRING;
+  }
+
+  private String getCharForNumber(int i) {
+    return i > 0 && i < 27 ? String.valueOf((char) (i + 'A' - 1)).toLowerCase() : null;
   }
 
   public String toSymbol() {

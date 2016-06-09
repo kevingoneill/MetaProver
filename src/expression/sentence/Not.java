@@ -20,6 +20,12 @@ public class Not extends Sentence {
     super(new ArrayList<>(Arrays.asList(e)), "not", "¬", Sort.BOOLEAN);
   }
 
+  public boolean equals(Object o) {
+    if (o instanceof Not)
+      return super.equals(o);
+    return false;
+  }
+
   public Sentence makeCopy() {
     return new Not(args.get(0).makeCopy());
   }
@@ -42,18 +48,16 @@ public class Not extends Sentence {
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (h.isMapped(this)) {
-      if (h.models(this)) {
-        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        d.setFalse(args.get(0));
-        return d;
-      } else {
-        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        d.setTrue(args.get(0));
-        return d;
-      }
+    h.setDecomposed(this);
+    if (h.models(this)) {
+      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      d.setFalse(args.get(0));
+      return d;
+    } else {
+      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      d.setTrue(args.get(0));
+      return d;
     }
-    return null;
   }
 
   @Override

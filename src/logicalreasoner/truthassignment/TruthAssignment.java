@@ -148,8 +148,6 @@ public class TruthAssignment {
   private void addConstantsUpwards(Collection<Sentence> c) {
     if (c.isEmpty())
       return;
-    //System.out.println("Adding constants: " + c + " to parent: ");
-    //print();
     constants.addAll(c);
     if (parent != null)
       parent.addConstantsUpwards(c);
@@ -228,7 +226,6 @@ public class TruthAssignment {
 
     if (s.isAtomic())
       setDecomposed(s);
-
     addConstants(s.getConstants());
   }
 
@@ -248,7 +245,6 @@ public class TruthAssignment {
 
     if (s.isAtomic())
       setDecomposed(s);
-
     addConstants(s.getConstants());
   }
 
@@ -269,7 +265,6 @@ public class TruthAssignment {
 
     if (s.isAtomic())
       setDecomposed(s);
-
     addConstants(s.getConstants());
   }
 
@@ -297,6 +292,7 @@ public class TruthAssignment {
    */
   public boolean isMapped(Sentence s) {
     return map.containsKey(s) || parent != null && parent.isMapped(s);
+    //return flattenUpwards().anyMatch(s::equals);
   }
 
   /**
@@ -321,10 +317,50 @@ public class TruthAssignment {
     return s;
   }
 
+  private Stream<Sentence> flattenUpwards() {
+    if (parent == null)
+      return map.keySet().stream();
+    return Stream.concat(map.keySet().stream(), parent.flattenUpwards());
+  }
+
+  private Stream<Sentence> flattenDownwards() {
+    if (children.isEmpty())
+      return map.keySet().stream();
+    return Stream.concat(map.keySet().stream(), children.parallelStream().flatMap(TruthAssignment::flattenDownwards));
+  }
+
+  public Stream<Sentence> flatten() {
+    if (parent == null) {
+      if (children.isEmpty())
+        return map.keySet().stream();
+      return Stream.concat(map.keySet().stream(), children.stream().flatMap(TruthAssignment::flattenDownwards));
+    }
+    if (children.isEmpty())
+      return Stream.concat(parent.flattenUpwards(), map.keySet().stream());
+    return Stream.concat(parent.flattenUpwards(), Stream.concat(map.keySet().stream(), children.stream().flatMap(TruthAssignment::flattenDownwards)));
+  }
+
+  public Map<Sentence, TruthAssignment> flatten2() {
+    Map<Sentence, TruthAssignment> m = new HashMap<>();
+    if (parent != null)
+      m.putAll(parent.flatten2());
+    map.keySet().forEach(k -> {
+      if (!decomposedTest(k))
+        m.put(k, this);
+    });
+    return m;
+  }
+
+  public Stream<Pair> flatten3() {
+    if (parent == null)
+      return map.keySet().parallelStream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this));
+    return Stream.concat(parent.flatten3(), map.keySet().parallelStream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this)));
+  }
+
   public Map<Sentence, TruthAssignment> getUnfinishedQuantifiersUpwards() {
     Map<Sentence, TruthAssignment> m = new HashMap<>();
     map.forEach((k, v) -> {
-      if (!isDecomposed(k))
+      if (k.isQuantifier() && !decomposedTest(k))
         m.put(k, this);
     });
     if (parent != null)
@@ -346,7 +382,7 @@ public class TruthAssignment {
    * @return a Stream of all true Sentences in this
    */
   public Stream<Sentence> getTrueSentences() {
-    return getSentencesUpwards().stream().filter(this::models);
+    return flatten().filter(this::models);
   }
 
   /**
@@ -354,7 +390,7 @@ public class TruthAssignment {
    * @return a Stream of all false Sentences in this
    */
   public Stream<Sentence> getFalseSentences() {
-    return getSentencesUpwards().stream().filter(sentence -> !models(sentence));
+    return flatten().filter(sentence -> !models(sentence));
   }
 
   /**
@@ -375,6 +411,16 @@ public class TruthAssignment {
     addConstants(h.getConstants());
   }
 
+  private boolean consistencyTest() {
+    return map.keySet().stream().allMatch(s -> {
+      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
+        return false;
+      else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
+        return false;
+      return parent == null || !parent.isMapped(s) || parent.models(s) == models(s);
+    });
+  }
+
   /**
    * Make sure the mappings of Sentences is the same as their evaluation
    * under this TruthAssignment
@@ -382,17 +428,15 @@ public class TruthAssignment {
    * @return true if all mappings are consistent, false otherwise
    */
   public boolean isConsistent() {
-    return map.keySet().stream().allMatch(s -> {
-      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
-        return false;
-      else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
-        return false;
-      return parent == null || !parent.isMapped(s) || parent.models(s) == models(s);
-    }) && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistent));
+    return consistencyTest() && (children.isEmpty() || children.parallelStream().anyMatch(TruthAssignment::isConsistentSerial));
+  }
+
+  private boolean isConsistentSerial() {
+    return consistencyTest() && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistentSerial));
   }
 
   public boolean areParentsConsistent() {
-    return isConsistent() && (parent == null || parent.areParentsConsistent());
+    return consistencyTest() && (parent == null || parent.areParentsConsistent());
   }
 
   /**
@@ -407,6 +451,16 @@ public class TruthAssignment {
       parent.setDecomposed(s);
   }
 
+  private Boolean decomposedTest(Sentence s) {
+    TruthValue tv = map.get(s);
+    if (tv == null)
+      return null;
+    // Check for finished Universal Quantifiers
+    if (tv.isModelled() && s instanceof ForAll)
+      return getConstants().size() > 0 && ((ForAll) s).getInstantiations().size() == getConstants().size();
+    return tv.isDecomposed();
+  }
+
   /**
    * Check if this Sentence has already been reasoned upon.
    *
@@ -415,12 +469,8 @@ public class TruthAssignment {
    * false otherwise
    */
   public Boolean isDecomposed(Sentence s) {
-    if (map.containsKey(s)) {
-      // Check for finished Universal Quantifiers
-      if (s instanceof ForAll && !map.get(s).isDecomposed())
-        return getConstants().size() > 0 && ((ForAll) s).getInstantiations().size() == getParentContaining(s).getConstants().size();
-      return map.get(s).isDecomposed();
-    }
+    if (map.containsKey(s))
+      return decomposedTest(s);
     if (parent != null)
       return parent.isDecomposed(s);
     return false;
@@ -432,7 +482,8 @@ public class TruthAssignment {
    * @return true if all Sentences in this and its parents have been decomposed
    */
   public boolean decomposedAll() {
-    return map.keySet().stream().allMatch(this::isDecomposed) && (parent == null || parent.decomposedAll());
+    return map.keySet().stream().allMatch(this::decomposedTest) && (parent == null || parent.decomposedAll());
+    //return flattenUndecomposed().count() == 0;
   }
 
   /**
@@ -441,7 +492,8 @@ public class TruthAssignment {
    * @return true if all Sentences in this and its parents have been decomposed
    */
   public boolean decomposedAllPropositions() {
-    return map.keySet().stream().filter(s -> !s.isQuantifier()).allMatch(this::isDecomposed) && (parent == null || parent.decomposedAllPropositions());
+    return map.keySet().stream().filter(s -> !s.isQuantifier()).allMatch(this::decomposedTest) && (parent == null || parent.decomposedAllPropositions());
+    //return flatten().filter(s -> !s.isQuantifier()).allMatch(this::isDecomposed);
   }
 
   /**
@@ -476,12 +528,10 @@ public class TruthAssignment {
   public Set<TruthAssignment> getLeaves() {
     if (children.isEmpty()) {
       HashSet<TruthAssignment> h = new HashSet<>();
-      if (isConsistent())
-        h.add(this);
+      h.add(this);
       return h;
     }
-
-    return children.stream().flatMap(s -> s.getLeaves().stream()).filter(TruthAssignment::isConsistent).collect(Collectors.toSet());
+    return children.stream().flatMap(s -> s.getLeaves().stream()).collect(Collectors.toSet());
   }
 
   /**
@@ -535,6 +585,6 @@ public class TruthAssignment {
   }
 
   public boolean isSatisfied() {
-    return decomposedAll() && isConsistent();
+    return decomposedAll() && areParentsConsistent();
   }
 }

@@ -8,6 +8,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The SemanticProver class represents a logical reasoner
@@ -68,7 +69,7 @@ public class SemanticProver implements Runnable {
       interests.add(interest);
 
     inferenceList = new ArrayList<>();
-    inferenceCount = 0;
+    inferenceCount = 1;
     masterFunction = new TruthAssignment();
 
     Decomposition c = new Decomposition(masterFunction, null, 0, 0);
@@ -116,21 +117,51 @@ public class SemanticProver implements Runnable {
    * @param h the TruthAssignment to reason over
    * @return true if changes to h have been made as a result of this call, false otherwise
    */
-  public boolean reason(TruthAssignment h, boolean overQuantifiers) {
-    List<Inference> inferences = h.getSentencesUpwards().stream()
-            .filter(s -> !h.isDecomposed(s) && (s.isQuantifier() == overQuantifiers))
-            .map(s -> s.reason(h.getParentContaining(s), ++inferenceCount, h.getInferenceNum(s, h.models(s)))).filter(i -> i != null)
-            .collect(Collectors.toList());
+  public Stream<Inference> reason(TruthAssignment h, boolean overQuantifiers) {
+   /*
+    return h.flatten()
+            .map(s -> {
+              if (s.isQuantifier() != overQuantifiers || h.isDecomposed(s))
+                return null;
+              TruthAssignment ta = h.getParentContaining(s);
+              Inference i = s.reason(ta, inferenceCount, ta.getInferenceNum(s, ta.models(s)));
+              if (i != null)
+                ++inferenceCount;
+              return i;
+            }).filter(i -> i != null);
+    */
+    /*
+    return h.flatten2().entrySet().stream()
+            .map(e -> {
+              Sentence s = e.getKey();
+              if (s.isQuantifier() != overQuantifiers)
+                return null;
+              TruthAssignment ta = e.getValue();
+              Inference i = s.reason(ta, inferenceCount, ta.getInferenceNum(s, ta.models(s)));
+              if (i != null)
+                ++inferenceCount;
+              return i;
+            }).filter(i -> i != null);
+    */
 
-    inferences.forEach(i -> infer(i, h.getParentContaining(i.getOrigin())));
-    return !inferences.isEmpty();
+    return h.flatten3()
+            .map(p -> {
+              Sentence s = p.sentence;
+              if (s.isQuantifier() != overQuantifiers)
+                return null;
+              TruthAssignment ta = p.truthAssignment;
+              Inference i = s.reason(ta, inferenceCount, ta.getInferenceNum(s, ta.models(s)));
+              if (i != null)
+                ++inferenceCount;
+              return i;
+            }).filter(i -> i != null);
   }
 
-  protected void infer(Inference i, TruthAssignment h) {
-    h.setDecomposed(i.getOrigin());
+  protected void infer(Inference i) {
+    //i.getParent().setDecomposed(i.getOrigin());
     if (i instanceof Decomposition) {
       inferenceList.add(i);
-      i.infer(h);
+      i.infer(i.getParent());
     } else if (i instanceof Branch) {
       branchQueue.offer((Branch) i);
     }
@@ -147,16 +178,18 @@ public class SemanticProver implements Runnable {
 
   public void runPropositionally() {
     closeBranches();
-    //System.out.println("\nrunPropositionally\n");
+    System.out.println("\nrunPropositionally\n");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
       boolean updated = true;
       // Always decompose all statements before branching
       while (!openBranches.isEmpty() && updated) {
-        updated = openBranches.stream().map(b -> reason(b, false)).collect(Collectors.toList()).contains(true);
-        closeBranches();
+        List<Inference> inferences = openBranches.parallelStream().flatMap(b -> reason(b, false)).distinct().collect(Collectors.toList());
+        inferences.forEach(this::infer);
+        updated = !inferences.isEmpty();
+        //closeBranches();
       }
 
-      closeBranches();
+      //closeBranches();
       //printInferences();
 
       //Branch once on the largest branching statement then loop back around
@@ -262,19 +295,17 @@ public class SemanticProver implements Runnable {
   protected void addBranches() {
     Branch b = branchQueue.poll();
     //System.out.println("Branching on: " + b + "\n" + openBranches);
-
-    inferenceList.add(b);
     if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
       return;
+    inferenceList.add(b);
 
     b.getParent().getLeaves().stream().filter(openBranches::contains).forEach(leaf -> {
       b.infer(leaf);
-      leaf.getChildren().forEach(l -> openBranches.add(l));
-      if (!leaf.getChildren().isEmpty())
+      if (!leaf.getChildren().isEmpty()) {
         openBranches.remove(leaf);
+        openBranches.addAll(leaf.getChildren());
+      }
     });
-
-    closeBranches();    //Clean up any inconsistent branches
   }
 
   protected void closeBranches() {

@@ -75,8 +75,9 @@ public abstract class Sentence extends Expression {
         if (!args.get(i).equals(s.args.get(i)))
           return false;
       }
-
       return true;
+
+      //return IntStream.rangeClosed(0, args.size() - 1).allMatch(i -> args.get(i).equals(s.args.get(i)));
     }
     return false;
   }

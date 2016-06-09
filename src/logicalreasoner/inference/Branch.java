@@ -40,8 +40,15 @@ public class Branch extends Inference {
 
   public boolean equals(Object o) {
     if (o instanceof Branch) {
-      Branch i = (Branch) o;
-      return super.equals(i) && branches.equals(i.branches);
+      Branch b = (Branch) o;
+      if (!super.equals(b) || branches.size() != b.branches.size())
+        return false;
+
+      for (int i = 0; i < branches.size(); ++i) {
+        if (!branches.get(i).equals(b.branches.get(i)))
+          return false;
+      }
+      return true;
     }
     return false;
   }
