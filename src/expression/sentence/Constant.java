@@ -19,7 +19,7 @@ public class Constant extends Atom {
       if (c2 instanceof Constant) {
         if (c1.getName().startsWith("#")) {
           if (c2.getName().startsWith("#"))
-            return Integer.parseInt(c2.getName().replaceAll("#", "")) - Integer.parseInt(c1.getName().replaceAll("#", ""));
+            return Integer.parseInt(c1.getName().replaceAll("#", "")) - Integer.parseInt(c2.getName().replaceAll("#", ""));
           return 1;
         }
         if (c2.getName().startsWith("#"))

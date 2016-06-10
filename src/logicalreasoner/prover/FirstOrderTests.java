@@ -12,6 +12,9 @@ import java.util.Set;
  * First Order Logic Tests from Bram's Handout.
  * Problems marked 'a' are all valid, and problems
  * marked 'b' can be either valid or invalid.
+ *
+ * problems marked 'c' come from OSCAR's Combined-problems
+ * test suite
  */
 public class FirstOrderTests {
   public static void runProver(Set<String> premises, String interest, boolean validArgument) {
@@ -354,7 +357,10 @@ public class FirstOrderTests {
 
   @Test
   public void prob17b() {
-    //try {Thread.sleep(10000);} catch (InterruptedException ie) {}
+    try {
+      Thread.sleep(10000);
+    } catch (InterruptedException ie) {
+    }
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (forAll y (implies (and (A x) (B y)) (C x y))))");
     premises.add("(exists y (and (F y) (forAll z (implies (H z) (C y z)))))");

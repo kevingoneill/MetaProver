@@ -6,6 +6,7 @@ import expression.sentence.Variable;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -13,30 +14,33 @@ import java.util.stream.Collectors;
  * instantiates a quantified variable with a Constant, or
  * other sentence
  */
-public class UniversalInstantiation extends Decomposition {
+public class UniversalInstantiation extends Inference {
 
-  private Sentence instance;
+  private List<Sentence> instances;
   private Variable var;
 
-  public UniversalInstantiation(TruthAssignment h, ForAll o, int i, int j, Sentence s, Variable v) {
+  public UniversalInstantiation(TruthAssignment h, ForAll o, int i, int j, List<Sentence> s, Variable v) {
     super(h, o, i, j);
-    setTrue(o.getSentence().instantiate(s, v));
-    instance = s;
+    //setTrue(o.getSentence().instantiate(s, v));
+    instances = s;
     var = v;
   }
 
 
   @Override
   public void infer(TruthAssignment h) {
-    ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
-    if (origins.isEmpty())
-      super.infer(h);
-    else
-      origins.stream().forEach(super::infer);
+    ForAll f = (ForAll) origin;
+    instances.forEach(instance -> {
+      ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
+      if (origins.isEmpty())
+        h.setTrue(f.instantiate(instance, var), inferenceNum);
+      else
+        origins.stream().forEach(o -> o.setTrue(f.instantiate(instance, var), inferenceNum));
+    });
   }
 
-  public Sentence getInstance() {
-    return instance;
+  public List<Sentence> getInstances() {
+    return instances.stream().map(i -> origin.instantiate(i, var)).collect(Collectors.toList());
   }
 
   public Variable getVar() {
@@ -46,15 +50,13 @@ public class UniversalInstantiation extends Decomposition {
   public boolean equals(Object o) {
     if (o instanceof UniversalInstantiation) {
       UniversalInstantiation i = (UniversalInstantiation) o;
-      return super.equals(i) && instance.equals(i.instance) && var.equals(i.var);
+      return super.equals(i) && instances.equals(i.instances) && var.equals(i.var);
     }
     return false;
   }
 
   public String toString() {
-    return "UniversalInstantiation " + inferenceNum + "- of " + instance + " over " + origin
-            + "=" + parent.models(origin) + " [" + justificationNum + "] instances: { "
-            + additions.keySet().stream().map(s -> s.toString() + "=" + additions.models(s)
-            + " [" + additions.getInferenceNum(s, additions.models(s)) + "] ").collect(Collectors.joining()) + "}";
+    return "UniversalInstantiation " + inferenceNum + "- of " + instances + " over " + origin
+            + "=" + parent.models(origin) + " [" + justificationNum + "]";
   }
 }

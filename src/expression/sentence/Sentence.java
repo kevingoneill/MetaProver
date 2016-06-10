@@ -148,7 +148,7 @@ public abstract class Sentence extends Expression {
             q2 = f2.quantifierCount();   // Always instantiate statements with less quantifiers
 
     if (q1 != q2)
-      return q2 - q1;
+      return q1 - q2;
 
     if (f1.getSentence().size() != f2.getSentence().size())
       return f1.getSentence().size() - f2.getSentence().size();

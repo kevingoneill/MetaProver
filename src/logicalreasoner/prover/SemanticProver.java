@@ -25,16 +25,6 @@ public class SemanticProver implements Runnable {
     inferences.addAll(prover.inferenceList);
   }
 
-  protected Comparator<Branch> branchComparator = (b1, b2) -> {
-    if (b1.size() != b2.size())
-      return b2.size() - b1.size();
-    if (b1.getOrigin().size() != b2.getOrigin().size())
-      return b2.getOrigin().size() - b1.getOrigin().size();
-    int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
-            j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
-    return i - j;
-  };
-
   protected Set<Sentence> premises, interests;
 
   //Stores the initial/root TruthAssignment
@@ -51,6 +41,34 @@ public class SemanticProver implements Runnable {
   protected List<Inference> inferenceList;
 
   protected boolean print;
+
+  protected Comparator<Branch> branchComparator = (b1, b2) -> {
+    if (b1.size() != b2.size())
+      return b2.size() - b1.size();
+    if (b1.getOrigin().size() != b2.getOrigin().size())
+      return b2.getOrigin().size() - b1.getOrigin().size();
+    int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
+            j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
+    if (i != j)
+      return j - i;
+    //return 0;
+    //System.out.println("WORKING");
+    i = b1.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
+            (int) b1.getBranches().parallelStream().map(b -> {
+              TruthAssignment t = new TruthAssignment(b);
+              t.setParent(l);
+              return t;
+            }).filter(TruthAssignment::consistencyTest).count()).sum();
+    j = b2.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
+            (int) b2.getBranches().parallelStream().map(b -> {
+              TruthAssignment t = new TruthAssignment(b);
+              t.setParent(l);
+              return t;
+            }).filter(TruthAssignment::consistencyTest).count()).sum();
+    //System.out.println("FINISHED");
+    return i - j;
+
+  };
 
   /**
    * Initialize the reasoner with the premises and the negation of all interests
@@ -181,9 +199,10 @@ public class SemanticProver implements Runnable {
     System.out.println("\nrunPropositionally\n");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
       boolean updated = true;
+      List<Inference> inferences;
       // Always decompose all statements before branching
-      while (!openBranches.isEmpty() && updated) {
-        List<Inference> inferences = openBranches.parallelStream().flatMap(b -> reason(b, false)).distinct().collect(Collectors.toList());
+      while (updated && !openBranches.isEmpty()) {
+        inferences = openBranches.parallelStream().flatMap(b -> reason(b, false)).distinct().collect(Collectors.toList());
         inferences.forEach(this::infer);
         updated = !inferences.isEmpty();
         //closeBranches();
@@ -299,7 +318,7 @@ public class SemanticProver implements Runnable {
       return;
     inferenceList.add(b);
 
-    b.getParent().getLeaves().stream().filter(openBranches::contains).forEach(leaf -> {
+    b.getParent().getLeaves().filter(openBranches::contains).forEach(leaf -> {
       b.infer(leaf);
       if (!leaf.getChildren().isEmpty()) {
         openBranches.remove(leaf);
@@ -314,7 +333,7 @@ public class SemanticProver implements Runnable {
 
   protected void getCounterExamples() {
     if (masterFunction.isConsistent()) {
-      masterFunction.getLeaves().stream().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
+      masterFunction.getLeaves().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
     }
   }
 

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  */
 public class ForAll extends Sentence {
 
+  // TODO: store list of un-instantiated constants instead (eliminate leaf traversal)
   private Set<Sentence> instantiations;
 
   public ForAll(Variable v, Sentence s) {
@@ -50,17 +51,19 @@ public class ForAll extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     if (h.isMapped(this)) {
       if (h.models(this)) {
-        List<Sentence> a = h.getConstants().stream().filter(c ->
-                !instantiations.contains(c)).collect(Collectors.toList());
+        List<Sentence> a = h.getLeaves().flatMap(l -> l.getConstants().stream()).filter(c ->
+                !instantiations.contains(c)).distinct().collect(Collectors.toList());
 
-        if (a.isEmpty())
+        if (a.isEmpty()) {
           return null;
+        }
 
-        Collections.sort(a, Constant.constantComparator);
-        Sentence c = a.get(0);
+        //Collections.sort(a, Constant.constantComparator);
+        //Sentence c = a.get(0);
 
-        UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, c, getVariable());
-        instantiations.add(c);
+        UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, a, getVariable());
+        //instantiations.add(c);
+        instantiations.addAll(a);
         return i;
       } else {
         h.setDecomposed(this);
@@ -103,4 +106,5 @@ public class ForAll extends Sentence {
     }
     return false;
   }
+
 }
