@@ -3,6 +3,8 @@ package logicalreasoner.inference;
 import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.util.stream.Stream;
+
 /**
  * The inference stores changes to be made to a parent TruthAssignment.
  */
@@ -33,7 +35,7 @@ public abstract class Inference {
     return origin;
   }
 
-  public abstract void infer(TruthAssignment h);
+  public abstract Stream<Sentence> infer(TruthAssignment h);
 
   public int hashCode() {
     if (HASH_CODE == null) {

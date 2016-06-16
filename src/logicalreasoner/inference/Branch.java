@@ -6,6 +6,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A Branch is an inference which generates two or more
@@ -22,8 +23,8 @@ public class Branch extends Inference {
   }
 
   @Override
-  public void infer(TruthAssignment h) {
-    h.addChildren(branches);
+  public Stream<Sentence> infer(TruthAssignment h) {
+    return h.addChildren(branches);
   }
 
   public int size() {

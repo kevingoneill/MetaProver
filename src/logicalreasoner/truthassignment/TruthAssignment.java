@@ -7,6 +7,7 @@ import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -142,12 +143,29 @@ public class TruthAssignment {
     return constants;
   }
 
+  private void addInstantiatedConstants(Collection<Sentence> constants) {
+    if (!constants.isEmpty()) {
+      map.entrySet().stream().filter(e -> e.getValue().isModelled() && e.getKey() instanceof ForAll)
+              .forEach(e -> {
+                //System.out.println("ADDING CONSTANTS " + getConstants() + " TO " + e.getKey());
+                ((ForAll) e.getKey()).addInstantiations(constants);
+              });
+      if (parent != null)
+        parent.addInstantiatedConstants(constants);
+    }
+  }
+
+  private void refreshInstantiatedConstants() {
+    addInstantiatedConstants(getConstants());
+  }
+
   public boolean hasImmediateConstant(Sentence s) {
-    return map.keySet().stream().anyMatch(k -> k.getConstants().contains(s));
+    return map.keySet().parallelStream().anyMatch(k -> k.getConstants().contains(s));
   }
 
   private void addConstantDownwards(Sentence c) {
     constants.add(c);
+    addInstantiatedConstants(Collections.singletonList(c));
     children.forEach(child -> child.addConstantDownwards(c));
   }
 
@@ -161,6 +179,7 @@ public class TruthAssignment {
     constants.add(c);
     //if (parent != null)
     //  parent.addConstantUpwards(c);
+    addInstantiatedConstants(Collections.singletonList(c));
     children.forEach(child -> child.addConstantDownwards(c));
   }
 
@@ -168,6 +187,7 @@ public class TruthAssignment {
     if (c.isEmpty())
       return;
     constants.addAll(c);
+    addInstantiatedConstants(c);
     children.forEach(child -> child.addConstantsDownwards(c));
   }
 
@@ -175,6 +195,7 @@ public class TruthAssignment {
     if (c.isEmpty())
       return;
     constants.addAll(c);
+    addInstantiatedConstants(c);
     if (parent != null)
       parent.addConstantsUpwards(c);
   }
@@ -183,6 +204,7 @@ public class TruthAssignment {
     if (c.isEmpty() || c.stream().allMatch(constants::contains))
       return;
     constants.addAll(c);
+    addInstantiatedConstants(c);
     //if (parent != null)
     //  parent.addConstantsUpwards(c);
     children.forEach(child -> child.addConstantsDownwards(c));
@@ -202,7 +224,7 @@ public class TruthAssignment {
 //      if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
 //        prefix = "¬";
 //      }
-      newBranch.addStatement(s.toSymbol() + " " + map.get(s).getVals().keySet().toString());
+      newBranch.addStatement(s.toSymbol() + " " + map.get(s).getValues().keySet().toString());
     });
     if (isLeaf) {
       newBranch.addStatement((isConsistent() ? "✓" : "✗"));
@@ -245,7 +267,7 @@ public class TruthAssignment {
     if (map.keySet().contains(s))
       map.get(s).setTrue(inferenceNum);
     else {
-      TruthValue t = new TruthValue();
+      TruthValue t = new TruthValue(s);
       t.setTrue(inferenceNum);
       map.put(s, t);
     }
@@ -253,6 +275,9 @@ public class TruthAssignment {
     if (s.isAtomic())
       setDecomposed(s);
     addConstants(s.getConstants());
+
+    if (s instanceof ForAll)
+      ((ForAll) s).addInstantiations(getConstants());
   }
 
   /**
@@ -264,7 +289,7 @@ public class TruthAssignment {
     if (map.keySet().contains(s))
       map.get(s).setFalse(inferenceNum);
     else {
-      TruthValue t = new TruthValue();
+      TruthValue t = new TruthValue(s);
       t.setFalse(inferenceNum);
       map.put(s, t);
     }
@@ -284,7 +309,7 @@ public class TruthAssignment {
     if (map.keySet().contains(s))
       map.get(s).set(b, inferenceNum);
     else {
-      TruthValue t = new TruthValue();
+      TruthValue t = new TruthValue(s);
       t.set(b, inferenceNum);
       map.put(s, t);
     }
@@ -292,6 +317,9 @@ public class TruthAssignment {
     if (s.isAtomic())
       setDecomposed(s);
     addConstants(s.getConstants());
+
+    if (b && s instanceof ForAll)
+      ((ForAll) s).addInstantiations(getConstants());
   }
 
   /**
@@ -422,17 +450,26 @@ public class TruthAssignment {
    *
    * @param h the mappings to add to this
    */
-  public void merge(TruthAssignment h) {
-    h.map.forEach((k, v) -> {
-      if (!map.containsKey(k)) {
-        map.put(k.makeCopy(), new TruthValue(v));
-        if (k.isAtomic())
-          setDecomposed(k);
+  public Stream<Sentence> merge(TruthAssignment h) {
+    List<Sentence> l = h.map.entrySet().stream().flatMap(e -> {
+      if (!map.containsKey(e.getKey())) {
+        Sentence s = e.getKey().makeCopy();
+        TruthValue truthValue = new TruthValue(e.getValue());
+        map.put(s, truthValue);
+        if (s.isAtomic())
+          truthValue.setDecomposed();
+        return Stream.of(s);
+      } else {
+        TruthValue v = map.get(e.getKey());
+        v.putAll(e.getValue());
+        return Stream.of(v.getSentence());
       }
-      else
-        map.get(k).putAll(v);
-    });
+    }).collect(Collectors.toList());
+
     addConstants(h.getConstants());
+    refreshInstantiatedConstants();
+    //addInstantiatedConstants(h.getConstants());
+    return l.stream();
   }
 
   public boolean consistencyTest() {
@@ -484,7 +521,8 @@ public class TruthAssignment {
       //int numConstants = getLeaves().stream().mapToInt(c -> c.getConstants().size()).sum();
 
       return getConstants().size() > 0
-              && getLeaves().allMatch(l -> l.getConstants().size() > 0 && l.getConstants().stream().allMatch(((ForAll) s).getInstantiations()::contains));
+              //        && getLeaves().allMatch(l -> l.getConstants().size() > 0 && l.getConstants().stream().allMatch(((ForAll) s).getInstantiations()::contains));
+              && ((ForAll) s).instantiatedAll();
       //&& ((ForAll) s).getInstantiations().size() == numConstants;
     }
     return tv.isDecomposed();
@@ -540,14 +578,17 @@ public class TruthAssignment {
    *
    * @param h the children of the leaves of this to add
    */
-  public void addChildren(Collection<TruthAssignment> h) {
-    h.forEach(c -> {
+  public Stream<Sentence> addChildren(Collection<TruthAssignment> h) {
+    List<Sentence> l = h.stream().flatMap(c -> {
       TruthAssignment child = new TruthAssignment(c);
       children.add(child);
       child.setParent(this);
       //addConstantsUpwards(child.getConstants());
       child.addConstantsDownwards(constants);
-    });
+      child.refreshInstantiatedConstants();
+      return child.keySet().stream();
+    }).collect(Collectors.toList());
+    return l.stream();
   }
 
   /**
@@ -590,12 +631,13 @@ public class TruthAssignment {
     return null;
   }
 
+  //TODO: Make insertion point bounded by the quantified statement being instantiated
   public ArrayList<TruthAssignment> getConstantOrigins(Sentence s) {
     if (hasImmediateConstant(s))
-      return new ArrayList<>(Arrays.asList(this));
-    TruthAssignment h = getParentContainingConstant(s);
-    if (h != null)
-      return new ArrayList<>(Arrays.asList(h));
+      return new ArrayList<>(Collections.singletonList(this));
+    //TruthAssignment h = getParentContainingConstant(s);
+    //if (h != null)
+    //  return new ArrayList<>(Collections.singletonList(h));
     return getChildrenContainingConstant(s);
   }
 
@@ -603,15 +645,22 @@ public class TruthAssignment {
     ArrayList<TruthAssignment> a = new ArrayList<>();
     for (int i = 0; i < children.size(); ++i) {
       TruthAssignment h = children.get(i);
-      if (h.constants.contains(s))
+      if (h.hasImmediateConstant(s))
         a.add(h);
-      //else if (h.constants.contains(s))
-      a.addAll(h.getChildrenContainingConstant(s));
+      else if (h.constants.contains(s))
+        a.addAll(h.getChildrenContainingConstant(s));
     }
     return a;
   }
 
   public boolean isSatisfied() {
     return decomposedAll() && areParentsConsistent();
+  }
+
+  public Sentence getKey(Sentence s) {
+    TruthValue v = map.get(s);
+    if (v == null)
+      return null;
+    return v.getSentence();
   }
 }

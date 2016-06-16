@@ -43,30 +43,40 @@ public class SemanticProver implements Runnable {
   protected boolean print;
 
   protected Comparator<Branch> branchComparator = (b1, b2) -> {
-    if (b1.size() != b2.size())
-      return b2.size() - b1.size();
-    if (b1.getOrigin().size() != b2.getOrigin().size())
-      return b2.getOrigin().size() - b1.getOrigin().size();
-    int i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count(),
-            j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
-    if (i != j)
-      return j - i;
-    //return 0;
-    //System.out.println("WORKING");
-    i = b1.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
+
+
+    int i = b1.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
             (int) b1.getBranches().parallelStream().map(b -> {
               TruthAssignment t = new TruthAssignment(b);
               t.setParent(l);
               return t;
             }).filter(TruthAssignment::consistencyTest).count()).sum();
-    j = b2.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
+    int j = b2.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
             (int) b2.getBranches().parallelStream().map(b -> {
               TruthAssignment t = new TruthAssignment(b);
               t.setParent(l);
               return t;
             }).filter(TruthAssignment::consistencyTest).count()).sum();
     //System.out.println("FINISHED");
-    return i - j;
+    if (i != j)
+      return i - j;
+
+    if (b1.size() != b2.size())
+      return b2.size() - b1.size();
+
+    i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
+    j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
+    if (i != j)
+      return j - i;
+
+    //if (b1.getOrigin().size() != b2.getOrigin().size())
+    return b2.getOrigin().size() - b1.getOrigin().size();
+
+    //return 0;
+    //System.out.println("WORKING");
+
+
+
 
   };
 
@@ -148,19 +158,6 @@ public class SemanticProver implements Runnable {
               return i;
             }).filter(i -> i != null);
     */
-    /*
-    return h.flatten2().entrySet().stream()
-            .map(e -> {
-              Sentence s = e.getKey();
-              if (s.isQuantifier() != overQuantifiers)
-                return null;
-              TruthAssignment ta = e.getValue();
-              Inference i = s.reason(ta, inferenceCount, ta.getInferenceNum(s, ta.models(s)));
-              if (i != null)
-                ++inferenceCount;
-              return i;
-            }).filter(i -> i != null);
-    */
 
     return h.flatten3()
             .map(p -> {
@@ -209,7 +206,7 @@ public class SemanticProver implements Runnable {
       }
 
       //closeBranches();
-      //printInferences();
+      printInferences();
 
       //Branch once on the largest branching statement then loop back around
       if (!openBranches.isEmpty() && !branchQueue.isEmpty())

@@ -355,7 +355,7 @@ public class FirstOrderTests {
     runProver(premises, "(exists x (and (S x) (forAll y (not (B y x)))))", true);
   }
 
-  @Test
+  //@Test
   public void prob17b() {
     try {
       Thread.sleep(10000);

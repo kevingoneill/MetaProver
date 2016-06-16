@@ -3,7 +3,6 @@ package logicalreasoner.prover;
 import expression.sentence.Constant;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
-import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.Pair;
@@ -77,8 +76,8 @@ public class FirstOrderProver extends SemanticProver {
     while (i == null) {
       Pair p = quantifierQueue.poll();
       if (p == null) {
-        //printInferences();
-        //printInferenceList();
+        printInferences();
+        printInferenceList();
         //System.exit(1);
         return null;
       }
@@ -120,18 +119,14 @@ public class FirstOrderProver extends SemanticProver {
    */
   public void run() {
     printArgument();
-    boolean updated = true;
     while (!reasoningCompleted()) {
+      boolean updated = true;
       runPropositionally();
-      if (isInvalid())
+      if (isInvalid() || openBranches.isEmpty())
         break;
 
       //printInferences();
       //printInferenceList();
-
-      if (updated && !openBranches.isEmpty()) {
-        if (!branchQueue.isEmpty())
-          throw new RuntimeException("Branch queue is not empty before first-order reasoning!");
 
         PriorityQueue<Pair> quantifierQueue = makeQuantifierQueue();
         Inference i;
@@ -140,6 +135,7 @@ public class FirstOrderProver extends SemanticProver {
           updated = updated && i != null;
           if (i != null) {
             infer(i);
+            /*
             if (i instanceof Decomposition) {
               Decomposition d = (Decomposition) i;
               d.getAdditions().keySet().stream().filter(Sentence::isQuantifier).forEach(s -> {
@@ -148,6 +144,7 @@ public class FirstOrderProver extends SemanticProver {
                   quantifierQueue.add(p);
               });
             }
+            */
             /*
             else if (i instanceof UniversalInstantiation) {
               UniversalInstantiation ui = (UniversalInstantiation) i;
@@ -160,6 +157,7 @@ public class FirstOrderProver extends SemanticProver {
             */
 
           }
+          printInferences();
         }
 
         while (updated && !branchQueue.isEmpty())
@@ -168,10 +166,8 @@ public class FirstOrderProver extends SemanticProver {
         printInferences();
         printInferenceList();
 
-        //if (inferenceCount > 30)
-        //  System.exit(0);
-      }
-
+      //if (inferenceCount > 50)
+      //  System.exit(1);
     }
     printResult();
   }

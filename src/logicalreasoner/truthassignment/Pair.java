@@ -17,8 +17,12 @@ public class Pair {
   public boolean equals(Object o) {
     if (o instanceof Pair) {
       Pair p = (Pair) o;
-      return sentence.equals(p.sentence) && truthAssignment.equals(p.truthAssignment);
+      return sentence == p.sentence && truthAssignment == p.truthAssignment;
     }
     return false;
+  }
+
+  public int hashCode() {
+    return sentence.hashCode();
   }
 }

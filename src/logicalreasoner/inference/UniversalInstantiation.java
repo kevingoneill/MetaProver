@@ -8,6 +8,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An instantiation is a type of decomposition which
@@ -28,16 +29,33 @@ public class UniversalInstantiation extends Inference {
 
 
   @Override
-  public void infer(TruthAssignment h) {
+  public Stream<Sentence> infer(TruthAssignment h) {
     ForAll f = (ForAll) origin;
-    instances.forEach(instance -> {
+    List<Sentence> l = instances.stream().flatMap(instance -> {
       ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
-      if (origins.isEmpty())
-        h.setTrue(f.instantiate(instance, var), inferenceNum);
-      else
-        origins.stream().forEach(o -> o.setTrue(f.instantiate(instance, var), inferenceNum));
-    });
+      if (origins.isEmpty()) {
+        TruthAssignment truthAssignment = new TruthAssignment();
+        truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
+        return h.merge(truthAssignment);
+      } else {
+        return origins.stream().flatMap(o -> {
+          TruthAssignment truthAssignment = new TruthAssignment();
+          truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
+          return o.merge(truthAssignment);
+        });
+      }
+    }).collect(Collectors.toList());
+    return l.stream();
   }
+
+  /*
+  public ArrayList<TruthAssignment> getInstanceRoot(Sentence constant, TruthAssignment parent) {
+    if (parent.getConstants().contains(constant))
+      return new ArrayList<>(Collections.singletonList(parent));
+
+
+  }
+  */
 
   public List<Sentence> getInstances() {
     return instances.stream().map(i -> origin.instantiate(i, var)).collect(Collectors.toList());

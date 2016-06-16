@@ -4,6 +4,7 @@ import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A Decomposition is the direct inference of one or more
@@ -18,8 +19,8 @@ public class Decomposition extends Inference {
   }
 
   @Override
-  public void infer(TruthAssignment h) {
-    h.merge(additions);
+  public Stream<Sentence> infer(TruthAssignment h) {
+    return h.merge(additions);
   }
 
   public void setTrue(Sentence s) {

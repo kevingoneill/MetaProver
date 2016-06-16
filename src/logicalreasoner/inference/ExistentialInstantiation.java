@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An existential instantiation is the substitution of an
@@ -32,7 +33,7 @@ public class ExistentialInstantiation extends Branch {
   }
 
   @Override
-  public void infer(TruthAssignment h) {
+  public Stream<Sentence> infer(TruthAssignment h) {
     Set<Sentence> s = h.getConstants();
     List<TruthAssignment> l = new ArrayList<>();
     for (int i = 0; i < constants.size(); ++i) {
@@ -41,9 +42,9 @@ public class ExistentialInstantiation extends Branch {
     }
     l.add(branches.get(branches.size() - 1)); // add branch for new constant
     if (l.size() == 1)
-      h.merge(new TruthAssignment(l.get(0)));
+      return h.merge(new TruthAssignment(l.get(0)));
     else
-      h.addChildren(l);
+      return h.addChildren(l);
   }
 
   public List<Sentence> getConstants() {

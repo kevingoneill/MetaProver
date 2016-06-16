@@ -1,5 +1,7 @@
 package logicalreasoner.truthassignment;
 
+import expression.sentence.Sentence;
+
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -11,18 +13,25 @@ import java.util.stream.Collectors;
 public class TruthValue {
   private HashMap<Boolean, Integer> vals;
   private boolean isDecomposed;
+  private Sentence sentence;
 
-  public TruthValue() {
+  public TruthValue(Sentence s) {
     vals = new HashMap<>();
     isDecomposed = false;
+    sentence = s;
   }
 
   public TruthValue(TruthValue tv) {
     vals = new HashMap<>(tv.vals);
     isDecomposed = false;
+    sentence = tv.sentence;
   }
-  
-  public HashMap<Boolean, Integer> getVals() {
+
+  public Sentence getSentence() {
+    return sentence;
+  }
+
+  public HashMap<Boolean, Integer> getValues() {
     return new HashMap<>(vals);
   }
 
