@@ -10,6 +10,7 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * The FirstOrderProver class provides the same functionality of
@@ -47,7 +48,7 @@ public class FirstOrderProver extends SemanticProver {
     });
 
     openBranches.forEach(h ->
-            h.getUnfinishedQuantifiersUpwards().forEachOrdered(e -> {
+            h.flattenUndecomposedSerial().filter(p -> p.sentence.isQuantifier()).forEach(e -> {
               if (!quantifierQueue.contains(e))
                 quantifierQueue.add(e);
             }));
@@ -69,16 +70,16 @@ public class FirstOrderProver extends SemanticProver {
     System.out.println("instantiateQuantifier");
     System.out.println("################################################\n");
     printQueue(quantifierQueue);
+
     Inference i = null;
     Sentence s = null;
-    TruthAssignment h = null;
-
+    TruthAssignment h;
     while (i == null) {
       Pair p = quantifierQueue.poll();
       if (p == null) {
         printInferences();
         printInferenceList();
-        //System.exit(1);
+        System.exit(1);
         return null;
       }
       s = p.sentence;
@@ -93,12 +94,17 @@ public class FirstOrderProver extends SemanticProver {
         });
       }
       TruthAssignment parent = h.getParentContaining(s);
-      i = s.reason(parent, inferenceCount, parent.getInferenceNum(s, parent.models(s)));
+      if (parent == null) {
+        System.out.println(s);
+        System.out.println(h.keySet());
+        System.exit(1);
+      }
+      i = s.reason(parent, inferenceCount,
+              parent.getInferenceNum(s, parent.models(s)));
       if (i != null)
         ++inferenceCount;
     }
 
-    //infer(i);
     System.out.println(i + "\n----------------------------------------------\n");
     if (i.getParent().models(s))
       System.out.println("Instantiating: " + s + "\n");
@@ -106,12 +112,12 @@ public class FirstOrderProver extends SemanticProver {
     return i;
   }
 
-  public void infer(Inference i) {
+  public Stream<Pair> infer(Inference i) {
     if (i instanceof UniversalInstantiation) {
-      i.infer(i.getParent());
       inferenceList.add(i);
+      return i.infer(i.getParent());
     } else
-      super.infer(i);
+      return super.infer(i);
   }
 
   /**
@@ -122,11 +128,14 @@ public class FirstOrderProver extends SemanticProver {
     while (!reasoningCompleted()) {
       boolean updated = true;
       runPropositionally();
-      if (isInvalid() || openBranches.isEmpty())
+      if (isInvalid() || openBranches.isEmpty()) {
+        //System.exit(1);
         break;
+      }
 
-      //printInferences();
-      //printInferenceList();
+
+      printInferences();
+      printInferenceList();
 
         PriorityQueue<Pair> quantifierQueue = makeQuantifierQueue();
         Inference i;
@@ -134,30 +143,14 @@ public class FirstOrderProver extends SemanticProver {
           i = instantiateQuantifier(quantifierQueue);
           updated = updated && i != null;
           if (i != null) {
-            infer(i);
-            /*
-            if (i instanceof Decomposition) {
-              Decomposition d = (Decomposition) i;
-              d.getAdditions().keySet().stream().filter(Sentence::isQuantifier).forEach(s -> {
-                Pair p = new Pair(s, d.getParent());
-                if (!quantifierQueue.contains(p))
-                  quantifierQueue.add(p);
-              });
-            }
-            */
-            /*
-            else if (i instanceof UniversalInstantiation) {
-              UniversalInstantiation ui = (UniversalInstantiation) i;
-              ui.getInstances().stream().filter(Sentence::isQuantifier).forEach(s -> {
-                Pair p = new Pair(s, ui.getParent());
-                if (!quantifierQueue.contains(p))
-                  quantifierQueue.add(p);
-              });
-            }
-            */
+            infer(i).filter(p -> p.sentence.isQuantifier()).forEach(p -> {
+              if (!quantifierQueue.contains(p))
+                quantifierQueue.add(p);
+            });
 
+            printInferences();
+            printInferenceList();
           }
-          printInferences();
         }
 
         while (updated && !branchQueue.isEmpty())

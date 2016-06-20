@@ -347,7 +347,7 @@ public class FirstOrderTests {
   // VALID
   @Test
   public void prob16b() {
-    //try {Thread.sleep(10000);} catch (InterruptedException ie) {}
+    //try {Thread.sleep(5000);} catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (implies (S x) (exists y (and (S y) (forAll z (iff (B z y) (and (B z x) (B z z))))))))");
     premises.add("(forAll x (not (B x x)))");
@@ -355,7 +355,7 @@ public class FirstOrderTests {
     runProver(premises, "(exists x (and (S x) (forAll y (not (B y x)))))", true);
   }
 
-  //@Test
+  @Test
   public void prob17b() {
     try {
       Thread.sleep(10000);
@@ -372,7 +372,7 @@ public class FirstOrderTests {
   @Test
   public void prob18b() {
     HashSet<String> premises = new HashSet<>();
-    premises.add("(forAll x (implies (exists y (and (A y) (B y))) (C x)))");
+    premises.add("(forAll x (implies (exists y (and (A y) (B x y))) (C x)))");
     premises.add("(exists y (and (D y) (exists x (and (F x) (G x) (B y x)))))");
     premises.add("(forAll x (implies (F x) (A x)))");
     premises.add("(implies (exists x (and (C x) (D x))) (implies (exists y (and (D y) (exists z (B y z)))) (forAll x (F x))))");

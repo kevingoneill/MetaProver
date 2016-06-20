@@ -20,12 +20,6 @@ public class Not extends Sentence {
     super(new ArrayList<>(Arrays.asList(e)), "not", "¬", Sort.BOOLEAN);
   }
 
-  public boolean equals(Object o) {
-    if (o instanceof Not)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     return new Not(args.get(0).makeCopy());
   }

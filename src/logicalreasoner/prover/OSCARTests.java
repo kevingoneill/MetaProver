@@ -189,14 +189,14 @@ public class OSCARTests {
     runProver(premises, "(implies (forAll x (implies (F x) (G x))) (forAll x (implies (F x) (H x))))", true);
   }
 
-  //@Test
+  @Test
   public void prob53c() {
     Set<String> premises = new HashSet<>();
     premises.add("(forAll x (implies (F x) (exists y (and (F y) (G x y)))))");
     runProver(premises, "(forAll x (implies (F x) (exists y (exists z (and (G x y) (G y z))))))", true);
   }
 
-  //@Test
+  @Test
   public void prob54c() {
     Set<String> premises = new HashSet<>();
     premises.add("(forAll x (exists y (R x y)))");
@@ -338,8 +338,9 @@ public class OSCARTests {
     runProver(premises, "(exists x (and (Q x) (P x)))", true);
   }
 
-  //@Test
+  @Test
   public void prob78c() {
+    //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     Set<String> premises = new HashSet<>();
     premises.add("(iff (exists x (P x)) (exists y (Q y)))");
     premises.add("(forAll x (forAll y (implies (and (P x) (Q y)) (iff (R x) (S y)))))");

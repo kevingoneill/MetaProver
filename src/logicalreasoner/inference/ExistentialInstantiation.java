@@ -3,6 +3,7 @@ package logicalreasoner.inference;
 import expression.sentence.Constant;
 import expression.sentence.Exists;
 import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class ExistentialInstantiation extends Branch {
   }
 
   @Override
-  public Stream<Sentence> infer(TruthAssignment h) {
+  public Stream<Pair> infer(TruthAssignment h) {
     Set<Sentence> s = h.getConstants();
     List<TruthAssignment> l = new ArrayList<>();
     for (int i = 0; i < constants.size(); ++i) {

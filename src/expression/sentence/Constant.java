@@ -65,10 +65,7 @@ public class Constant extends Atom {
   }
 
   public boolean equals(Object o) {
-    if (o instanceof Constant) {
-      return this == o;
-    }
-    return false;
+    return this == o;
   }
 
   public String toString() {

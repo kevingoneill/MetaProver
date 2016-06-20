@@ -20,7 +20,7 @@ public class Variable extends Atom {
   @Override
   public boolean equals(Object o) {
     if (o instanceof Variable)
-      return super.equals(o);
+      return name.equals(((Variable) o).name);
     return false;
   }
 

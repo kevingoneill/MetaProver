@@ -20,12 +20,6 @@ public class Implies extends Sentence {
     super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶", Sort.BOOLEAN);
   }
 
-  public boolean equals(Object o) {
-    if (o instanceof Implies)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     return new Implies(args.get(0).makeCopy(), args.get(1).makeCopy());
   }

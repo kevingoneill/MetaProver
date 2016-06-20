@@ -22,13 +22,6 @@ public class Proposition extends Atom {
     super(n.toUpperCase(), Sort.BOOLEAN);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof Proposition)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     return this;
   }

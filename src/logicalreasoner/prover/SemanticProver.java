@@ -4,6 +4,7 @@ import expression.sentence.Sentence;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
+import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
@@ -46,13 +47,13 @@ public class SemanticProver implements Runnable {
 
 
     int i = b1.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
-            (int) b1.getBranches().parallelStream().map(b -> {
+            (int) b1.getBranches().stream().map(b -> {
               TruthAssignment t = new TruthAssignment(b);
               t.setParent(l);
               return t;
             }).filter(TruthAssignment::consistencyTest).count()).sum();
     int j = b2.getParent().getLeaves().filter(openBranches::contains).mapToInt(l ->
-            (int) b2.getBranches().parallelStream().map(b -> {
+            (int) b2.getBranches().stream().map(b -> {
               TruthAssignment t = new TruthAssignment(b);
               t.setParent(l);
               return t;
@@ -67,7 +68,7 @@ public class SemanticProver implements Runnable {
     i = (int) b1.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
     j = (int) b2.getOrigin().getConstants().stream().filter(constant -> !constant.toString().startsWith("#")).count();
     if (i != j)
-      return j - i;
+      return i - j;
 
     //if (b1.getOrigin().size() != b2.getOrigin().size())
     return b2.getOrigin().size() - b1.getOrigin().size();
@@ -158,8 +159,8 @@ public class SemanticProver implements Runnable {
               return i;
             }).filter(i -> i != null);
     */
-
-    return h.flatten3()
+    //System.out.print(h.flattenParallel().collect(Collectors.toList()));
+    return h.flattenUndecomposedParallel()
             .map(p -> {
               Sentence s = p.sentence;
               if (s.isQuantifier() != overQuantifiers)
@@ -172,14 +173,15 @@ public class SemanticProver implements Runnable {
             }).filter(i -> i != null);
   }
 
-  protected void infer(Inference i) {
+  protected Stream<Pair> infer(Inference i) {
     //i.getParent().setDecomposed(i.getOrigin());
     if (i instanceof Decomposition) {
       inferenceList.add(i);
-      i.infer(i.getParent());
+      return i.infer(i.getParent());
     } else if (i instanceof Branch) {
       branchQueue.offer((Branch) i);
     }
+    return Stream.empty();
   }
 
   /**
@@ -206,15 +208,16 @@ public class SemanticProver implements Runnable {
       }
 
       //closeBranches();
-      printInferences();
+
 
       //Branch once on the largest branching statement then loop back around
       if (!openBranches.isEmpty() && !branchQueue.isEmpty())
         addBranches();
 
+      closeBranches();
       if (isInvalid())
         break;
-      closeBranches();
+
     }
 
     //printInferences();
@@ -228,7 +231,7 @@ public class SemanticProver implements Runnable {
    * @return true if all open branches are fully decomposed
    */
   protected boolean reasoningCompleted() {
-    return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAll));
+    return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.parallelStream().allMatch(TruthAssignment::decomposedAll));
   }
 
 
@@ -238,7 +241,7 @@ public class SemanticProver implements Runnable {
    * @return true if all open branches are fully decomposed
    */
   protected boolean propositionalReasoningCompleted() {
-    return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.stream().allMatch(TruthAssignment::decomposedAllPropositions));
+    return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.parallelStream().allMatch(TruthAssignment::decomposedAllPropositions));
   }
 
   public boolean isConsistent() {
@@ -330,7 +333,7 @@ public class SemanticProver implements Runnable {
 
   protected void getCounterExamples() {
     if (masterFunction.isConsistent()) {
-      masterFunction.getLeaves().filter(TruthAssignment::isConsistent).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
+      masterFunction.getLeaves().filter(h -> h.isConsistent() && h.decomposedAll()).forEach(t -> System.out.println(t.getCounterExample() + "\n"));
     }
   }
 

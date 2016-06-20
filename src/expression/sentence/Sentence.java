@@ -66,9 +66,16 @@ public abstract class Sentence extends Expression {
   }
 
   public boolean equals(Object o) {
+    return this.hashCode() == o.hashCode();
+    /*
+    if (this == o)
+      return true;
+    if (hashCode() != o.hashCode())
+      return false;
+    //return toString().equals(o.toString());
     if (o instanceof Sentence) {
       Sentence s = (Sentence) o;
-      if (!s.name.equals(name) || s.args.size() != args.size())
+      if (s.args.size() != args.size() || !s.name.equals(name))
         return false;
 
       for (int i = 0; i < args.size(); ++i) {
@@ -76,10 +83,12 @@ public abstract class Sentence extends Expression {
           return false;
       }
       return true;
-
       //return IntStream.rangeClosed(0, args.size() - 1).allMatch(i -> args.get(i).equals(s.args.get(i)));
+
+      //return toString().equals(o.toString());
     }
     return false;
+    */
   }
 
   public boolean isAtomic() {
@@ -127,8 +136,8 @@ public abstract class Sentence extends Expression {
   public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {
     if (e1 instanceof Exists) {   // Always instantiate existential quantifiers before universals
       if (e2 instanceof Exists)
-        return ((Exists) e1).getSentence().size()
-                - ((Exists) e2).getSentence().size();
+        return e1.atomCount()
+                - e2.atomCount();
       return -1;
     } else if (e2 instanceof Exists)
       return 1;

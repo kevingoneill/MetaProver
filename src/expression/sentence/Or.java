@@ -19,13 +19,6 @@ public class Or extends Sentence {
     super(a, "or", "∨", Sort.BOOLEAN);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof Or)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     ArrayList<Sentence> a = new ArrayList<>();
     args.forEach(arg -> a.add(arg.makeCopy()));

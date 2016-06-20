@@ -25,4 +25,8 @@ public class Pair {
   public int hashCode() {
     return sentence.hashCode();
   }
+
+  public String toString() {
+    return sentence.toString() + " : " + truthAssignment.getName();
+  }
 }

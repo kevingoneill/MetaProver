@@ -3,6 +3,7 @@ package logicalreasoner.inference;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import expression.sentence.Variable;
+import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
@@ -29,9 +30,9 @@ public class UniversalInstantiation extends Inference {
 
 
   @Override
-  public Stream<Sentence> infer(TruthAssignment h) {
+  public Stream<Pair> infer(TruthAssignment h) {
     ForAll f = (ForAll) origin;
-    List<Sentence> l = instances.stream().flatMap(instance -> {
+    List<Pair> l = instances.stream().flatMap(instance -> {
       ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
       if (origins.isEmpty()) {
         TruthAssignment truthAssignment = new TruthAssignment();

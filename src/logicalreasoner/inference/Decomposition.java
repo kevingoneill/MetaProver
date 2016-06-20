@@ -1,6 +1,7 @@
 package logicalreasoner.inference;
 
 import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public class Decomposition extends Inference {
   }
 
   @Override
-  public Stream<Sentence> infer(TruthAssignment h) {
+  public Stream<Pair> infer(TruthAssignment h) {
     return h.merge(additions);
   }
 

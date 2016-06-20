@@ -63,6 +63,10 @@ public class TruthValue {
     return vals.containsKey(false);
   }
 
+  public boolean contains(boolean b) {
+    return vals.containsKey(b);
+  }
+
   public int getInferenceNum(boolean b) {
     if (vals.containsKey(b))
       return vals.get(b);

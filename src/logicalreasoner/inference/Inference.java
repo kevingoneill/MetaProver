@@ -1,6 +1,7 @@
 package logicalreasoner.inference;
 
 import expression.sentence.Sentence;
+import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.stream.Stream;
@@ -35,7 +36,7 @@ public abstract class Inference {
     return origin;
   }
 
-  public abstract Stream<Sentence> infer(TruthAssignment h);
+  public abstract Stream<Pair> infer(TruthAssignment h);
 
   public int hashCode() {
     if (HASH_CODE == null) {

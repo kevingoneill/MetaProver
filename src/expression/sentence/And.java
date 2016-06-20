@@ -18,12 +18,6 @@ public class And extends Sentence {
     super(a, "and", "∧", Sort.BOOLEAN);
   }
 
-  public boolean equals(Object o) {
-    if (o instanceof And)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     ArrayList<Sentence> a = new ArrayList<>();
     args.forEach(arg -> a.add(arg.makeCopy()));

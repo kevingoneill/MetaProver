@@ -17,12 +17,6 @@ public class Iff extends Sentence {
     super(new ArrayList<>(Arrays.asList(expr1, expr2)), "iff", "⟷", Sort.BOOLEAN);
   }
 
-  public boolean equals(Object o) {
-    if (o instanceof Iff)
-      return super.equals(o);
-    return false;
-  }
-
   public Sentence makeCopy() {
     return new Iff(args.get(0).makeCopy(), args.get(1).makeCopy());
   }
