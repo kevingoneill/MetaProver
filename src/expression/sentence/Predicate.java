@@ -21,22 +21,16 @@ public class Predicate extends Sentence {
     super(vars, n, n, Sort.BOOLEAN);
   }
 
-  public Sentence makeCopy() {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.makeCopy()));
-    return new Predicate(name, a);
-  }
-
   public String toString() {
     if (TOSTRING == null)
       TOSTRING = print(true);
     return TOSTRING;
   }
 
-  public String toSymbol() {
-    if (TOSTRING == null)
-      TOSTRING = print(true);
-    return TOSTRING;
+  public String toSExpression() {
+    if (TOSEXPR == null)
+      TOSEXPR = print(false);
+    return TOSEXPR;
   }
 
   private String print(boolean prefix) {
@@ -53,14 +47,17 @@ public class Predicate extends Sentence {
 
     a.forEach(arg -> {
       if (prefix)
-        builder.append(arg.toSymbol()).append(delim);
+        builder.append(arg).append(delim);
       else
-        builder.append(arg.toString()).append(delim);
+        builder.append(arg.toSExpression()).append(delim);
     });
 
-    if (!args.isEmpty())
-      builder.append(args.get(args.size() - 1).toSymbol()).append(")");
-    else
+    if (!args.isEmpty()) {
+      if (prefix)
+        builder.append(args.get(args.size() - 1)).append(")");
+      else
+        builder.append(args.get(args.size() - 1).toSExpression()).append(")");
+    } else
       builder.append(")");
     return builder.toString();
   }
@@ -83,12 +80,5 @@ public class Predicate extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     h.setDecomposed(this);
     return null;
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.instantiate(c, v)));
-    return new Predicate(name, a);
   }
 }

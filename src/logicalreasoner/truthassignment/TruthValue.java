@@ -2,7 +2,10 @@ package logicalreasoner.truthassignment;
 
 import expression.sentence.Sentence;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -14,17 +17,22 @@ public class TruthValue {
   private HashMap<Boolean, Integer> vals;
   private boolean isDecomposed;
   private Sentence sentence;
+  private Set<Sentence> instantiations, uninstantiatedConstants;
 
   public TruthValue(Sentence s) {
     vals = new HashMap<>();
     isDecomposed = false;
     sentence = s;
+    instantiations = new HashSet<>();
+    uninstantiatedConstants = new HashSet<>();
   }
 
   public TruthValue(TruthValue tv) {
     vals = new HashMap<>(tv.vals);
     isDecomposed = false;
     sentence = tv.sentence;
+    instantiations = new HashSet<>();
+    uninstantiatedConstants = new HashSet<>();
   }
 
   public Sentence getSentence() {
@@ -85,13 +93,37 @@ public class TruthValue {
     return isDecomposed;
   }
 
+  public void addInstantiations(Collection<Sentence> constants) {
+    constants.forEach(c -> {
+      if (!instantiations.contains(c))
+        uninstantiatedConstants.add(c);
+    });
+  }
+
+  public void addInstantiation(Sentence constant) {
+    if (!instantiations.contains(constant))
+      uninstantiatedConstants.add(constant);
+  }
+
+  public Set<Sentence> getUninstantiatedConstants() {
+    return uninstantiatedConstants;
+  }
+
+  public Set<Sentence> getInstantiatedConstants() {
+    return instantiations;
+  }
+
+  public boolean instantiatedAll() {
+    return uninstantiatedConstants.isEmpty();
+  }
+
   public String toString() {
     //return vals.keySet().toString() + " " + (isDecomposed ? "✓" : "");
     return vals.keySet().stream().map(v -> (v ? "T " : "F ")).collect(Collectors.joining()) + (isDecomposed ? "✓" : "");
   }
 
   public int hashCode() {
-    return vals.hashCode();
+    return sentence.hashCode();
   }
 
   public boolean equals(Object o) {

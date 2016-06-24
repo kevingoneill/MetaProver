@@ -20,10 +20,6 @@ public class BooleanSentence extends Proposition {
     value = b;
   }
 
-  public boolean equals(Object o) {
-    return this == o;
-  }
-
   @Override
   public Sentence makeCopy() {
     return this;

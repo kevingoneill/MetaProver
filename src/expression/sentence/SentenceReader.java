@@ -2,10 +2,8 @@ package expression.sentence;
 
 import expression.Sort;
 
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * SentenceReader is an interface for the parsing of logical Sentences
@@ -20,37 +18,11 @@ public interface SentenceReader {
   }
 
   static LinkedList<String> tokenize(String s) {
-    LinkedList<String> tokenStack = new LinkedList<>();
-    StringReader reader = new StringReader(s);
-    StreamTokenizer tokenizer = new StreamTokenizer(reader);
-    tokenizer.ordinaryChar('(');
-    tokenizer.ordinaryChar(')');
-
-    int token;
-
-    try {
-      token = tokenizer.nextToken();
-    } catch (IOException ioe) {
-      return null;
-    }
-
-    while (token != StreamTokenizer.TT_EOF) {
-      if (tokenizer.ttype == StreamTokenizer.TT_NUMBER) {
-        tokenStack.add(Double.toString(tokenizer.nval));
-      } else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
-        tokenStack.add(tokenizer.sval);
-      } else {
-        tokenStack.add(Character.toString((char) token));
-      }
-
-      try {
-        token = tokenizer.nextToken();
-      } catch (IOException ioe) {
-        return null;
-      }
-    }
-
-    return tokenStack;
+    String[] arr = s.split("(?<=[(])|(?=[)])|(?=[)])|(?>=[(])|\\s");
+    LinkedList<String> l = new LinkedList<>(Arrays.asList(arr));
+    l.removeIf(string -> string.replaceAll("\\s", "").isEmpty());
+    //System.out.println(l);
+    return l;
   }
 
   static Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -73,7 +45,16 @@ public interface SentenceReader {
       stack.pop();
       return BooleanSentence.FALSE;
     } //else if (stack.peek().charAt(0) == stack.peek().toUpperCase().charAt(0)) {
-      return new Proposition(stack.pop());
+
+    String s = stack.pop().toUpperCase();
+    if (Sentence.instances.containsKey(s))
+      return Sentence.instances.get(s);
+
+    Proposition p = new Proposition(s);
+    Sentence.instances.putIfAbsent(s, p);
+    return p;
+
+    //return new Proposition(stack.pop());
     //}
     //throw new SentenceParseException("Proposition: " + stack.peek() + " must begin with an uppercase character");
   }
@@ -85,17 +66,17 @@ public interface SentenceReader {
       throw new SentenceParseException("Variable: " + stack.peek() + " quantified over twice.");
     Sentence s = parseVariable(stack, quantifiedVars);
     args.add(s);
-    quantifiedVars.put(s.toString(), (Variable) s);
+    quantifiedVars.put(s.toSExpression(), (Variable) s);
 
     args.add(parse(stack, quantifiedVars));
     if (stack.peek() == null || !stack.peek().equals(")"))
       throw new SentenceParseException("Missing parentheses after quantifier: " + exprName + " " + args.get(0) + ".");
     stack.pop();
-    quantifiedVars.remove(s.toString());
+    quantifiedVars.remove(s.toSExpression());
     return makeSentence(exprName, args);
   }
 
-  static Variable parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+  static Sentence parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     String exprName = stack.pop();
     String sort = null;
     if (exprName.charAt(0) != exprName.toLowerCase().charAt(0))
@@ -114,7 +95,12 @@ public interface SentenceReader {
     }
     if (sort == null)
       sort = "OBJECT";
-    return new Variable(exprName, Sort.getSort(sort));
+    if (Sentence.instances.containsKey(exprName))
+      return Sentence.instances.get(exprName);
+
+    Variable v = new Variable(exprName, Sort.getSort(sort));
+    Sentence.instances.put(exprName, v);
+    return v;
   }
 
   static Sentence parsePredicate(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -127,11 +113,16 @@ public interface SentenceReader {
     while (!stack.peek().equals(")")) {
       if (stack.peek() == null)
         throw new SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
-
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
-    return new Predicate(exprName, list);
+    String s = sentenceString(exprName, list);
+    if (Sentence.instances.containsKey(s))
+      return Sentence.instances.get(s);
+
+    Predicate p = new Predicate(exprName, list);
+    Sentence.instances.put(p.toSExpression(), p);
+    return p;
   }
 
   static Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -147,14 +138,15 @@ public interface SentenceReader {
       sort = stack.pop();
     }
 
-    //System.out.println("ParseTerm: " + stack);
-
     if (quantifiedVars.containsKey(exprName)) {
       Variable v = quantifiedVars.get(exprName);
       if (sort != null && !v.getSort().isSuperSort(Sort.getSort(sort)))
         throw new SentenceParseException("Cannot create a variable of multiple sorts");
       return v;
     }
+
+    if (Sentence.instances.containsKey(exprName))
+      return Sentence.instances.get(exprName);
 
     if (sort == null)
       sort = "OBJECT";
@@ -176,6 +168,12 @@ public interface SentenceReader {
   static Sentence makeSentence(String name, ArrayList<Sentence> args) {
     if (name.isEmpty())
       throw new SentenceParseException("Cannot create an Sentence from an empty string.");
+
+    //Check if this Sentence has already been created
+    Sentence s = Sentence.instances.get(sentenceString(name, args));
+    if (s != null)
+      return s;
+
     switch (name) {
       case "not": {
         if (args.size() != 1)
@@ -211,6 +209,14 @@ public interface SentenceReader {
       default:
         return null;
     }
+  }
+
+  static String sentenceString(String name, List<Sentence> args) {
+    return "(" + name + args.stream().map(a -> " " + a.toSExpression()).collect(Collectors.joining()) + ")";
+  }
+
+  static String sentenceString(String name, Variable var, Sentence s) {
+    return "(" + name + " " + var.toSExpression() + " " + s.toSExpression() + ")";
   }
 
 

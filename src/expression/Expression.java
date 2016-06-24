@@ -7,7 +7,7 @@ package expression;
 public abstract class Expression implements Comparable<Expression> {
   protected String name, symbol;
   protected Integer HASH_CODE = null;
-  protected String TOSTRING = null;
+  protected String TOSTRING = null, TOSEXPR = null;
 
   public Expression(String n, String s) {
     name = n;
@@ -20,7 +20,11 @@ public abstract class Expression implements Comparable<Expression> {
     return TOSTRING;
   }
 
-  public abstract String toSymbol();
+  public String toSExpression() {
+    if (TOSEXPR == null)
+      TOSEXPR = symbol;
+    return TOSEXPR;
+  }
 
   public String getName() {
     return name;

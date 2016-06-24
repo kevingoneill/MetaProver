@@ -7,20 +7,25 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * Created by kevin on 5/27/16.
  */
 public class Exists extends Sentence {
+  public static String NAME = "exists", SYMBOL = "∃";
+
 
   public Exists(Variable v, Sentence s) {
-    super(new ArrayList<>(Arrays.asList(v, s)), "exists", "∃", Sort.BOOLEAN);
-    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
+    super(new ArrayList<>(Arrays.asList(v, s)), NAME, SYMBOL, Sort.BOOLEAN);
+    HASH_CODE = instantiate(Variable.EMPTY_VAR, getVariable()).hashCode();
   }
 
-  public String toSymbol() {
-    return symbol + getVariable().toSymbol() + getSentence().toSymbol();
+  public String toString() {
+    if (TOSTRING == null)
+      TOSTRING = symbol + getVariable() + getSentence();
+    return TOSTRING;
   }
 
   public Sentence getSentence() {
@@ -29,11 +34,6 @@ public class Exists extends Sentence {
 
   public Variable getVariable() {
     return (Variable) args.get(0);
-  }
-
-  @Override
-  public Sentence makeCopy() {
-    return new Exists(getVariable(), getSentence().makeCopy());
   }
 
   @Override
@@ -59,7 +59,8 @@ public class Exists extends Sentence {
        */
     } else {
       Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-      d.setTrue(new ForAll(getVariable(), new Not(getSentence())));
+      //d.setTrue(new ForAll(getVariable(), new Not(getSentence())));
+      d.setTrue(Sentence.makeSentence(ForAll.NAME, getVariable(), Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
       return d;
     }
   }
@@ -79,7 +80,7 @@ public class Exists extends Sentence {
     if (v.equals(getVariable()))
       return getSentence().instantiate(c, v);
 
-    return new Exists(getVariable(), getSentence().instantiate(c, v));
+    return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
   }
 
   public boolean equals(Object o) {

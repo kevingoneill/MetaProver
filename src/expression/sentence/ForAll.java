@@ -5,6 +5,7 @@ import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.TruthAssignment;
+import logicalreasoner.truthassignment.TruthValue;
 
 import java.util.*;
 
@@ -13,19 +14,17 @@ import java.util.*;
  * with exactly one argument.
  */
 public class ForAll extends Sentence {
-
-  // TODO: store list of un-instantiated constants instead (eliminate leaf traversal)
-  private Set<Sentence> instantiations, uninstantiatedConstants;
+  public static String NAME = "forAll", SYMBOL = "∀";
 
   public ForAll(Variable v, Sentence s) {
-    super(new ArrayList<>(Arrays.asList(v, s)), "forAll", "∀", Sort.BOOLEAN);
-    instantiations = new HashSet<>();
-    uninstantiatedConstants = new HashSet<>();
-    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
+    super(new ArrayList<>(Arrays.asList(v, s)), NAME, SYMBOL, Sort.BOOLEAN);
+    HASH_CODE = instantiate(Variable.EMPTY_VAR, getVariable()).hashCode();
   }
 
-  public String toSymbol() {
-    return symbol + getVariable().toSymbol() + getSentence().toSymbol();
+  public String toString() {
+    if (TOSTRING == null)
+      TOSTRING = symbol + getVariable() + getSentence();
+    return TOSTRING;
   }
 
   public Sentence getSentence() {
@@ -37,58 +36,32 @@ public class ForAll extends Sentence {
   }
 
   @Override
-  public Sentence makeCopy() {
-    return new ForAll(getVariable(), getSentence().makeCopy());
-  }
-
-  @Override
   public Boolean eval(TruthAssignment h) {
     return null;
   }
 
-  public void addInstantiations(Collection<Sentence> constants) {
-    constants.forEach(c -> {
-      if (!instantiations.contains(c))
-        uninstantiatedConstants.add(c);
-    });
-  }
-
-  public void addInstantiation(Sentence constant) {
-    if (!instantiations.contains(constant))
-      uninstantiatedConstants.add(constant);
-  }
-
-  public boolean instantiatedAll() {
-    return uninstantiatedConstants.isEmpty();
-  }
-
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (h.isMapped(this)) {
-      if (h.models(this)) {
-        //List<Sentence> a = h.getLeaves().flatMap(l -> l.getConstants().stream()).filter(c -> !instantiations.contains(c)).distinct().collect(Collectors.toList());
-        List<Sentence> a = new ArrayList<>(uninstantiatedConstants);
+    TruthValue v = h.getTruthValue(this);
+    if (v == null)
+      return null;
 
-        if (a.isEmpty()) {
-          return null;
-        }
-
-        //Collections.sort(a, Constant.constantComparator);
-        //Sentence c = a.get(0);
-
-        UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, a, getVariable());
-        //instantiations.add(c);
-        instantiations.addAll(a);
-        uninstantiatedConstants.clear();
-        return i;
-      } else {
-        h.setDecomposed(this);
-        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        d.setTrue(new Exists(getVariable(), new Not(getSentence())));
-        return d;
-      }
+    if (v.isModelled()) {
+      List<Sentence> a = new ArrayList<>(v.getUninstantiatedConstants());
+      if (a.isEmpty())
+        return null;
+      UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, a, getVariable());
+      v.getInstantiatedConstants().addAll(a);
+      v.getUninstantiatedConstants().clear();
+      return i;
+    } else {
+      h.setDecomposed(this);
+      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      //d.setTrue(new Exists(getVariable(), new Not(getSentence())));
+      d.setTrue(Sentence.makeSentence(Exists.NAME, getVariable(),
+              Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
+      return d;
     }
-    return null;
   }
 
   @Override
@@ -101,16 +74,13 @@ public class ForAll extends Sentence {
     return getSentence().getConstants();
   }
 
-  public Set<Sentence> getInstantiations() {
-    return instantiations;
-  }
-
   @Override
   public Sentence instantiate(Sentence c, Variable v) {
     if (v.equals(getVariable()))
       return getSentence().instantiate(c, v);
 
-    return new ForAll(getVariable(), getSentence().instantiate(c, v));
+    //return new ForAll(getVariable(), getSentence().instantiate(c, v));
+    return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
   }
 
   public boolean equals(Object o) {

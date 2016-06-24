@@ -92,7 +92,7 @@ public class Step {
   }
 
   public String toString() {
-    return metaSentence.toSymbol();
+    return metaSentence.toSExpression();
   }
 
   public String getReason() {

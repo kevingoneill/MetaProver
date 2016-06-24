@@ -7,6 +7,7 @@ import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -18,13 +19,14 @@ import java.util.stream.Stream;
  * a logical model of the world
  */
 public class TruthAssignment {
-  private static int truthAssignmentCount = 0;
+  private static long truthAssignmentCount = 0;
 
-  private int UID;
+  private long UID;
   private Map<Sentence, TruthValue> map;     // The explicit Sentence -> Boolean mapping
   private Map<Sentence, TruthAssignment> inheritedMappings;
   private TruthAssignment parent;
   private List<TruthAssignment> children;
+  private Set<TruthAssignment> leaves;
   private Set<Sentence> constants;
 
   /**
@@ -32,10 +34,11 @@ public class TruthAssignment {
    */
   public TruthAssignment() {
     UID = truthAssignmentCount++;
-    map = new HashMap<>();
-    inheritedMappings = new HashMap<>();
+    map = new ConcurrentHashMap<>();
+    inheritedMappings = new ConcurrentHashMap<>();
     parent = null;
     children = new ArrayList<>();
+    leaves = new HashSet<>();
     constants = new HashSet<>();
   }
 
@@ -44,12 +47,13 @@ public class TruthAssignment {
    * provided ID. Useful for temporary TruthAssignments,
    * so that the static counter doesn't increase as quickly
    */
-  public TruthAssignment(int id) {
+  public TruthAssignment(long id) {
     UID = id;
-    map = new HashMap<>();
-    inheritedMappings = new HashMap<>();
+    map = new ConcurrentHashMap<>();
+    inheritedMappings = new ConcurrentHashMap<>();
     parent = null;
     children = new ArrayList<>();
+    leaves = new HashSet<>();
     constants = new HashSet<>();
   }
 
@@ -59,17 +63,18 @@ public class TruthAssignment {
    * @param ta the TruthAssignment to copy
    */
   public TruthAssignment(TruthAssignment ta) {
-    UID = ta.UID;
-    this.map = new HashMap<>();
-    inheritedMappings = new HashMap<>(ta.inheritedMappings);
+    UID = truthAssignmentCount++;
+    this.map = new ConcurrentHashMap<>();
+    inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
     ta.map.forEach((k, v) -> {
-      map.put(k.makeCopy(), new TruthValue(v));
+      map.put(k, new TruthValue(v));
       if (k.isAtomic())
         setDecomposed(k);
     });
 
     this.parent = ta.parent;
     children = new ArrayList<>(ta.children);
+    leaves = new HashSet<>(ta.leaves);
     constants = new HashSet<>(ta.constants);
   }
 
@@ -81,58 +86,114 @@ public class TruthAssignment {
    * @param p  the parent of the new TruthAssignment
    */
   public TruthAssignment(TruthAssignment ta, TruthAssignment p) {
-    UID = ta.UID;
-    this.map = new HashMap<>();
-    this.inheritedMappings = new HashMap<>(ta.inheritedMappings);
+    UID = truthAssignmentCount++;
+    this.map = new ConcurrentHashMap<>();
+    this.inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
     this.parent = p;
     children = new ArrayList<>(ta.children);
+    leaves = new HashSet<>(ta.leaves);
     constants = new HashSet<>(ta.constants);
     parent.children.add(this);
+    parent.leaves.add(this);
     ta.map.forEach((k, v) -> {
-      Sentence s = k.makeCopy();
-      v.getValues().forEach((b, i) -> set(s, b, i));
-      if (s.isAtomic())
-        setDecomposed(s);
+      v.getValues().forEach((b, i) -> set(k, b, i));
+      if (k.isAtomic())
+        setDecomposed(k);
     });
   }
 
+  /**
+   * Get the name of this TruthAssignment.
+   * The name is the letter "h" followed by its UID
+   *
+   * @return the name of this TruthAssignment
+   */
   public String getName() {
     return "h" + UID;
   }
 
-  public boolean isEmpty() { return map.isEmpty(); }
-
-  public int hashCode() {
-    return map.hashCode();
+  /**
+   * Check whether this TruthAssignment contains any mappings
+   * @return true if this has no mappings, false otherwise
+   */
+  public boolean isEmpty() { return map.isEmpty();
   }
 
+  /**
+   * Obtain a hashCode for this TruthAssignment
+   * @return the UID of this
+   */
+  public int hashCode() {
+    return (int) UID;
+  }
+
+  /**
+   * Check whether this has the same mappings as t
+   * @param t the TruthAssingment to check mappings against
+   * @return true if the mappings of t and this are equal
+   */
   public boolean assignmentsEqual(TruthAssignment t) {
     return t.map.equals(map);
   }
 
+  /**
+   * Check to see whether two TruthAssignments are equal
+   * @param o the second Object to check equality against
+   * @return true if o is equal to this, false otherwise
+   */
   public boolean equals(Object o) {
+    return this == o;
+    /*
+    if (o == this)
+      return true;
     if (o instanceof TruthAssignment) {
       TruthAssignment h = (TruthAssignment) o;
-      return parent == h.parent && map.equals(h.map) && children.equals(h.children);
+      return UID == h.UID && parent == h.parent; //&& map.equals(h.map) && children.equals(h.children);
     }
     return false;
+    */
   }
 
+  /**
+   * Get a String representation of this TruthAssignment
+   * @return a string displaying the mappings in the TruthAssignment
+   */
   public String toString() {
-    return map.toString();
+    return getName();
   }
 
+  /**
+   * Get the TruthValue assigned to a given Sentence
+   *
+   * @param s the Sentence to obtain a TruthValue for
+   * @return the mapped TruthValue (if found), null otherwise
+   */
+  public TruthValue getTruthValue(Sentence s) {
+    TruthValue v = map.get(s);
+    if (v != null)
+      return v;
+    return inheritedMappings.get(s).map.get(s);
+  }
+
+  /**
+   * Print out a representation of this TruthAssignment
+   */
   public void print() {
-    System.out.println(getName());
     print("", true);
   }
 
+  /**
+   * A helper function for printing TruthAssignments
+   * @param prefix the branch lines before this TruthAssignment
+   * @param isTail true if this is a leaf node
+   */
   private void print(String prefix, boolean isTail) {
+    System.out.println(prefix + getName());
     StringBuilder builder = new StringBuilder(prefix);
     if (isTail)
-      builder.append("└── ").append(toString());
+      builder.append("└── ").append(map.toString());
     else
-      builder.append("├── ").append(toString());
+      builder.append("├── ").append(map.toString());
     if (children.isEmpty()) {
       if (areParentsConsistent())
         builder.append(" isConsistent: ✓");
@@ -157,6 +218,13 @@ public class TruthAssignment {
       children.get(children.size() - 1).print(newPrefix, true);
   }
 
+  /**
+   * Add a mapping from a Sentence to a TruthAssignment containing
+   * it to all children. Used for caching mappings, rather than
+   * using recursion.
+   * @param s the Sentence to be found in t
+   * @param t the TruthAssignment containing a mapping for s
+   */
   private void addMappingDownward(Sentence s, TruthAssignment t) {
     children.forEach(c -> {
       c.inheritedMappings.putIfAbsent(s, t);
@@ -164,79 +232,72 @@ public class TruthAssignment {
     });
   }
 
-  public List<Pair> getInheritedMappings() {
-    return inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())).collect(Collectors.toList());
+  private void addMappingsAndConstants(Collection<Pair> c, Collection<Sentence> constants) {
+    if (c.isEmpty() && constants.isEmpty())
+      return;
+
+    this.constants.addAll(constants);
+    addInstantiatedConstants(constants);
+    children.forEach(child -> {
+      c.forEach(p -> child.inheritedMappings.putIfAbsent(p.sentence, p.truthAssignment));
+      child.addMappingsAndConstants(c, constants);
+    });
   }
 
+  public List<Pair> getInheritedMappings() {
+    return inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())).collect(Collectors.toList());
+  }
+
+  /**
+   * Get a Set of all constants which are represented in this TruthAssignment
+   * @return a Set of valid constants in this TruthAssignment
+   */
   public Set<Sentence> getConstants() {
     return constants;
   }
 
+  /**
+   * Propagate newly generated constants to Universally Quantified Sentences to
+   * all parents
+   * @param constants the constants to be added to this
+   */
   private void addInstantiatedConstants(Collection<Sentence> constants) {
     if (!constants.isEmpty()) {
       map.entrySet().stream().filter(e -> e.getValue().isModelled() && e.getKey() instanceof ForAll)
-              .forEach(e -> {
-                //System.out.println("ADDING CONSTANTS " + getConstants() + " TO " + e.getKey());
-                ((ForAll) e.getKey()).addInstantiations(constants);
-              });
-      if (parent != null)
-        parent.addInstantiatedConstants(constants);
+              .forEach(e -> e.getValue().addInstantiations(constants));
+
+      inheritedMappings.entrySet().stream().filter(e -> e.getValue().models(e.getKey()) && e.getKey() instanceof ForAll)
+              .forEach(e -> e.getValue().getTruthValue(e.getKey()).addInstantiations(constants));
     }
   }
 
+  /**
+   * Make sure that all parents have the relevant constants
+   */
   private void refreshInstantiatedConstants() {
     addInstantiatedConstants(getConstants());
   }
 
-  public boolean hasImmediateConstant(Sentence s) {
-    return map.keySet().parallelStream().anyMatch(k -> k.getConstants().contains(s)) || (parent != null && parent.hasImmediateConstant(s));
-  }
-
-  private void addConstantDownwards(Sentence c) {
-    constants.add(c);
-    addInstantiatedConstants(Collections.singletonList(c));
-    children.forEach(child -> child.addConstantDownwards(c));
-  }
-
-  private void addConstantUpwards(Sentence c) {
-    constants.add(c);
-    if (parent != null)
-      parent.addConstantUpwards(c);
-  }
-
+  /**
+   * Add constant c to all children of this
+   * @param c the constant to be added
+   */
   public void addConstant(Sentence c) {
     constants.add(c);
-    //if (parent != null)
-    //  parent.addConstantUpwards(c);
     addInstantiatedConstants(Collections.singletonList(c));
-    children.forEach(child -> child.addConstantDownwards(c));
+    children.parallelStream().forEach(child -> child.addConstant(c));
   }
 
-  private void addConstantsDownwards(Collection<Sentence> c) {
-    if (c.isEmpty())
-      return;
-    constants.addAll(c);
-    addInstantiatedConstants(c);
-    children.forEach(child -> child.addConstantsDownwards(c));
-  }
-
-  private void addConstantsUpwards(Collection<Sentence> c) {
-    if (c.isEmpty())
-      return;
-    constants.addAll(c);
-    addInstantiatedConstants(c);
-    if (parent != null)
-      parent.addConstantsUpwards(c);
-  }
-
+  /**
+   * Add all constants in c to all children of this
+   * @param c a Collection of constants to be added
+   */
   public void addConstants(Collection<Sentence> c) {
     if (c.isEmpty() || c.stream().allMatch(constants::contains))
       return;
     constants.addAll(c);
     addInstantiatedConstants(c);
-    //if (parent != null)
-    //  parent.addConstantsUpwards(c);
-    children.forEach(child -> child.addConstantsDownwards(c));
+    children.forEach(child -> child.addConstants(c));
   }
 
   public TruthTree makeTruthTree() {
@@ -248,27 +309,28 @@ public class TruthAssignment {
 
   private TreeBranch makeBranch(Set<Sentence> sens, boolean isLeaf) {
     TreeBranch newBranch = new TreeBranch();
-    sens.forEach(s -> {
-//      String prefix = "";
-//      if (map.get(s).isConsistent() && map.get(s).containsFalse()) {
-//        prefix = "¬";
-//      }
-      newBranch.addStatement(s.toSymbol() + " " + map.get(s).getValues().keySet().toString());
-    });
+    sens.forEach(s -> newBranch.addStatement(s.toSExpression() + " " + map.get(s).getValues().keySet().toString()));
     if (isLeaf) {
       newBranch.addStatement((isConsistent() ? "✓" : "✗"));
     }
     return newBranch;
   }
 
+  /**
+   * Get the parent TruthAssignment of this
+   * @return the parent of this
+   */
   public TruthAssignment getParent() {
     return parent;
   }
 
+  /**
+   * Reset the parent of this
+   * @param h the new Parent of this
+   */
   public void setParent(TruthAssignment h) {
     parent = h;
   }
-
 
   /**
    * Get the UID of the inference which created this assignment
@@ -277,14 +339,15 @@ public class TruthAssignment {
    * @return the UID of the inference which mapped s to models, or -1 if no mapping exists
    */
   public int getInferenceNum(Sentence s, boolean models) {
-    if (!map.containsKey(s)) {
-      if (parent != null)
-        return parent.getInferenceNum(s, models);
-      return -1;
+    TruthValue v = map.get(s);
+    if (v == null) {
+      TruthAssignment t = inheritedMappings.get(s);
+      if (t == null)
+        return -1;
+      return t.map.get(s).getInferenceNum(models);
     }
-    if (models(s) == models)
-      return map.get(s).getInferenceNum(models);
-    return -1;
+
+    return v.getInferenceNum(models);
   }
 
   /**
@@ -294,21 +357,21 @@ public class TruthAssignment {
    */
   public void setTrue(Sentence s, int inferenceNum) {
     if (!hasMapping(s, true)) {
-      if (map.keySet().contains(s)) {
-        TruthValue v = map.get(s);
-        v.setTrue(inferenceNum);
+      TruthValue t = map.get(s);
+      if (t != null) {
+        t.setTrue(inferenceNum);
+        addConstants(s.getConstants());
       } else {
-        TruthValue t = new TruthValue(s);
+        t = new TruthValue(s);
         t.setTrue(inferenceNum);
         map.put(s, t);
-        addMappingDownward(s, this);
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
       if (s.isAtomic())
         setDecomposed(s);
-      addConstants(s.getConstants());
 
       if (s instanceof ForAll)
-        ((ForAll) s).addInstantiations(getConstants());
+        map.get(s).addInstantiations(getConstants());
     }
   }
 
@@ -319,19 +382,19 @@ public class TruthAssignment {
    */
   public void setFalse(Sentence s, int inferenceNum) {
     if (!hasMapping(s, false)) {
-      if (map.keySet().contains(s)) {
-        TruthValue v = map.get(s);
-        v.setFalse(inferenceNum);
+      TruthValue t = map.get(s);
+      if (t != null) {
+        t.setFalse(inferenceNum);
+        addConstants(s.getConstants());
       } else {
-        TruthValue t = new TruthValue(s);
+        t = new TruthValue(s);
         t.setFalse(inferenceNum);
         map.put(s, t);
-        addMappingDownward(s, this);
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
         setDecomposed(s);
-      addConstants(s.getConstants());
     }
   }
 
@@ -343,22 +406,21 @@ public class TruthAssignment {
    */
   public void set(Sentence s, boolean b, int inferenceNum) {
     if (!hasMapping(s, b)) {
-      if (map.keySet().contains(s)) {
-        TruthValue v = map.get(s);
-        v.set(b, inferenceNum);
+      TruthValue t = map.get(s);
+      if (t != null) {
+        t.set(b, inferenceNum);
+        addConstants(s.getConstants());
       } else {
-        TruthValue t = new TruthValue(s);
+        t = new TruthValue(s);
         t.set(b, inferenceNum);
         map.put(s, t);
-        addMappingDownward(s, this);
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
         setDecomposed(s);
-      addConstants(s.getConstants());
-
       if (b && s instanceof ForAll)
-        ((ForAll) s).addInstantiations(getConstants());
+        map.get(s).addInstantiations(getConstants());
     }
   }
 
@@ -370,11 +432,15 @@ public class TruthAssignment {
    * null if not found
    */
   public Boolean models(Sentence s) {
-    if (map.containsKey(s))
-      return map.get(s).isModelled();
-
+    if (s == null)
+      return null;
+    TruthValue v = map.get(s);
+    if (v != null)
+      return v.isModelled();
     TruthAssignment t = inheritedMappings.get(s);
-    return t == null || t.models(s);
+    if (t == null)
+      return null;
+    return t.models(s);
   }
 
   /**
@@ -385,12 +451,11 @@ public class TruthAssignment {
    * false otherwise
    */
   public boolean isMapped(Sentence s) {
-    //return map.containsKey(s) || parent != null && parent.isMapped(s);
-    return map.containsKey(s) || inheritedMappings.containsKey(s);
+    return inheritedMappings.containsKey(s) || map.containsKey(s);
   }
 
   /**
-   * Return true if this or a parent of this maps s to TruthVale b
+   * Return true if this or a parent of this maps s to TruthValue b
    *
    * @param s the sentence to search for
    * @param b the assignment to search for
@@ -398,9 +463,10 @@ public class TruthAssignment {
    */
   public boolean hasMapping(Sentence s, boolean b) {
     TruthValue v = map.get(s);
-    if (v != null)
-      return v.contains(b) || parent != null && parent.hasMapping(s, b);
-    return parent != null && parent.hasMapping(s, b);
+    if (v != null && v.contains(b))
+      return true;
+    TruthAssignment h = inheritedMappings.get(s);
+    return h != null && h.map.get(s).contains(b);
   }
 
   /**
@@ -410,51 +476,50 @@ public class TruthAssignment {
     return map.keySet();
   }
 
-  /**
-   * Recursively collect the mappings of this
-   * TruthAssignment and its parents
-   *
-   * @return a set of all inferences under this TruthAssignment
-   */
-  public Stream<Sentence> getSentencesUpwards() {
-    if (parent == null)
-      return map.keySet().parallelStream();
-    return Stream.concat(parent.getSentencesUpwards(), map.keySet().parallelStream());
-  }
-
   public Stream<Pair> flattenParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().map(s -> new Pair(s, this));
+      return map.keySet().parallelStream().map(s -> Pair.makePair(s, this));
     return //Stream.concat(parent.flattenParallel(),
-            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> new Pair(e.getKey(), e.getValue())),
-                    map.keySet().parallelStream().map(s -> new Pair(s, this)));
+            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
+                    map.keySet().parallelStream().map(s -> Pair.makePair(s, this)));
   }
 
   public Stream<Pair> flattenSerial() {
     if (parent == null)
-      return map.keySet().stream().map(s -> new Pair(s, this));
-    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())),
-            map.keySet().stream().map(s -> new Pair(s, this)));
+      return map.keySet().stream().map(s -> Pair.makePair(s, this));
+    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().stream().map(s -> Pair.makePair(s, this)));
   }
 
+  /**
+   * Get a ParallelStream of all active mappings of this TruthAssignment
+   * @return a flattend ParallelStream of this
+   */
   public Stream<Pair> flattenUndecomposedParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this));
-    return //Stream.concat(parent.flattenParallel(),
-            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> new Pair(e.getKey(), e.getValue()))
-                            .filter(p -> !p.truthAssignment.isDecomposed(p.sentence)),
-                    map.keySet().parallelStream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this)));
+      return map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
+    return Stream.concat(inheritedMappings.entrySet().parallelStream()
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
   }
 
+  /**
+   * Get a Stream of all active mappings of this TruthAssignment
+   * @return a flattend Stream of this
+   */
   public Stream<Pair> flattenUndecomposedSerial() {
     if (parent == null)
-      return map.keySet().stream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this));
-    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue()))
-                    .filter(p -> !p.truthAssignment.isDecomposed(p.sentence)),
-            map.keySet().stream().filter(s -> !decomposedTest(s)).map(s -> new Pair(s, this)));
+      return map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
+    return Stream.concat(inheritedMappings.entrySet().stream()
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
   }
 
 
+  /**
+   * Get all mappings of atomic statements in this TruthAssignment
+   * @return a map of Sentences to their truth values
+   */
   public Map<Sentence, Boolean> getCounterExample() {
     Map<Sentence, Boolean> s = new HashMap<>();
     map.entrySet().stream().filter(e -> e.getKey().isAtomic()).forEach(e -> s.put(e.getKey(), e.getValue().isModelled()));
@@ -466,127 +531,138 @@ public class TruthAssignment {
 
   /**
    * Add all of the mappings of h into this TruthAssignment
-   *
    * @param h the mappings to add to this
    */
   public Stream<Pair> merge(TruthAssignment h) {
-    List<Pair> l = h.map.entrySet().stream().flatMap(e -> {
-      if (!map.containsKey(e.getKey())) {
-        Sentence s = e.getKey().makeCopy();
-        TruthValue truthValue = new TruthValue(e.getValue());
-        map.put(s, truthValue);
-        if (s.isAtomic())
+    List<Pair> l = h.map.entrySet().stream().map(e -> {
+      TruthValue truthValue = map.get(e.getKey());
+      if (truthValue == null) {
+        truthValue = new TruthValue(e.getValue());
+        map.put(e.getKey(), truthValue);
+        if (e.getKey().isAtomic())
           truthValue.setDecomposed();
-        addMappingDownward(s, this);
-        return Stream.of(new Pair(s, this));
+        return Pair.makePair(e.getKey(), this);
       } else {
-        TruthValue v = map.get(e.getKey());
-        v.putAll(e.getValue());
-        return Stream.of(new Pair(v.getSentence(), this));
+        truthValue.putAll(e.getValue());
+        return Pair.makePair(truthValue.getSentence(), this);
       }
     }).collect(Collectors.toList());
 
-    addConstants(h.getConstants());
     refreshInstantiatedConstants();
-    //addInstantiatedConstants(h.getConstants());
+    addMappingsAndConstants(l, h.getConstants());
     return l.stream();
   }
 
+  /**
+   * Check whether the mappings in this TruthAssignment are consistent with
+   * each other and mappings in all parents
+   * @return true if all such mappings are consistent, false otherwise
+   */
   public boolean consistencyTest() {
     return map.keySet().stream().allMatch(s -> {
       if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
         return false;
       else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
         return false;
-      return parent == null || !parent.isMapped(s) || parent.models(s) == models(s);
+
+      /*
+      TruthAssignment h = inheritedMappings.get(s);  // This is slow, for some reason ???
+      if (h == null)
+        return true;
+      Boolean b = h.models(s);
+      return b == null || b == models(s);
+      */
+
+      if (parent == null)
+        return true;
+      Boolean b = parent.models(s);
+      return b == null || b == models(s);
     });
   }
 
   /**
    * Make sure the mappings of Sentences is the same as their evaluation
    * under this TruthAssignment
-   *
    * @return true if all mappings are consistent, false otherwise
    */
   public boolean isConsistent() {
     return consistencyTest() && (children.isEmpty() || children.parallelStream().anyMatch(TruthAssignment::isConsistentSerial));
   }
 
+  /**
+   * A serial version of isConsistent, used in recursion to avoid
+   * construction of too many parallelStreams
+   * @return true if all mappings are consistent, false otherwise
+   */
   private boolean isConsistentSerial() {
     return consistencyTest() && (children.isEmpty() || children.stream().anyMatch(TruthAssignment::isConsistentSerial));
   }
 
+  /**
+   * Make sure that this TruthAssignment and all of its parents are consistent
+   * @return true if all mappings are consistent, false otherwise
+   */
   public boolean areParentsConsistent() {
     return consistencyTest() && (parent == null || parent.areParentsConsistent());
   }
 
   /**
-   * Mark this expression.sentence as having been decomposed under this TruthAssignment
-   *
-   * @param s the expression.sentence which has been decomposed
+   * Mark s as having been decomposed under this TruthAssignment
+   * @param s the Sentence which has been decomposed
    */
   public void setDecomposed(Sentence s) {
-    if (map.containsKey(s))
-      map.get(s).setDecomposed();
-    else if (parent != null)
-      parent.setDecomposed(s);
+    TruthValue tv = map.get(s);
+    if (tv == null) {
+      System.exit(1);
+      TruthAssignment p = inheritedMappings.get(s);
+      if (p != null)
+        tv = p.map.get(s);
+    }
+    if (tv != null)
+      tv.setDecomposed();
   }
 
-  private Boolean decomposedTest(Sentence s) {
+  /**
+   * Check whether s has been reasoned over in this TruthAssignment
+   *
+   * @param s theSentence to search for
+   * @return true if s has been reasoned over, false otherwise
+   */
+  private boolean isDecomposed(Sentence s) {
     TruthValue tv = map.get(s);
-    if (tv == null)
-      return false;
-    // Check for finished Universal Quantifiers
-    if (tv.isModelled() && s instanceof ForAll) {
-      //int numConstants = getLeaves().stream().mapToInt(c -> c.getConstants().size()).sum();
-
-      return getConstants().size() > 0
-              //        && getLeaves().allMatch(l -> l.getConstants().size() > 0 && l.getConstants().stream().allMatch(((ForAll) s).getInstantiations()::contains));
-              && ((ForAll) s).instantiatedAll();
-      //&& ((ForAll) s).getInstantiations().size() == numConstants;
+    if (tv == null) {
+      System.exit(1);
+      TruthAssignment p = inheritedMappings.get(s);
+      if (p == null)
+        return false;
+      tv = p.map.get(s);
+      if (tv == null)
+        return false;
     }
+    // Check for finished Universal Quantifiers
+    if (tv.isModelled() && s instanceof ForAll)
+      return tv.instantiatedAll() && (getConstants().size() > 0 || tv.getInstantiatedConstants().size() > getConstants().size());
     return tv.isDecomposed();
   }
 
   /**
-   * Check if this Sentence has already been reasoned upon.
-   *
-   * @param s the Sentence to check
-   * @return true if s has been decomposed in this or a child of this,
-   * false otherwise
-   */
-  public Boolean isDecomposed(Sentence s) {
-    if (map.containsKey(s))
-      return decomposedTest(s);
-    if (parent != null)
-      return parent.isDecomposed(s);
-    return false;
-  }
-
-  /**
    * Check if all mappings in this TruthAssignment have been decomposed
-   *
    * @return true if all Sentences in this and its parents have been decomposed
    */
   public boolean decomposedAll() {
-    //return map.keySet().stream().allMatch(this::decomposedTest) && (parent == null || parent.decomposedAll());
-    //return flattenUndecomposed().count() == 0;
-    return flattenParallel().allMatch(e -> e.truthAssignment.decomposedTest(e.sentence));
+    return flattenUndecomposedSerial().count() == 0;
   }
 
   /**
    * Check if all mappings in this TruthAssignment have been decomposed
-   *
    * @return true if all Sentences in this and its parents have been decomposed
    */
   public boolean decomposedAllPropositions() {
-    return map.keySet().stream().filter(s -> !s.isQuantifier()).allMatch(this::decomposedTest) && (parent == null || parent.decomposedAllPropositions());
-    //return flatten().filter(s -> !s.isQuantifier()).allMatch(this::isDecomposed);
+    return flattenUndecomposedSerial().filter(p -> !p.sentence.isQuantifier()).count() == 0;
   }
 
   /**
    * Get the child TruthAssignments of this TruthAssignment
-   *
    * @return a set of all children
    */
   public List<TruthAssignment> getChildren() {
@@ -595,94 +671,96 @@ public class TruthAssignment {
 
   /**
    * Recursively add children to all leaf nodes
-   *
    * @param h the children of the leaves of this to add
    */
   public Stream<Pair> addChildren(Collection<TruthAssignment> h) {
     List<Pair> l = h.stream().flatMap(c -> {
       TruthAssignment child = new TruthAssignment(c, this);
-      child.addConstantsDownwards(constants);
+      //leaves.add(child);
+      child.addConstants(constants);
       child.refreshInstantiatedConstants();
-      return child.keySet().stream().flatMap(s -> Stream.of(new Pair(s, this)));
+      return child.keySet().stream().map(s -> Pair.makePair(s, this));
     }).collect(Collectors.toList());
+
+    if (parent != null)
+      parent.replaceLeaves(leaves, this);
     inheritedMappings.forEach(this::addMappingDownward);
     map.keySet().forEach(s -> addMappingDownward(s, this));
     return l.stream();
   }
 
+  private void replaceLeaves(Collection<TruthAssignment> newLeaves, TruthAssignment oldLeaf) {
+    leaves.remove(oldLeaf);
+    leaves.addAll(newLeaves);
+    if (parent != null)
+      parent.replaceLeaves(newLeaves, oldLeaf);
+  }
+
   /**
    * Get all descendants of this which have noe children
-   *
    * @return the set of leaf TruthAssignments under this
    */
   public Stream<TruthAssignment> getLeaves() {
-    if (children.isEmpty())
+    if (leaves.isEmpty())
       return Stream.of(this);
-    return children.stream().flatMap(TruthAssignment::getLeaves);
+    return new HashSet<>(leaves).stream();
+  }
+
+  public Stream<TruthAssignment> getLeavesParallel() {
+    if (leaves.isEmpty())
+      return Stream.of(this);
+    return new HashSet<>(leaves).parallelStream();
   }
 
   /**
    * Get the top-level TruthAssignment in this tree
-   *
-   * @return
+   * @return the uppermost parent of this
    */
   public TruthAssignment getRoot() {
     if (parent == null)
       return this;
-
     return parent.getRoot();
   }
 
+  /**
+   * Get the TruthAssignment with a mapping to s
+   * @param s the Sentence to search for
+   * @return the TruthAssignment containing s, null if not found
+   */
   public TruthAssignment getParentContaining(Sentence s) {
     if (map.containsKey(s))
       return this;
-
-    if (parent != null)
-      return parent.getParentContaining(s);
-    return null;
+    return inheritedMappings.get(s);
   }
 
-  public TruthAssignment getParentContainingConstant(Sentence s) {
-    if (hasImmediateConstant(s))
-      return this;
-    if (parent != null)
-      return parent.getParentContainingConstant(s);
-    return null;
+  /**
+   * Get the uppermost TruthAssignments in which this Constant is
+   * present
+   *
+   * @param s the constant to search for
+   * @return a List of all uppermost children containing s
+   */
+  public List<TruthAssignment> getConstantOrigins(Sentence s) {
+    return getConstantOriginsHelper(s).collect(Collectors.toList());
   }
 
-  public ArrayList<TruthAssignment> getConstantOrigins(Sentence s) {
-    if (hasImmediateConstant(s))
-      return new ArrayList<>(Collections.singletonList(this));
-    //TruthAssignment h = getParentContainingConstant(s);
-    //if (h != null)
-    //  return new ArrayList<>(Collections.singletonList(h));
-    return getChildrenContainingConstant(s);
+  /**
+   * A helper function to get all uppermost children containing
+   *
+   * @param s the constant to search for
+   * @return a Stream of all uppermost children containing constant s
+   */
+  private Stream<TruthAssignment> getConstantOriginsHelper(Sentence s) {
+    if (constants.contains(s))
+      return Stream.of(this);
+    return children.parallelStream().flatMap(c -> c.getConstantOriginsHelper(s));
   }
 
-  public ArrayList<TruthAssignment> getChildrenContainingConstant(Sentence s) {
-    ArrayList<TruthAssignment> a = new ArrayList<>();
-    for (int i = 0; i < children.size(); ++i) {
-      TruthAssignment h = children.get(i);
-      if (h.hasImmediateConstant(s))
-        a.add(h);
-      else //if (h.constants.contains(s))
-        a.addAll(h.getChildrenContainingConstant(s));
-    }
-    return a;
-  }
-
+  /**
+   * Check whether this TruthAssignment is satisfiable
+   * @return true if all reasoning is completed, and all mappings are consistent
+   */
   public boolean isSatisfied() {
-    return decomposedAll() && areParentsConsistent();
-  }
-
-  public Sentence getKey(Sentence s) {
-    TruthValue v = map.get(s);
-    if (v == null)
-      return null;
-    return v.getSentence();
-  }
-
-  public boolean containsAll(TruthAssignment h) {
-    return h.map.entrySet().stream().allMatch(e -> e.getValue().getValues().entrySet().stream().allMatch(e2 -> hasMapping(e.getKey(), e2.getKey())));
+    return decomposedAll() && isConsistent();
   }
 }

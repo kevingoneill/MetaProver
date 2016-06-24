@@ -20,8 +20,8 @@ public class CONTRADICTORY extends MetaSentence {
     super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRADICTORY", "contradictory", new HashSet<>());
   }
 
-  public String toSymbol() {
-    return "[" + args.get(0).toSymbol() + " and " + args.get(1).toSymbol() + " are " + symbol + "]";
+  public String toSExpression() {
+    return "[" + args.get(0).toSExpression() + " and " + args.get(1).toSExpression() + " are " + symbol + "]";
   }
 
   public MetaInference reasonForwards(Proof p, int inferenceNum) {

@@ -27,7 +27,7 @@ public class NOT extends MetaSentence {
   public String toString() {
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
 
     if (!vars.isEmpty())
       builder.append(" ");
@@ -38,15 +38,15 @@ public class NOT extends MetaSentence {
   }
 
 
-  public String toSymbol() {
+  public String toSExpression() {
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
 
     if (!vars.isEmpty())
       builder.append(" ");
 
-    builder.append(symbol).append("[").append(args.get(0).toSymbol()).append("]");
+    builder.append(symbol).append("[").append(args.get(0).toSExpression()).append("]");
 
     return builder.toString();
   }

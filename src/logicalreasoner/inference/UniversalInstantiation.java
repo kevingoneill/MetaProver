@@ -6,7 +6,6 @@ import expression.sentence.Variable;
 import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,7 +32,7 @@ public class UniversalInstantiation extends Inference {
   public Stream<Pair> infer(TruthAssignment h) {
     ForAll f = (ForAll) origin;
     List<Pair> l = instances.stream().flatMap(instance -> {
-      ArrayList<TruthAssignment> origins = h.getConstantOrigins(instance);
+      List<TruthAssignment> origins = h.getConstantOrigins(instance);
       if (origins.isEmpty()) {
         TruthAssignment truthAssignment = new TruthAssignment();
         truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
@@ -49,15 +48,6 @@ public class UniversalInstantiation extends Inference {
     return l.stream();
   }
 
-  /*
-  public ArrayList<TruthAssignment> getInstanceRoot(Sentence constant, TruthAssignment parent) {
-    if (parent.getConstants().contains(constant))
-      return new ArrayList<>(Collections.singletonList(parent));
-
-
-  }
-  */
-
   public List<Sentence> getInstances() {
     return instances.stream().map(i -> origin.instantiate(i, var)).collect(Collectors.toList());
   }
@@ -67,6 +57,8 @@ public class UniversalInstantiation extends Inference {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o instanceof UniversalInstantiation) {
       UniversalInstantiation i = (UniversalInstantiation) o;
       return super.equals(i) && instances.equals(i.instances) && var.equals(i.var);

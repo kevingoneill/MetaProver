@@ -49,11 +49,11 @@ public abstract class Inference {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o instanceof Inference) {
       Inference i = (Inference) o;
-      if (i.origin == null)
-        return origin == null && justificationNum == i.justificationNum && i.parent == parent;
-      return justificationNum == i.justificationNum && i.origin.equals(origin) && i.parent == parent;
+      return justificationNum == i.justificationNum && i.origin == origin && i.parent == parent;
     }
     return false;
   }

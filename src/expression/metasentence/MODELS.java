@@ -36,9 +36,9 @@ public class MODELS extends MetaSentence {
     isTopLevel = printQuantifier;
   }
 
-  public String toSymbol() {
-    return vars.stream().map(v -> "FORALL " + v.toSymbol()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
-            + args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
+  public String toSExpression() {
+    return vars.stream().map(v -> "FORALL " + v.toSExpression()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
+            + args.get(0).toSExpression() + " " + symbol + " " + args.get(1).toSExpression();
   }
 
   public Sentence getSentence() {

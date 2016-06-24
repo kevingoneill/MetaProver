@@ -52,7 +52,7 @@ public abstract class MetaSentence extends Expression {
   public String toString() {
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
     if (!vars.isEmpty())
       builder.append(" ");
 
@@ -62,20 +62,20 @@ public abstract class MetaSentence extends Expression {
     return builder.toString();
   }
 
-  public String toSymbol() {
+  public String toSExpression() {
     if (!args.isEmpty()) {
       StringBuilder builder = new StringBuilder();
 
-      vars.forEach(v -> builder.append("FORALL ").append(v.toSymbol()));
+      vars.forEach(v -> builder.append("FORALL ").append(v.toSExpression()));
       if (!vars.isEmpty())
         builder.append(" ");
 
       builder.append("[");
       for (int i = 0; i < args.size() - 1; ++i) {
-        builder.append(args.get(i).toSymbol()).append(" ").append(symbol).append(" ");
+        builder.append(args.get(i).toSExpression()).append(" ").append(symbol).append(" ");
       }
 
-      builder.append(args.get(args.size() - 1).toSymbol()).append("]");
+      builder.append(args.get(args.size() - 1).toSExpression()).append("]");
 
       return builder.toString();
     }

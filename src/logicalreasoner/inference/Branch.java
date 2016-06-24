@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * possible TruthAssignments given a parent TruthAssignment
  * and an origin Sentence.
  */
-public class Branch extends Inference {
+public class Branch extends Inference implements Comparable<Branch> {
 
   protected List<TruthAssignment> branches;
 
@@ -41,16 +41,11 @@ public class Branch extends Inference {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o instanceof Branch) {
       Branch b = (Branch) o;
-      if (!super.equals(b) || branches.size() != b.branches.size())
-        return false;
-
-      for (int i = 0; i < branches.size(); ++i) {
-        if (!branches.get(i).equals(b.branches.get(i)))
-          return false;
-      }
-      return true;
+      return super.equals(b) && branches.size() == b.branches.size();
     }
     return false;
   }
@@ -63,4 +58,21 @@ public class Branch extends Inference {
                     + "} ").collect(Collectors.joining());
   }
 
+  @Override
+  public int compareTo(Branch o) {
+    if (this.size() != o.size())
+      return o.size() - this.size();
+
+    int i = this.getOrigin().quantifierCount(),
+            j = o.getOrigin().quantifierCount();
+    if (i != j)
+      return j - i;
+
+    i = this.getOrigin().atomCount();
+    j = o.getOrigin().atomCount();
+    if (i != j)
+      return j - i;
+
+    return o.getOrigin().size() - this.getOrigin().size();
+  }
 }

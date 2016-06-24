@@ -19,7 +19,7 @@ public class Proposition extends Atom {
    * @param n the name of the Proposition
    */
   public Proposition(String n) {
-    super(n.toUpperCase(), Sort.BOOLEAN);
+    super(n, Sort.BOOLEAN);
   }
 
   public Sentence makeCopy() {
@@ -51,7 +51,7 @@ public class Proposition extends Atom {
     return name;
   }
 
-  public String toSymbol() {
+  public String toSExpression() {
     return name;
   }
 

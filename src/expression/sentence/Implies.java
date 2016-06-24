@@ -16,12 +16,10 @@ import java.util.Arrays;
  * For example, (implies A B), (implies X Y)
  */
 public class Implies extends Sentence {
-  public Implies(Sentence ifExpr, Sentence thenExpr) {
-    super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), "implies", "⟶", Sort.BOOLEAN);
-  }
+  public static String NAME = "implies", SYMBOL = "⟶";
 
-  public Sentence makeCopy() {
-    return new Implies(args.get(0).makeCopy(), args.get(1).makeCopy());
+  public Implies(Sentence ifExpr, Sentence thenExpr) {
+    super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -52,10 +50,5 @@ public class Implies extends Sentence {
       d.setFalse(args.get(1));
       return d;
     }
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    return new Implies(args.get(0).instantiate(c, v), args.get(1).instantiate(c, v));
   }
 }

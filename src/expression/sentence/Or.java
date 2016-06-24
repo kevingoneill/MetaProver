@@ -14,15 +14,10 @@ import java.util.ArrayList;
  * For example, (or A B), (or X Y Z)
  */
 public class Or extends Sentence {
+  public static String NAME = "or", SYMBOL = "∨";
 
   public Or(ArrayList<Sentence> a) {
-    super(a, "or", "∨", Sort.BOOLEAN);
-  }
-
-  public Sentence makeCopy() {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.makeCopy()));
-    return new Or(a);
+    super(a, NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -62,12 +57,5 @@ public class Or extends Sentence {
       args.forEach(d::setFalse);
       return d;
     }
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.instantiate(c, v)));
-    return new Or(a);
   }
 }

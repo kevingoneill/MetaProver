@@ -114,7 +114,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   @Override
-  public String toSymbol() {
+  public String toSExpression() {
     return name;
   }
 

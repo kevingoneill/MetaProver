@@ -1,7 +1,6 @@
 package logicalreasoner.prover;
 
 import expression.sentence.Sentence;
-import expression.sentence.SentenceReader;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,9 +18,9 @@ import java.util.Set;
 public class SemanticProverTest {
   static void runProver(Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
-    premises.forEach(premise -> p.add(SentenceReader.parse(premise)));
+    premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
-    SemanticProver prover = new SemanticProver(p, SentenceReader.parse(interest), true);
+    SemanticProver prover = new SemanticProver(p, Sentence.makeSentence(interest), true);
     prover.run();
     if (validArgument) {
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());
@@ -436,7 +435,7 @@ public class SemanticProverTest {
   }
 
   @Test
-  public void prob5c() {
+  public void prob5c() throws InterruptedException {
     HashSet<String> premises = new HashSet<>();
     premises.add("(iff (not B) Z)");
     premises.add("(implies N B)");

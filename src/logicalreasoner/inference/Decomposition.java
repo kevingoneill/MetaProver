@@ -45,6 +45,8 @@ public class Decomposition extends Inference {
   }
 
   public boolean equals(Object o) {
+    if (o == this)
+      return true;
     if (o instanceof Decomposition) {
       Decomposition i = (Decomposition) o;
       return super.equals(i) && additions.equals(i.additions);

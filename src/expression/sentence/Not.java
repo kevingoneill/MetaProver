@@ -15,19 +15,16 @@ import java.util.Set;
  * (not A)
  */
 public class Not extends Sentence {
+  public static String NAME = "not", SYMBOL = "¬";
 
   public Not(Sentence e) {
-    super(new ArrayList<>(Arrays.asList(e)), "not", "¬", Sort.BOOLEAN);
+    super(new ArrayList<>(Arrays.asList(e)), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
-  public Sentence makeCopy() {
-    return new Not(args.get(0).makeCopy());
-  }
-
-  public String toSymbol() {
-    //if (args.get(0) instanceof Proposition || args.get(0) instanceof Predicate)
-    return symbol + args.get(0).toSymbol();
-    //return symbol + "(" + args.get(0).toSymbol() + ")";
+  public String toString() {
+    if (TOSTRING == null)
+      TOSTRING = symbol + args.get(0).toString();
+    return TOSTRING;
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -57,10 +54,5 @@ public class Not extends Sentence {
   @Override
   public Set<Sentence> getConstants() {
     return args.get(0).getConstants();
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    return new Not(args.get(0).instantiate(c, v));
   }
 }

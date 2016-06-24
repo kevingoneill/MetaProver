@@ -57,6 +57,6 @@ public class IS extends MetaSentence {
       a.add(m);
     }
 
-    return new MetaInference(this, a, inferenceNum, false, getConstant().toSymbol());
+    return new MetaInference(this, a, inferenceNum, false, getConstant().toSExpression());
   }
 }

@@ -297,7 +297,8 @@ public class OSCARTests {
     } catch (InterruptedException ie) {
     }
     runProver(new HashSet<>(),
-            "(implies (forAll x (forAll y (exists z (forAll w (implies (and (P x) (Q y)) (and (R z) (S w))))))) (implies (exists v1 (exists u (and (P v1) (Q u)))) (exists s (R s))))", true);
+            "(implies (forAll x (forAll y (exists z (forAll w (implies (and (P x) (Q y)) (and (R z) (S w)))))))" +
+                    " (implies (exists v1 (exists u (and (P v1) (Q u)))) (exists s (R s))))", true);
   }
 
   @Test
@@ -357,13 +358,13 @@ public class OSCARTests {
     runProver(premises, "(forAll x (implies (J x) (not (I x))))", true);
   }
 
-  //@Test
+  @Test
   public void prob80c() {
     Set<String> premises = new HashSet<>();
     premises.add("(forAll x (implies (P x) (forAll y (Q y))))");
     premises.add("(implies (forAll x (or (Q x) (R x))) (exists y (and (Q y) (S y))))");
-    premises.add("(forAll x (forAll y (forAll z (implies (and (R x y) (R y z)) (R x z)))))");
-    runProver(premises, "(forAll x (R x x))", true);
+    premises.add("(implies (exists x (S x)) (forAll x (implies (F x) (G x))))");
+    runProver(premises, "(forAll x (implies (and (P x) (F x)) (G x)))", true);
   }
 
 

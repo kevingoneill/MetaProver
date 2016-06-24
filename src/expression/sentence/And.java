@@ -14,14 +14,10 @@ import java.util.ArrayList;
  * For example, (and A B), (and X Y Z)
  */
 public class And extends Sentence {
-  public And(ArrayList<Sentence> a) {
-    super(a, "and", "∧", Sort.BOOLEAN);
-  }
+  public static String NAME = "and", SYMBOL = "∧";
 
-  public Sentence makeCopy() {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.makeCopy()));
-    return new And(a);
+  protected And(ArrayList<Sentence> a) {
+    super(a, NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -57,12 +53,5 @@ public class And extends Sentence {
       });
       return b;
     }
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    ArrayList<Sentence> a = new ArrayList<>();
-    args.forEach(arg -> a.add(arg.instantiate(c, v)));
-    return new And(a);
   }
 }

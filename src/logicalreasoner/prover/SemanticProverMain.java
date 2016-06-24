@@ -1,7 +1,6 @@
 package logicalreasoner.prover;
 
 import expression.sentence.Sentence;
-import expression.sentence.SentenceReader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -66,7 +65,7 @@ public class SemanticProverMain {
     Set<Sentence> sentences = new HashSet<>();
 
     while ((line = reader.readLine()) != null) {
-      sentences.add(SentenceReader.parse(line));
+      sentences.add(Sentence.makeSentence(line));
     }
     return sentences;
   }
@@ -75,10 +74,8 @@ public class SemanticProverMain {
     BufferedReader reader = new BufferedReader(new FileReader(fileName));
     String line;
 
-    Set<Sentence> sentences = new HashSet<>();
-
     if ((line = reader.readLine()) != null) {
-      return SentenceReader.parse(line);
+      return Sentence.makeSentence(line);
     }
 
     return null;

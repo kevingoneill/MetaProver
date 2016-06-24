@@ -13,12 +13,10 @@ import java.util.Arrays;
  * (if and only if) operator
  */
 public class Iff extends Sentence {
-  public Iff(Sentence expr1, Sentence expr2) {
-    super(new ArrayList<>(Arrays.asList(expr1, expr2)), "iff", "⟷", Sort.BOOLEAN);
-  }
+  public static String NAME = "iff", SYMBOL = "⟷";
 
-  public Sentence makeCopy() {
-    return new Iff(args.get(0).makeCopy(), args.get(1).makeCopy());
+  public Iff(Sentence expr1, Sentence expr2) {
+    super(new ArrayList<>(Arrays.asList(expr1, expr2)), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -56,10 +54,5 @@ public class Iff extends Sentence {
       b.addBranch(t1);
       return b;
     }
-  }
-
-  @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    return new Iff(args.get(0).instantiate(c, v), args.get(1).instantiate(c, v));
   }
 }

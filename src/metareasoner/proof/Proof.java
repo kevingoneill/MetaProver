@@ -52,11 +52,11 @@ public class Proof {
   }
 
   public void printInferences() {
-    forwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSymbol() + "\t" + i.getJustification()));
+    forwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
   public void printInterests() {
-    backwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSymbol() + "\t" + i.getJustification()));
+    backwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
   public void addForwardsInference(MetaSentence s, MetaInference i) {
@@ -175,7 +175,7 @@ public class Proof {
       Step s = proof.get(i);
       MetaInference justification = s.getJustification();
 
-      System.out.print(i + ".  " + s.getMetaSentence().toSymbol() + "\t\t\t" + s.getReason() + " ");
+      System.out.print(i + ".  " + s.getMetaSentence().toSExpression() + "\t\t\t" + s.getReason() + " ");
 
       if (s.isForwards() && justification != null)
         System.out.println(indexOf(proof, s.getJustification().getOrigin()));

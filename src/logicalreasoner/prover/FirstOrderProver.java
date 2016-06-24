@@ -48,7 +48,7 @@ public class FirstOrderProver extends SemanticProver {
     });
 
     openBranches.forEach(h ->
-            h.flattenUndecomposedSerial().filter(p -> p.sentence.isQuantifier()).forEach(e -> {
+            h.flattenUndecomposedParallel().filter(p -> p.sentence.isQuantifier()).forEachOrdered(e -> {
               if (!quantifierQueue.contains(e))
                 quantifierQueue.add(e);
             }));
@@ -67,47 +67,51 @@ public class FirstOrderProver extends SemanticProver {
   }
 
   private Inference instantiateQuantifier(PriorityQueue<Pair> quantifierQueue) {
-    System.out.println("instantiateQuantifier");
-    System.out.println("################################################\n");
-    printQueue(quantifierQueue);
-
+    //System.out.println("instantiateQuantifier");
+    //System.out.println("################################################\n");
+    //printQueue(quantifierQueue);
     Inference i = null;
-    Sentence s = null;
-    TruthAssignment h;
+    Pair p = null;
+
     while (i == null) {
-      Pair p = quantifierQueue.poll();
-      if (p == null) {
-        printInferences();
-        printInferenceList();
-        System.exit(1);
+      if (quantifierQueue.isEmpty()) {
+        //printInferences();
+        //printInferenceList();
+        //System.exit(1);
+
         return null;
       }
-      s = p.sentence;
-      h = p.truthAssignment;
-      if (s == null)
+
+      p = quantifierQueue.poll();
+
+      if (p.sentence == null)
         return null;
-      if (s instanceof ForAll && h.models(s)) {
+      if (p.truthAssignment.models(p.sentence) && p.sentence instanceof ForAll) {
         Constant c = Constant.getNewUniqueConstant();
-        h.getLeaves().forEach(l -> {
+        p.truthAssignment.getLeavesParallel().forEach(l -> {
           if (l.getConstants().isEmpty())
             l.addConstant(c);
         });
       }
-      TruthAssignment parent = h.getParentContaining(s);
-      if (parent == null) {
-        System.out.println(s);
-        System.out.println(h.keySet());
+
+      i = p.sentence.reason(p.truthAssignment, inferenceCount,
+              p.truthAssignment.getInferenceNum(p.sentence, p.truthAssignment.models(p.sentence)));
+
+      if (i == null) {
+        System.out.println(p.sentence);
+        System.out.println(p.truthAssignment.getConstants());
+        System.out.println(p.truthAssignment.getTruthValue(p.sentence).getUninstantiatedConstants());
+        System.out.println(p.truthAssignment.getTruthValue(p.sentence).getInstantiatedConstants());
         System.exit(1);
       }
-      i = s.reason(parent, inferenceCount,
-              parent.getInferenceNum(s, parent.models(s)));
-      if (i != null)
-        ++inferenceCount;
-    }
 
-    System.out.println(i + "\n----------------------------------------------\n");
-    if (i.getParent().models(s))
-      System.out.println("Instantiating: " + s + "\n");
+      if (i != null) {
+        ++inferenceCount;
+        //System.out.println(i + "\n----------------------------------------------\n");
+        //if (p.truthAssignment.models(p.sentence))
+        //  System.out.println("Instantiating: " + p.sentence + "\n");
+      }
+    }
 
     return i;
   }
@@ -133,34 +137,30 @@ public class FirstOrderProver extends SemanticProver {
         break;
       }
 
+      //printInferences();
+      //printInferenceList();
+
+      PriorityQueue<Pair> quantifierQueue = makeQuantifierQueue();
+      Inference i;
+      while (!(quantifierQueue.isEmpty())) {
+        i = instantiateQuantifier(quantifierQueue);
+        updated = updated && i != null;
+        if (i != null) {
+          infer(i).filter(p -> p.sentence.isQuantifier()).forEach(p -> {
+            if (!quantifierQueue.contains(p))
+              quantifierQueue.add(p);
+          });
+
+          //printInferences();
+          //printInferenceList();
+        }
+      }
+
+      while (updated && !branchQueue.isEmpty())
+        addBranches();
 
       printInferences();
       printInferenceList();
-
-        PriorityQueue<Pair> quantifierQueue = makeQuantifierQueue();
-        Inference i;
-        while (!(quantifierQueue.isEmpty())) {
-          i = instantiateQuantifier(quantifierQueue);
-          updated = updated && i != null;
-          if (i != null) {
-            infer(i).filter(p -> p.sentence.isQuantifier()).forEach(p -> {
-              if (!quantifierQueue.contains(p))
-                quantifierQueue.add(p);
-            });
-
-            printInferences();
-            printInferenceList();
-          }
-        }
-
-        while (updated && !branchQueue.isEmpty())
-          addBranches();
-
-        printInferences();
-        printInferenceList();
-
-      //if (inferenceCount > 50)
-      //  System.exit(1);
     }
     printResult();
   }

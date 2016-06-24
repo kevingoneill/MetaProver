@@ -1,7 +1,6 @@
 package logicalreasoner.prover;
 
 import expression.sentence.Sentence;
-import expression.sentence.SentenceReader;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,9 +18,9 @@ import java.util.Set;
 public class FirstOrderTests {
   public static void runProver(Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
-    premises.forEach(premise -> p.add(SentenceReader.parse(premise)));
+    premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, SentenceReader.parse(interest), true);
+    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true);
     prover.run();
     if (validArgument) {
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());
@@ -94,7 +93,7 @@ public class FirstOrderTests {
     runProver(premises, "(forAll x (H x))", true);
   }
 
-  @Test
+  //@Test
   public void prob9a() {
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (exists y (implies (A x) (B y))))");
@@ -357,10 +356,7 @@ public class FirstOrderTests {
 
   @Test
   public void prob17b() {
-    try {
-      Thread.sleep(10000);
-    } catch (InterruptedException ie) {
-    }
+    //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (forAll y (implies (and (A x) (B y)) (C x y))))");
     premises.add("(exists y (and (F y) (forAll z (implies (H z) (C y z)))))");
