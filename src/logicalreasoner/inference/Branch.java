@@ -45,7 +45,7 @@ public class Branch extends Inference implements Comparable<Branch> {
       return true;
     if (o instanceof Branch) {
       Branch b = (Branch) o;
-      return super.equals(b) && branches.size() == b.branches.size();
+      return super.equals(b) && branches.equals(b.branches);
     }
     return false;
   }
@@ -60,19 +60,27 @@ public class Branch extends Inference implements Comparable<Branch> {
 
   @Override
   public int compareTo(Branch o) {
+    if (this == o)
+      return 0;
+
     if (this.size() != o.size())
       return o.size() - this.size();
 
     int i = this.getOrigin().quantifierCount(),
             j = o.getOrigin().quantifierCount();
     if (i != j)
-      return j - i;
+      return i - j;
 
     i = this.getOrigin().atomCount();
     j = o.getOrigin().atomCount();
     if (i != j)
-      return j - i;
+      return i - j;
 
-    return o.getOrigin().size() - this.getOrigin().size();
+    i = this.getOrigin().size();
+    j = o.getOrigin().size();
+    if (i != j)
+      return i - j;
+
+    return o.inferenceNum - inferenceNum;
   }
 }

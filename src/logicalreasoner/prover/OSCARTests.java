@@ -292,10 +292,7 @@ public class OSCARTests {
 
   //@Test
   public void prob72c() {
-    try {
-      Thread.sleep(10000);
-    } catch (InterruptedException ie) {
-    }
+    //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     runProver(new HashSet<>(),
             "(implies (forAll x (forAll y (exists z (forAll w (implies (and (P x) (Q y)) (and (R z) (S w)))))))" +
                     " (implies (exists v1 (exists u (and (P v1) (Q u)))) (exists s (R s))))", true);
@@ -367,5 +364,161 @@ public class OSCARTests {
     runProver(premises, "(forAll x (implies (and (P x) (F x)) (G x)))", true);
   }
 
+  @Test
+  public void prob81c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(and (exists x (F x)) (exists y (G y)))");
+    runProver(premises, "(iff (and (forAll x (implies (F x) (H x))) (forAll y (implies (G y) (J y)))) (forAll z (forAll w (implies (and (F z) (G w)) (and (H z) (J w))))))", true);
+  }
 
+  @Test
+  public void prob82c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (implies (or (F x) (G x)) (not (H x))))");
+    premises.add("(forAll x (implies (implies (G x) (not (I x))) (and (F x) (H x))))");
+    runProver(premises, "(forAll x (I x))", true);
+  }
+
+  @Test
+  public void prob83c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(not (exists x (and (F x) (or (G x) (H x)))))");
+    premises.add("(exists x (and (I x) (F x)))");
+    premises.add("(forAll x (implies (not (H x)) (J x)))");
+    runProver(premises, "(exists x (and (I x) (J x)))", true);
+  }
+
+  @Test
+  public void prob84c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (implies (and (F x) (or (G x) (H x))) (I x)))");
+    premises.add("(forAll x (implies (and (I x) (H x)) (J x)))");
+    premises.add("(forAll x (implies (K x) (H x)))");
+    runProver(premises, "(forAll x (implies (and (F x) (K x)) (J x)))", true);
+  }
+
+  @Test
+  public void prob85c() {
+    runProver(new HashSet<>(), "(implies (iff (exists x (forAll y (iff (P x) (P y)))) (iff (exists z (Q z)) (forAll w (Q w)))) " +
+            "(iff (exists u (forAll v1 (iff (Q u) (Q v1)))) (iff (exists r (P r)) (forAll s (P s)))))", true);
+  }
+
+  @Test
+  public void prob86c() {
+    runProver(new HashSet<>(), "(implies (iff (exists x (forAll y (iff (P x) (P y)))) (iff (exists z (Q z)) (forAll w (Q w)))) " +
+            "(iff (exists u (forAll v1 (iff (Q u) (Q v1)))) (iff (exists r (P r)) (forAll s (P s)))))", true);
+  }
+
+  @Test
+  public void prob87c() {
+    runProver(new HashSet<>(), "(exists u (exists v1 (implies (P u v1) (forAll x (forAll y (P x y))))))", true);
+  }
+
+  //@Test
+  public void prob88c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (exists y (F x y)))");
+    premises.add("(forAll x (exists z (G x z)))");
+    premises.add("(forAll x (forAll y (implies (or (F x y) (G x y)) (forAll z (implies (or (F y z) (G y z)) (H x z))))))");
+    runProver(premises, "(forAll x (exists y (H x y)))", true);
+  }
+
+  //@Test
+  public void prob89c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll z (exists w (forAll x (exists y (and (implies (P x z) (P y w)) (P y z) (implies (P y w) (exists u (Q u w))))))))");
+    premises.add("(forAll x (forAll z (implies (not (P x z)) (exists v1 (Q v1 z)))))");
+    premises.add("(implies (exists y (exists s (Q y s))) (forAll x (R x x)))");
+    runProver(premises, "(forAll x (exists y (R x y)))", true);
+  }
+
+  @Test
+  public void prob90c() {
+    runProver(new HashSet<>(), "(iff (forAll x (implies (and (P a) (implies (P x) (exists y (and (P y) (R x y))))) (exists z (exists w (and (P z) (R x w) (R w z)))))) (forAll x (and (or (not (P a)) (P x) (exists z (exists w (and (P z) (R x w) (R w z))))) (or (not (P a)) (not (exists y (and (P y) (R x y)))) (exists z (exists w (and (P z) (R x w) (R w z))))))))", true);
+  }
+
+  @Test
+  public void prob91c() {
+    runProver(new HashSet<>(), "(not (exists x (forAll y (iff (F y x) (not (F y y))))))", true);
+  }
+
+  @Test
+  public void prob92c() {
+    runProver(new HashSet<>(), "(implies (exists y (forAll x (iff (F x y) (F x x)))) (not (forAll z (exists w (forAll v1 (iff (F v1 w) (not (F v1 z))))))))", true);
+  }
+
+  @Test
+  public void prob93c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll z (exists y (forAll x (iff (F x y) (and (F x z) (not (F x x)))))))");
+    runProver(premises, "(not (exists z (forAll x (F x z))))", true);
+  }
+
+  @Test
+  public void prob94c() {
+    runProver(new HashSet<>(), "(not (exists y (forAll x (iff (F x y) (not (exists z (and (F x z) (F z x))))))))", true);
+  }
+
+  @Test
+  public void prob95c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (forAll y (iff (Q x y) (forAll z (iff (F z x) (F z y))))))");
+    runProver(premises, "(forAll x (forAll y (iff (Q x y) (Q y x))))", true);
+  }
+
+  @Test
+  public void prob96c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (and (implies (F x) (exists y (and (G y) (H x y)))) (exists y (and (G y) (not (H x y))))))");
+    premises.add("(exists x (and (J x) (forAll y (implies (G y) (H x y)))))");
+    runProver(premises, "(exists x (and (J x) (not (F x))))", true);
+  }
+
+  @Test
+  public void prob97c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (implies (and (F x) (forAll y (implies (and (G y) (H x y)) (J x y)))) (forAll y (implies (and (G y) (H x y)) (K y)))))");
+    premises.add("(not (exists y (and (L y) (K y))))");
+    premises.add("(exists x (and (F x) (forAll y (implies (H x y) (L y))) (forAll y (implies (and (G y) (H x y)) (J x y)))))");
+    runProver(premises, "(exists x (and (F x) (not (exists y (and (G y) (H x y))))))", true);
+  }
+
+  @Test
+  public void prob98c() {
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (implies (and (F x) (forAll y (implies (and (F y) (H y x)) (G y)))) (G x)))");
+    premises.add("(implies (exists x (and (F x) (not (G x)))) (exists x (and (F x) (not (G x)) (forAll y (implies (and (F y) (not (G y))) (J x y))))))");
+    premises.add("(forAll x (forAll y (implies (and (F x) (F y) (H x y)) (not (J y x)))))");
+    runProver(premises, "(forAll x (implies (F x) (G x)))", true);
+  }
+
+  @Test
+  public void prob99c() throws InterruptedException {
+    Thread.sleep(10000);
+    Set<String> premises = new HashSet<>();
+    premises.add("(forAll x (implies (W x) (A x)))");
+    premises.add("(forAll x (implies (F x) (A x)))");
+    premises.add("(forAll x (implies (B x) (A x)))");
+    premises.add("(forAll x (implies (C x) (A x)))");
+    premises.add("(forAll x (implies (S x) (A x)))");
+    premises.add("(exists w0 (W w0))");
+    premises.add("(exists f0 (F f0))");
+    premises.add("(exists b0 (B b0))");
+    premises.add("(exists c0 (C c0))");
+    premises.add("(exists s0 (S s0))");
+    premises.add("(exists g0 (G g0))");
+    premises.add("(forAll x (implies (G x) (P x)))");
+    premises.add("(forAll x (implies (A x) (or (forAll w (implies (P w) (E x w))) (forAll y (implies (and (A y) (M y x) (exists z (and (P z) (E y z)))) (E x y))))))");
+    premises.add("(forAll x (forAll y (implies (and (C x) (B y)) (M x y))))");
+    premises.add("(forAll x (forAll y (implies (and (S x) (B y)) (M x y))))");
+    premises.add("(forAll x (forAll y (implies (and (B x) (F y)) (M x y))))");
+    premises.add("(forAll x (forAll y (implies (and (F x) (W y)) (M x y))))");
+    premises.add("(forAll x (forAll y (implies (and (W x) (F y)) (not (E x y)))))");
+    premises.add("(forAll x (forAll y (implies (and (W x) (G y)) (not (E x y)))))");
+    premises.add("(forAll x (forAll y (implies (and (B x) (C y)) (E x y))))");
+    premises.add("(forAll x (forAll y (implies (and (B x) (S y)) (not (E x y)))))");
+    premises.add("(forAll x (implies (C x) (exists y (and (P y) (E x y)))))");
+    premises.add("(forAll x (implies (S x) (exists y (and (P y) (E x y)))))");
+    runProver(premises, "(exists x (exists y (and (A x) (A y) (exists z (and (E x y) (G z) (E y z))))))", true);
+  }
 }

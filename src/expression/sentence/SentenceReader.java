@@ -156,11 +156,11 @@ public interface SentenceReader {
   static Sentence parseProposition(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     //System.out.println("ParseProposition: " + stack);
     ArrayList<Sentence> list = new ArrayList<>();
-    while (!stack.peek().equals(")")) {
-      if (stack.peek() == null)
-        throw new SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
+    while (stack.peek() != null && !stack.peek().equals(")")) {
       list.add(parse(stack, quantifiedVars));
     }
+    if (stack.peek() == null)
+      throw new SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
     stack.pop();
     return makeSentence(exprName, list);
   }
@@ -177,27 +177,27 @@ public interface SentenceReader {
     switch (name) {
       case "not": {
         if (args.size() != 1)
-          throw new SentenceParseException("Not Sentence must have exactly one argument.");
+          throw new SentenceParseException("Not Sentence must have exactly one argument.\n" + args);
         return new Not(args.get(0));
       }
       case "and": {
         if (args.size() < 2)
-          throw new SentenceParseException("And Sentence must have at least two arguments.");
+          throw new SentenceParseException("And Sentence must have at least two arguments.\n" + args);
         return new And(args);
       }
       case "or": {
         if (args.size() < 2)
-          throw new SentenceParseException("Or Sentence must have at least two arguments.");
+          throw new SentenceParseException("Or Sentence must have at least two arguments.\n" + args);
         return new Or(args);
       }
       case "implies": {
         if (args.size() != 2)
-          throw new SentenceParseException("Implies Sentence must have exactly two arguments.");
+          throw new SentenceParseException("Implies Sentence must have exactly two arguments.\n" + args);
         return new Implies(args.get(0), args.get(1));
       }
       case "iff": {
         if (args.size() != 2)
-          throw new SentenceParseException("Iff Sentence must have exactly two arguments.");
+          throw new SentenceParseException("Iff Sentence must have exactly two arguments.\n" + args);
         return new Iff(args.get(0), args.get(1));
       }
       case "forAll": {

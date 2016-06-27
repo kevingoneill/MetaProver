@@ -9,9 +9,6 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,15 +36,13 @@ public class SemanticProver implements Runnable {
   protected List<TruthAssignment> openBranches;
 
   //All statements which can be branched upon (in descending order of size)
-  protected PriorityBlockingQueue<Branch> branchQueue;
+  protected ArrayList<Branch> branchQueue;
   protected int inferenceCount;
 
   //Keep an ordered list of inferences for proof printing
   protected List<Inference> inferenceList;
 
-  protected boolean print;
-
-  protected final Lock branchLock = new ReentrantLock();
+  protected boolean print, addedBranches;
 
   protected Comparator<Branch> branchComparator = (b1, b2) -> {
     int i, j;
@@ -63,7 +58,8 @@ public class SemanticProver implements Runnable {
               return b.consistencyTest();
             }).count()).sum();
     if (i != j)
-      return i - j;
+      return j - i;
+
     return b1.compareTo(b2);
   };
 
@@ -103,8 +99,9 @@ public class SemanticProver implements Runnable {
     openBranches = new ArrayList<>();
     openBranches.add(masterFunction);
 
-    branchQueue = new PriorityBlockingQueue<>(100, branchComparator);
+    branchQueue = new ArrayList<>();
     this.print = print;
+    addedBranches = false;
   }
 
   public List<Inference> getInferenceList() {
@@ -122,8 +119,9 @@ public class SemanticProver implements Runnable {
     openBranches = new ArrayList<>();
     openBranches.add(masterFunction);
 
-    branchQueue = new PriorityBlockingQueue<>(100, branchComparator);
+    branchQueue = new ArrayList<>();
     print = false;
+    addedBranches = false;
   }
 
   /**
@@ -152,7 +150,8 @@ public class SemanticProver implements Runnable {
       inferenceList.add(i);
       return i.infer(i.getParent());
     } else if (i instanceof Branch) {
-      branchQueue.offer((Branch) i);
+      branchQueue.add((Branch) i);
+      addedBranches = true;
     }
     return Stream.empty();
   }
@@ -283,7 +282,12 @@ public class SemanticProver implements Runnable {
    * and update the openBranches Set to contain those children.
    */
   protected void addBranches() {
-    Branch b = branchQueue.poll();
+    if (addedBranches) {
+      Collections.sort(branchQueue, branchComparator);
+      addedBranches = false;
+    }
+    Branch b = branchQueue.get(branchQueue.size() - 1);
+    branchQueue.remove(branchQueue.size() - 1);
     //System.out.println("Branching on: " + b + "\n" + openBranches);
     if (openBranches.isEmpty())  //Make sure no unnecessary branching occurs
       return;

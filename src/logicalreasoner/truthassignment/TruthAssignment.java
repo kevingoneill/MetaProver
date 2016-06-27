@@ -232,6 +232,24 @@ public class TruthAssignment {
     });
   }
 
+  /**
+   * Add a mapping from a Sentence to a TruthAssignment containing
+   * it to all children. Used for caching mappings, rather than
+   * using recursion.
+   *
+   * @param s the Sentence to be found in t
+   * @param t the TruthAssignment containing a mapping for s
+   */
+  private void addMappingsDownward(Collection<Pair> c) {
+    if (c.isEmpty())
+      return;
+
+    children.forEach(child -> {
+      c.forEach(p -> child.inheritedMappings.putIfAbsent(p.sentence, p.truthAssignment));
+      child.addMappingsDownward(c);
+    });
+  }
+
   private void addMappingsAndConstants(Collection<Pair> c, Collection<Sentence> constants) {
     if (c.isEmpty() && constants.isEmpty())
       return;
@@ -674,18 +692,18 @@ public class TruthAssignment {
    * @param h the children of the leaves of this to add
    */
   public Stream<Pair> addChildren(Collection<TruthAssignment> h) {
+    List<Pair> flattened = flattenSerial().collect(Collectors.toList());
     List<Pair> l = h.stream().flatMap(c -> {
       TruthAssignment child = new TruthAssignment(c, this);
-      //leaves.add(child);
+      leaves.add(child);
       child.addConstants(constants);
       child.refreshInstantiatedConstants();
-      return child.keySet().stream().map(s -> Pair.makePair(s, this));
+      flattened.forEach(p -> child.inheritedMappings.put(p.sentence, p.truthAssignment));
+      return child.keySet().stream().map(s -> Pair.makePair(s, child));
     }).collect(Collectors.toList());
 
     if (parent != null)
       parent.replaceLeaves(leaves, this);
-    inheritedMappings.forEach(this::addMappingDownward);
-    map.keySet().forEach(s -> addMappingDownward(s, this));
     return l.stream();
   }
 

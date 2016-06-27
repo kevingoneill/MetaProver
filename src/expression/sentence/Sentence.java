@@ -16,6 +16,7 @@ public abstract class Sentence extends Expression {
   static HashMap<String, Sentence> instances = new HashMap<>();
   protected ArrayList<Sentence> args;
   Sort sort;
+  protected Integer SIZE = null, QUANTIFIER_COUNT = null, ATOM_COUNT = null;
 
   /**
    * Create a new logical Sentence
@@ -111,7 +112,9 @@ public abstract class Sentence extends Expression {
   }
 
   public int size() {
-    return args.stream().mapToInt(Sentence::size).sum() + numArgs();
+    if (SIZE == null)
+      SIZE = args.stream().mapToInt(Sentence::size).sum() + numArgs();
+    return SIZE;
   }
 
   public Sort getSort() {
@@ -133,13 +136,17 @@ public abstract class Sentence extends Expression {
   }
 
   public int quantifierCount() {
-    return args.stream().mapToInt(Sentence::quantifierCount)
-            .reduce(isQuantifier() ? 1 : 0, (a, b) -> a + b);
+    if (QUANTIFIER_COUNT == null)
+      QUANTIFIER_COUNT = args.stream().mapToInt(Sentence::quantifierCount)
+              .reduce(isQuantifier() ? 1 : 0, (a, b) -> a + b);
+    return QUANTIFIER_COUNT;
   }
 
   public int atomCount() {
-    return args.stream().mapToInt(Sentence::atomCount)
-            .reduce(isAtomic() ? 1 : 0, (a, b) -> a + b);
+    if (ATOM_COUNT == null)
+      ATOM_COUNT = args.stream().mapToInt(Sentence::atomCount)
+              .reduce(isAtomic() ? 1 : 0, (a, b) -> a + b);
+    return ATOM_COUNT;
   }
 
   public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {

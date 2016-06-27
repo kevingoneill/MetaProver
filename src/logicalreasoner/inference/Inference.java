@@ -53,7 +53,7 @@ public abstract class Inference {
       return true;
     if (o instanceof Inference) {
       Inference i = (Inference) o;
-      return justificationNum == i.justificationNum && i.origin == origin && i.parent == parent;
+      return inferenceNum == i.inferenceNum && justificationNum == i.justificationNum && i.origin == origin && i.parent == parent;
     }
     return false;
   }
