@@ -5,6 +5,7 @@ import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,14 +18,21 @@ import java.util.stream.Stream;
 public class Branch extends Inference implements Comparable<Branch> {
 
   protected List<TruthAssignment> branches;
+  private List<TruthAssignment> inferredOver;
 
   public Branch(TruthAssignment p, Sentence s, int i, int j) {
     super(p, s, i, j);
     branches = new ArrayList<>();
+    inferredOver = Collections.synchronizedList(new ArrayList<>());
+  }
+
+  public List<TruthAssignment> getInferredOver() {
+    return inferredOver;
   }
 
   @Override
   public Stream<Pair> infer(TruthAssignment h) {
+    inferredOver.add(h);
     return h.addChildren(branches);
   }
 
@@ -33,6 +41,11 @@ public class Branch extends Inference implements Comparable<Branch> {
   }
 
   public void addBranch(TruthAssignment h) {
+    branches.add(h);
+    h.keySet().forEach(h::addSupposition);
+  }
+
+  public void addBranchWithoutSuppositions(TruthAssignment h) {
     branches.add(h);
   }
 
@@ -63,11 +76,18 @@ public class Branch extends Inference implements Comparable<Branch> {
     if (this == o)
       return 0;
 
+    int i, j;
+
     if (this.size() != o.size())
       return o.size() - this.size();
 
-    int i = this.getOrigin().quantifierCount(),
-            j = o.getOrigin().quantifierCount();
+    i = this.getOrigin().quantifierCount();
+    j = o.getOrigin().quantifierCount();
+    if (i != j)
+      return i - j;
+
+    i = branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
+    j = o.branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
     if (i != j)
       return i - j;
 
@@ -81,6 +101,6 @@ public class Branch extends Inference implements Comparable<Branch> {
     if (i != j)
       return i - j;
 
-    return o.inferenceNum - inferenceNum;
+    return 0;
   }
 }

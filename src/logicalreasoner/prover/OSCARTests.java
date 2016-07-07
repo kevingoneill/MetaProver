@@ -16,91 +16,91 @@ public class OSCARTests {
 
   @Test
   public void prob21c() {
-    runProver(new HashSet<>(), "(iff (implies p q) (implies (not q) (not p)))", true);
+    runProver(new HashSet<>(), "(iff (implies P Q) (implies (not Q) (not P)))", true);
   }
 
   @Test
   public void prob22c() {
-    runProver(new HashSet<>(), "(iff (not (not p)) p)", true);
+    runProver(new HashSet<>(), "(iff (not (not P)) P)", true);
   }
 
   @Test
   public void prob23c() {
-    runProver(new HashSet<>(), "(implies (not (implies p q)) (implies q p))", true);
+    runProver(new HashSet<>(), "(implies (not (implies P Q)) (implies Q P))", true);
   }
 
   @Test
   public void prob24c() {
-    runProver(new HashSet<>(), "(iff (implies (not p) q) (implies (not q) p))", true);
+    runProver(new HashSet<>(), "(iff (implies (not P) Q) (implies (not Q) P))", true);
   }
 
   @Test
   public void prob25c() {
-    runProver(new HashSet<>(), "(implies (implies (or p q) (or p r)) (or p (implies q r)))", true);
+    runProver(new HashSet<>(), "(implies (implies (or P Q) (or P R)) (or P (implies Q R)))", true);
   }
 
   @Test
   public void prob26c() {
-    runProver(new HashSet<>(), "(or p (not p))", true);
+    runProver(new HashSet<>(), "(or P (not P))", true);
   }
 
   @Test
   public void prob27c() {
-    runProver(new HashSet<>(), "(or p (not (not (not p))))", true);
+    runProver(new HashSet<>(), "(or P (not (not (not P))))", true);
   }
 
   @Test
   public void prob28c() {
-    runProver(new HashSet<>(), "(implies (implies (implies p q) p) p)", true);
+    runProver(new HashSet<>(), "(implies (implies (implies P Q) P) P)", true);
   }
 
   @Test
   public void prob29c() {
-    runProver(new HashSet<>(), "(implies (and (or p q) (or (not p) q) (or p (not q))) (not (or (not p) (not q))))", true);
+    runProver(new HashSet<>(), "(implies (and (or P Q) (or (not P) Q) (or P (not Q))) (not (or (not P) (not Q))))", true);
   }
 
   @Test
   public void prob30c() {
     Set<String> premises = new HashSet<>();
-    premises.add("(implies q r)");
-    premises.add("(implies r (and p q))");
-    premises.add("(implies p (or q r))");
-    runProver(premises, "(iff p q)", true);
+    premises.add("(implies Q R)");
+    premises.add("(implies R (and P Q))");
+    premises.add("(implies P (or Q R))");
+    runProver(premises, "(iff P Q)", true);
   }
 
   @Test
   public void prob31c() {
-    runProver(new HashSet<>(), "(iff p p)", true);
+    runProver(new HashSet<>(), "(iff P P)", true);
   }
 
   @Test
   public void prob32c() {
-    runProver(new HashSet<>(), "(iff (iff (iff p q) r) (iff p (iff q r)))", true);
+    runProver(new HashSet<>(), "(iff (iff (iff P Q) R) (iff P (iff Q R)))", true);
   }
 
   @Test
   public void prob33c() {
-    runProver(new HashSet<>(), "(iff (or p (and q r)) (and (or p q) (or p r)))", true);
+    runProver(new HashSet<>(), "(iff (or P (and Q R)) (and (or P Q) (or P R)))", true);
   }
 
   @Test
   public void prob34c() {
-    runProver(new HashSet<>(), "(iff (iff p q) (and (or q (not p)) (or (not q) p)))", true);
+    runProver(new HashSet<>(), "(iff (iff P Q) (and (or Q (not P)) (or (not Q) P)))", true);
   }
 
   @Test
   public void prob35c() {
-    runProver(new HashSet<>(), "(implies (iff p q) (or (not p) q))", true);
+    runProver(new HashSet<>(), "(implies (iff P Q) (or (not P) Q))", true);
   }
 
   @Test
   public void prob36c() {
-    runProver(new HashSet<>(), "(or (implies p q) (implies q p))", true);
+    runProver(new HashSet<>(), "(or (implies P Q) (implies Q P))", true);
   }
 
   @Test
   public void prob37c() {
-    runProver(new HashSet<>(), "(iff (implies (and p (implies q r)) s) (and (or (not p) q s) (or (not p) (not r) s)))", true);
+    runProver(new HashSet<>(), "(iff (implies (and P (implies Q R)) S) (and (or (not P) Q S) (or (not P) (not R) S)))", true);
   }
 
   @Test
@@ -521,4 +521,6 @@ public class OSCARTests {
     premises.add("(forAll x (implies (S x) (exists y (and (P y) (E x y)))))");
     runProver(premises, "(exists x (exists y (and (A x) (A y) (exists z (and (E x y) (G z) (E y z))))))", true);
   }
+
+
 }

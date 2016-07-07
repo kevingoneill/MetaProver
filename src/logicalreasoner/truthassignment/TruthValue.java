@@ -90,6 +90,7 @@ public class TruthValue {
   }
 
   public boolean isDecomposed() {
+
     return isDecomposed;
   }
 

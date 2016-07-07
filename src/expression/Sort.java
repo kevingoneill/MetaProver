@@ -11,11 +11,11 @@ import java.util.Set;
  * OBJECT, has no supersort.
  */
 public class Sort {
-  public static final Sort OBJECT = new Sort("OBJECT", null);
-  public static final Sort BOOLEAN = new Sort("BOOLEAN", OBJECT);
+  public static final Sort OBJECT = new Sort("Object", null);
+  public static final Sort BOOLEAN = new Sort("Boolean", OBJECT);
   public static Map<String, Sort> instances = new HashMap<String, Sort>() {{
-    this.put("OBJECT", OBJECT);
-    this.put("BOOLEAN", BOOLEAN);
+    this.put("Object", OBJECT);
+    this.put("Boolean", BOOLEAN);
   }};
 
   private String name;
@@ -50,6 +50,10 @@ public class Sort {
     instances.put(name, new Sort(name, superSort));
     superSort.addSubSort(instances.get(name));
     return instances.get(name);
+  }
+
+  public String toString() {
+    return name;
   }
 
   /**

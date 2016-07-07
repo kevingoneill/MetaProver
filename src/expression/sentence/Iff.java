@@ -33,8 +33,8 @@ public class Iff extends Sentence {
     h.setDecomposed(this);
     if (h.models(this)) {
       Branch b = new Branch(h, this, inferenceNum, justificationNum);
-      TruthAssignment t = new TruthAssignment(),
-              t1 = new TruthAssignment();
+      TruthAssignment t = new TruthAssignment(-1),
+              t1 = new TruthAssignment(-1);
       t.setTrue(args.get(0), inferenceNum);
       t.setTrue(args.get(1), inferenceNum);
       b.addBranch(t);
@@ -44,8 +44,8 @@ public class Iff extends Sentence {
       return b;
     } else {
       Branch b = new Branch(h, this, inferenceNum, justificationNum);
-      TruthAssignment t = new TruthAssignment(),
-              t1 = new TruthAssignment();
+      TruthAssignment t = new TruthAssignment(-1),
+              t1 = new TruthAssignment(-1);
       t.setTrue(args.get(0), inferenceNum);
       t.setFalse(args.get(1), inferenceNum);
       b.addBranch(t);

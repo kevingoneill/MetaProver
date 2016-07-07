@@ -13,14 +13,20 @@ import java.util.stream.Stream;
  */
 public class Decomposition extends Inference {
   protected TruthAssignment additions;
+  protected TruthAssignment inferredOver = null;
 
   public Decomposition(TruthAssignment h, Sentence o, int i, int j) {
     super(h, o, i, j);
     additions = new TruthAssignment(-1);
   }
 
+  public TruthAssignment getInferredOver() {
+    return inferredOver;
+  }
+
   @Override
   public Stream<Pair> infer(TruthAssignment h) {
+    inferredOver = h;
     return h.merge(additions);
   }
 

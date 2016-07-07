@@ -27,6 +27,10 @@ public class SemanticProver implements Runnable {
     inferences.addAll(prover.inferenceList);
   }
 
+  Long maxRuntime = null,
+          startTime = null,
+          endTime = null;
+
   protected Set<Sentence> premises, interests;
 
   //Stores the initial/root TruthAssignment
@@ -41,9 +45,7 @@ public class SemanticProver implements Runnable {
 
   //Keep an ordered list of inferences for proof printing
   protected List<Inference> inferenceList;
-
-  protected boolean print, addedBranches;
-
+  protected boolean print, addedBranches, finishedProof;
   protected Comparator<Branch> branchComparator = (b1, b2) -> {
     int i, j;
     i = b1.getParent().getLeavesParallel().filter(openBranches::contains).mapToInt(l ->
@@ -60,7 +62,26 @@ public class SemanticProver implements Runnable {
     if (i != j)
       return j - i;
 
-    return b1.compareTo(b2);
+    i = b1.compareTo(b2);
+    if (i != 0)
+      return i;
+
+    i = b1.getParent().getLeavesParallel().filter(openBranches::contains).mapToInt(l ->
+            (int) b1.getBranches().stream().flatMap(b -> {
+              b.setParent(null);
+              return b.flattenSerial().flatMap(p -> p.sentence.getSubSentences());
+            }).filter(l::isMapped).count()).sum();
+    j = b2.getParent().getLeavesParallel().filter(openBranches::contains).mapToInt(l ->
+            (int) b2.getBranches().stream().flatMap(b -> {
+              b.setParent(null);
+              return b.flattenSerial().flatMap(p -> p.sentence.getSubSentences());
+            }).filter(l::isMapped).count()).sum();
+
+    if (i != j)
+      return i - j;
+
+
+    return b2.getInferenceNum() - b1.getInferenceNum();
   };
 
   /**
@@ -95,13 +116,15 @@ public class SemanticProver implements Runnable {
     interests.forEach(c::setFalse);
     c.infer(masterFunction);
     inferenceList.add(c);
+    interests.forEach(masterFunction::addSupposition);
 
-    openBranches = new ArrayList<>();
+    openBranches = new CopyOnWriteArrayList<>();
     openBranches.add(masterFunction);
 
     branchQueue = new ArrayList<>();
     this.print = print;
     addedBranches = false;
+    finishedProof = false;
   }
 
   public List<Inference> getInferenceList() {
@@ -116,12 +139,19 @@ public class SemanticProver implements Runnable {
     inferenceList = new CopyOnWriteArrayList<>();
     inferenceCount = 1;
 
-    openBranches = new ArrayList<>();
+    openBranches = new CopyOnWriteArrayList<>();
     openBranches.add(masterFunction);
 
     branchQueue = new ArrayList<>();
     print = false;
     addedBranches = false;
+    finishedProof = false;
+  }
+
+  public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
+    this(premises, interest, print);
+    maxRuntime = (long) runTime * 1000;
+    finishedProof = false;
   }
 
   /**
@@ -160,20 +190,25 @@ public class SemanticProver implements Runnable {
    * Run the prover over the given premises & conclusion
    */
   public void run() {
+    startTime = System.currentTimeMillis();
     printArgument();
     runPropositionally();
+    finishedProof = true;
     printResult();
   }
 
   public void runPropositionally() {
-    //closeBranches();
-    System.out.println("runPropositionally");
     while (!propositionalReasoningCompleted()) {  // Reason propositionally while possible
+
+      if (maxRuntime != null && (System.currentTimeMillis() - startTime) >= maxRuntime)
+        return;
+
       boolean updated = true;
       int i = inferenceList.size();
       // Always decompose all statements before branching
       while (updated && !openBranches.isEmpty()) {
         openBranches.parallelStream().flatMap(b -> reason(b, false)).collect(Collectors.toCollection(HashSet::new)).forEach(this::infer);
+
         updated = i != inferenceList.size();
         i = inferenceList.size();
       }
@@ -189,7 +224,7 @@ public class SemanticProver implements Runnable {
       if (isInvalid())
         break;
 
-      System.out.println("# of Inferences:\t" + inferenceList.size() + "\t# of Open Branches:\t" + openBranches.size());
+      System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size());
     }
 
     //printInferenceList();
@@ -203,6 +238,10 @@ public class SemanticProver implements Runnable {
    */
   protected boolean reasoningCompleted() {
     return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.parallelStream().allMatch(TruthAssignment::decomposedAll));
+  }
+
+  public boolean finishedProof() {
+    return finishedProof;
   }
 
 
@@ -286,6 +325,7 @@ public class SemanticProver implements Runnable {
       Collections.sort(branchQueue, branchComparator);
       addedBranches = false;
     }
+
     Branch b = branchQueue.get(branchQueue.size() - 1);
     branchQueue.remove(branchQueue.size() - 1);
     //System.out.println("Branching on: " + b + "\n" + openBranches);
@@ -293,20 +333,15 @@ public class SemanticProver implements Runnable {
       return;
     inferenceList.add(b);
 
-    //b.getParent().getLeaves().filter(openBranches::contains).forEach(b::infer);
-    //openBranches = openBranches.parallelStream().flatMap(TruthAssignment::getLeaves).filter(TruthAssignment::areParentsConsistent).collect(Collectors.toList());
-
-    b.getParent().getLeaves().filter(openBranches::contains).forEach(leaf -> {
-      b.infer(leaf);
-      leaf.getChildren().forEach(l -> openBranches.add(l));
+    b.getParent().getLeaves().filter(openBranches::contains).flatMap(b::infer).count();
+    b.getInferredOver().forEach(leaf -> {
+      openBranches.addAll(leaf.getChildren());
       if (!leaf.getChildren().isEmpty())
         openBranches.remove(leaf);
     });
-
   }
 
   protected void closeBranches() {
-    //openBranches.removeIf(b -> !b.areParentsConsistent());
     openBranches = openBranches.parallelStream().filter(TruthAssignment::areParentsConsistent).collect(Collectors.toList());
   }
 

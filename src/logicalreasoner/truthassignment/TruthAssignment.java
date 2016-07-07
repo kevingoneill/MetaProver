@@ -5,6 +5,7 @@ import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
+import logicalreasoner.inference.Closure;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,7 @@ public class TruthAssignment {
   private List<TruthAssignment> children;
   private Set<TruthAssignment> leaves;
   private Set<Sentence> constants;
+  private Map<Sentence, Boolean> suppositions;
 
   /**
    * Create a new, empty TruthAssignment
@@ -40,6 +42,7 @@ public class TruthAssignment {
     children = new ArrayList<>();
     leaves = new HashSet<>();
     constants = new HashSet<>();
+    suppositions = new HashMap<>();
   }
 
   /**
@@ -55,6 +58,7 @@ public class TruthAssignment {
     children = new ArrayList<>();
     leaves = new HashSet<>();
     constants = new HashSet<>();
+    suppositions = new HashMap<>();
   }
 
   /**
@@ -65,11 +69,13 @@ public class TruthAssignment {
   public TruthAssignment(TruthAssignment ta) {
     UID = truthAssignmentCount++;
     this.map = new ConcurrentHashMap<>();
+    suppositions = ta.suppositions;
     inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
     ta.map.forEach((k, v) -> {
       map.put(k, new TruthValue(v));
       if (k.isAtomic())
         setDecomposed(k);
+      addSupposition(k);
     });
 
     this.parent = ta.parent;
@@ -89,6 +95,7 @@ public class TruthAssignment {
     UID = truthAssignmentCount++;
     this.map = new ConcurrentHashMap<>();
     this.inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
+    suppositions = ta.suppositions;
     this.parent = p;
     children = new ArrayList<>(ta.children);
     leaves = new HashSet<>(ta.leaves);
@@ -99,7 +106,12 @@ public class TruthAssignment {
       v.getValues().forEach((b, i) -> set(k, b, i));
       if (k.isAtomic())
         setDecomposed(k);
+      addSupposition(k);
     });
+  }
+
+  public int getUID() {
+    return (int) UID;
   }
 
   /**
@@ -240,7 +252,7 @@ public class TruthAssignment {
    * @param s the Sentence to be found in t
    * @param t the TruthAssignment containing a mapping for s
    */
-  private void addMappingsDownward(Collection<Pair> c) {
+  public void addMappingsDownward(Collection<Pair> c) {
     if (c.isEmpty())
       return;
 
@@ -250,7 +262,27 @@ public class TruthAssignment {
     });
   }
 
-  private void addMappingsAndConstants(Collection<Pair> c, Collection<Sentence> constants) {
+  /**
+   * Add a mapping from a Sentence to a TruthAssignment containing
+   * it to all children. Used for caching mappings, rather than
+   * using recursion.
+   *
+   * @param s the Sentence to be found in t
+   * @param t the TruthAssignment containing a mapping for s
+   */
+  public void addMappings(Collection<Pair> c) {
+    if (c.isEmpty())
+      return;
+
+    c.forEach(p -> inheritedMappings.putIfAbsent(p.sentence, p.truthAssignment));
+    addMappingsDownward(c);
+  }
+
+  public void clearMappings() {
+    inheritedMappings.clear();
+  }
+
+  public void addMappingsAndConstants(Collection<Pair> c, Collection<Sentence> constants) {
     if (c.isEmpty() && constants.isEmpty())
       return;
 
@@ -263,7 +295,7 @@ public class TruthAssignment {
   }
 
   public List<Pair> getInheritedMappings() {
-    return inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())).collect(Collectors.toList());
+    return inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())).collect(Collectors.toList());
   }
 
   /**
@@ -368,6 +400,23 @@ public class TruthAssignment {
     return v.getInferenceNum(models);
   }
 
+  public void addSupposition(Sentence s) {
+    suppositions.put(s, map.get(s).isModelled());
+  }
+
+  public List<Map.Entry<Sentence, Boolean>> getSuppositions() {
+    if (parent == null)
+      return getImmediateSuppositions();
+    List<Map.Entry<Sentence, Boolean>> m = new ArrayList<>(suppositions.entrySet());
+    m.addAll(parent.getSuppositions());
+    return m;
+  }
+
+  public List<Map.Entry<Sentence, Boolean>> getImmediateSuppositions() {
+    return new ArrayList<>(suppositions.entrySet());
+  }
+
+
   /**
    * Add a new mapping to the TruthAssignment
    *
@@ -383,7 +432,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.setTrue(inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
       }
       if (s.isAtomic())
         setDecomposed(s);
@@ -408,7 +457,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.setFalse(inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
@@ -432,7 +481,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.set(b, inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
@@ -469,7 +518,7 @@ public class TruthAssignment {
    * false otherwise
    */
   public boolean isMapped(Sentence s) {
-    return inheritedMappings.containsKey(s) || map.containsKey(s);
+    return map.containsKey(s) || inheritedMappings.containsKey(s);
   }
 
   /**
@@ -496,17 +545,17 @@ public class TruthAssignment {
 
   public Stream<Pair> flattenParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().map(s -> Pair.makePair(s, this));
+      return map.keySet().parallelStream().map(s -> new Pair(s, this));
     return //Stream.concat(parent.flattenParallel(),
-            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
-                    map.keySet().parallelStream().map(s -> Pair.makePair(s, this)));
+            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> new Pair(e.getKey(), e.getValue())),
+                    map.keySet().parallelStream().map(s -> new Pair(s, this)));
   }
 
   public Stream<Pair> flattenSerial() {
     if (parent == null)
-      return map.keySet().stream().map(s -> Pair.makePair(s, this));
-    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
-            map.keySet().stream().map(s -> Pair.makePair(s, this)));
+      return map.keySet().stream().map(s -> new Pair(s, this));
+    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())),
+            map.keySet().stream().map(s -> new Pair(s, this)));
   }
 
   /**
@@ -515,10 +564,10 @@ public class TruthAssignment {
    */
   public Stream<Pair> flattenUndecomposedParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
+      return map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this));
     return Stream.concat(inheritedMappings.entrySet().parallelStream()
-                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
-            map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> new Pair(e.getKey(), e.getValue())),
+            map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this)));
   }
 
   /**
@@ -527,10 +576,10 @@ public class TruthAssignment {
    */
   public Stream<Pair> flattenUndecomposedSerial() {
     if (parent == null)
-      return map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
+      return map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this));
     return Stream.concat(inheritedMappings.entrySet().stream()
-                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
-            map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> new Pair(e.getKey(), e.getValue())),
+            map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this)));
   }
 
 
@@ -559,10 +608,10 @@ public class TruthAssignment {
         map.put(e.getKey(), truthValue);
         if (e.getKey().isAtomic())
           truthValue.setDecomposed();
-        return Pair.makePair(e.getKey(), this);
+        return new Pair(e.getKey(), this);
       } else {
         truthValue.putAll(e.getValue());
-        return Pair.makePair(truthValue.getSentence(), this);
+        return new Pair(truthValue.getSentence(), this);
       }
     }).collect(Collectors.toList());
 
@@ -578,24 +627,39 @@ public class TruthAssignment {
    */
   public boolean consistencyTest() {
     return map.keySet().stream().allMatch(s -> {
-      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
+      // Check if the Sentence has multiple values in THIS TruthAssignment
+      if (!map.get(s).isConsistent() || (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this)))
         return false;
-      else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
-        return false;
-
-      /*
-      TruthAssignment h = inheritedMappings.get(s);  // This is slow, for some reason ???
-      if (h == null)
-        return true;
-      Boolean b = h.models(s);
-      return b == null || b == models(s);
-      */
 
       if (parent == null)
         return true;
       Boolean b = parent.models(s);
-      return b == null || b == models(s);
+      return (b == null || b == models(s));
     });
+  }
+
+  private Closure closeBranchHelper(int inferenceNum) {
+    return map.keySet().stream().map(s -> {
+      if (!map.get(s).isConsistent())  // Check if the Sentence has multiple values in THIS TruthAssignment
+        return new Closure(s, this, this, inferenceNum);
+      else if (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this))
+        return new Closure(s, this, this, inferenceNum);
+
+      TruthAssignment h = inheritedMappings.get(s);  // This is slow, for some reason ???
+      if (h == null)
+        return null;
+      Boolean b = h.models(s);
+      if (b != null && b != models(s))
+        return new Closure(s, this, h, inferenceNum);
+      return null;
+    }).filter(c -> c != null).findFirst().orElse(null);
+  }
+
+  public Closure closeBranch(int inferenceNum) {
+    Closure c = closeBranchHelper(inferenceNum);
+    if (c != null || parent == null)
+      return c;
+    return parent.closeBranch(inferenceNum);
   }
 
   /**
@@ -692,19 +756,18 @@ public class TruthAssignment {
    * @param h the children of the leaves of this to add
    */
   public Stream<Pair> addChildren(Collection<TruthAssignment> h) {
-    List<Pair> flattened = flattenSerial().collect(Collectors.toList());
-    List<Pair> l = h.stream().flatMap(c -> {
+    return h.parallelStream().flatMap(c -> {
       TruthAssignment child = new TruthAssignment(c, this);
       leaves.add(child);
       child.addConstants(constants);
       child.refreshInstantiatedConstants();
-      flattened.forEach(p -> child.inheritedMappings.put(p.sentence, p.truthAssignment));
-      return child.keySet().stream().map(s -> Pair.makePair(s, child));
-    }).collect(Collectors.toList());
+      child.inheritedMappings.putAll(inheritedMappings);
+      map.keySet().forEach(s -> child.inheritedMappings.put(s, this));
 
-    if (parent != null)
-      parent.replaceLeaves(leaves, this);
-    return l.stream();
+      if (parent != null)
+        parent.replaceLeaf(child, this);
+      return child.map.keySet().stream().map(s -> new Pair(s, child));
+    });
   }
 
   private void replaceLeaves(Collection<TruthAssignment> newLeaves, TruthAssignment oldLeaf) {
@@ -712,6 +775,13 @@ public class TruthAssignment {
     leaves.addAll(newLeaves);
     if (parent != null)
       parent.replaceLeaves(newLeaves, oldLeaf);
+  }
+
+  private void replaceLeaf(TruthAssignment newLeaf, TruthAssignment oldLeaf) {
+    leaves.remove(oldLeaf);
+    leaves.add(newLeaf);
+    if (parent != null)
+      parent.replaceLeaf(newLeaf, oldLeaf);
   }
 
   /**

@@ -37,8 +37,8 @@ public class Implies extends Sentence {
     h.setDecomposed(this);
     if (h.models(this)) {
       Branch b = new Branch(h, this, inferenceNum, justificationNum);
-      TruthAssignment t = new TruthAssignment(),
-              t1 = new TruthAssignment();
+      TruthAssignment t = new TruthAssignment(-1),
+              t1 = new TruthAssignment(-1);
       t.setFalse(args.get(0), inferenceNum);
       b.addBranch(t);
       t1.setTrue(args.get(1), inferenceNum);

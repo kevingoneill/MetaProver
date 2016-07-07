@@ -20,13 +20,19 @@ public class FirstOrderTests {
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true);
+    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true, 30);
     prover.run();
+
+    if (!prover.finishedProof()) {
+      throw new RuntimeException("Prover could not finish proof in the given amount of time.");
+    }
+
     if (validArgument) {
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());
     } else {
       Assert.assertTrue("Prover determined an invalid argument was valid", prover.isConsistent());
     }
+    System.gc();
   }
 
   @Test
@@ -343,10 +349,9 @@ public class FirstOrderTests {
     runProver(premises, "(forAll x (L x x))", false);
   }
 
-  // VALID
   @Test
   public void prob16b() {
-    //try {Thread.sleep(5000);} catch (InterruptedException ie) {}
+    //try {Thread.sleep(10000);} catch (InterruptedException ie) {}
     HashSet<String> premises = new HashSet<>();
     premises.add("(forAll x (implies (S x) (exists y (and (S y) (forAll z (iff (B z y) (and (B z x) (B z z))))))))");
     premises.add("(forAll x (not (B x x)))");

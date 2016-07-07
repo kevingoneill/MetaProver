@@ -47,7 +47,7 @@ public class Or extends Sentence {
       }
       Branch b = new Branch(h, this, inferenceNum, justificationNum);
       args.forEach(arg -> {
-        TruthAssignment t = new TruthAssignment();
+        TruthAssignment t = new TruthAssignment(-1);
         t.setTrue(arg, inferenceNum);
         b.addBranch(t);
       });

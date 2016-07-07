@@ -34,6 +34,18 @@ public class FirstOrderProver extends SemanticProver {
     super(truthAssignment);
   }
 
+  /**
+   * Initialize the reasoner with the premises and the negation of all interests
+   *
+   * @param premises the prior knowledge of the prover
+   * @param interest the interest of the prover (to be negated)
+   * @param print    Print log output if true
+   * @param runTime  The maximum runTime which this prover should run on
+   */
+  public FirstOrderProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
+    super(premises, interest, print, runTime);
+  }
+
   private PriorityQueue<Pair> makeQuantifierQueue() {
     PriorityQueue<Pair> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
       if (!e1.truthAssignment.models(e1.sentence)) {      // Always remove negations (false assignments) first
@@ -128,12 +140,16 @@ public class FirstOrderProver extends SemanticProver {
    * Run the prover over the given premises & conclusion
    */
   public void run() {
+    startTime = System.currentTimeMillis();
     printArgument();
     while (!reasoningCompleted()) {
       boolean updated = true;
       runPropositionally();
+
+      if (maxRuntime != null && (System.currentTimeMillis() - startTime) >= maxRuntime)
+        return;
+
       if (isInvalid() || openBranches.isEmpty()) {
-        //System.exit(1);
         break;
       }
 
@@ -159,9 +175,10 @@ public class FirstOrderProver extends SemanticProver {
       while (updated && !branchQueue.isEmpty())
         addBranches();
 
-      printInferences();
-      printInferenceList();
+      //printInferences();
+      //printInferenceList();
     }
+    finishedProof = true;
     printResult();
   }
 }

@@ -7,6 +7,8 @@ import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The Sentence class represents any type of logical
@@ -43,7 +45,7 @@ public abstract class Sentence extends Expression {
   public static Sentence makeSentence(String sExpr) {
     if (instances.containsKey(sExpr))
       return instances.get(sExpr);
-    Sentence s = SentenceReader.parse(sExpr);
+    Sentence s = new StrictSentenceReader().parse(sExpr);
     instances.put(sExpr, s);
     return s;
   }
@@ -56,11 +58,11 @@ public abstract class Sentence extends Expression {
    * @return the corresponding Sentence Object
    */
   public static Sentence makeSentence(String name, List<Sentence> args) {
-    return makeSentence(SentenceReader.sentenceString(name, args));
+    return makeSentence(AbstractSentenceReader.sentenceString(name, args));
   }
 
   public static Sentence makeSentence(String name, Variable var, Sentence s) {
-    return makeSentence(SentenceReader.sentenceString(name, var, s));
+    return makeSentence(AbstractSentenceReader.sentenceString(name, var, s));
   }
 
   public abstract Boolean eval(TruthAssignment h);
@@ -95,6 +97,30 @@ public abstract class Sentence extends Expression {
     return TOSEXPR;
   }
 
+  public String toMATR() {
+    if (args.isEmpty())
+      return sort.toString() + ":" + name;
+    StringBuilder builder = new StringBuilder();
+    builder.append("(").append(sort).append(":").append(name);
+    boolean b = this instanceof And || this instanceof Or || this instanceof Iff;
+    if (b)
+      builder.append(" {");
+    else
+      builder.append(" ");
+    IntStream.rangeClosed(0, args.size() - 1).forEach(i -> {
+      if (i == 0)
+        builder.append(args.get(i).toMATR());
+      builder.append(" " + args.get(i).toMATR());
+    });
+    //args.forEach(arg -> builder.append(" ").append(arg.toMATR()));
+
+    if (b)
+      builder.append("})");
+    else
+      builder.append(")");
+    return builder.toString();
+  }
+
   public boolean equals(Object o) {
     return this == o;
   }
@@ -105,6 +131,10 @@ public abstract class Sentence extends Expression {
 
   public boolean isLiteral() {
     return isAtomic() || this instanceof Not && args.get(0).isLiteral();
+  }
+
+  public Sentence getSubSentence(int i) {
+    return args.get(i);
   }
 
   public int numArgs() {
@@ -147,6 +177,12 @@ public abstract class Sentence extends Expression {
       ATOM_COUNT = args.stream().mapToInt(Sentence::atomCount)
               .reduce(isAtomic() ? 1 : 0, (a, b) -> a + b);
     return ATOM_COUNT;
+  }
+
+  public Stream<Sentence> getSubSentences() {
+    if (args.isEmpty())
+      return Stream.of(this);
+    return Stream.concat(Stream.of(this), args.stream().flatMap(Sentence::getSubSentences));
   }
 
   public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {

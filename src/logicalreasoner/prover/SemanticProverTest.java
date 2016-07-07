@@ -20,13 +20,19 @@ public class SemanticProverTest {
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
-    SemanticProver prover = new SemanticProver(p, Sentence.makeSentence(interest), true);
+    SemanticProver prover = new SemanticProver(p, Sentence.makeSentence(interest), true, 1);
     prover.run();
     if (validArgument) {
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());
     } else {
       Assert.assertTrue("Prover determined an invalid argument was valid", prover.isConsistent());
     }
+    System.gc();
+  }
+
+  @Test
+  public void test() {
+    runProver(new HashSet<>(), "(implies A A)", true);
   }
 
   @Test
