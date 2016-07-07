@@ -65,6 +65,36 @@ public abstract class Sentence extends Expression {
     return makeSentence(AbstractSentenceReader.sentenceString(name, var, s));
   }
 
+  /**
+   * Obtain a Sentence instance by direct lookup using
+   * the full s-expression string of the statement
+   *
+   * @param sExpr the symbol string representing the desired Sentence
+   * @return the corresponding Sentence Object
+   */
+  public static Sentence makeSentenceStrict(String sExpr) {
+    if (instances.containsKey(sExpr))
+      return instances.get(sExpr);
+    Sentence s = new StrictSentenceReader().parse(sExpr);
+    instances.put(sExpr, s);
+    return s;
+  }
+
+  /**
+   * Obtain a Sentence instance by lookup of symbol name and arguments
+   *
+   * @param name the label of this Sentence
+   * @param args the list of arguments of the desired Sentence
+   * @return the corresponding Sentence Object
+   */
+  public static Sentence makeSentenceStrict(String name, List<Sentence> args) {
+    return makeSentenceStrict(AbstractSentenceReader.sentenceString(name, args));
+  }
+
+  public static Sentence makeSentenceStrict(String name, Variable var, Sentence s) {
+    return makeSentenceStrict(AbstractSentenceReader.sentenceString(name, var, s));
+  }
+
   public abstract Boolean eval(TruthAssignment h);
 
   public abstract Inference reason(TruthAssignment h, int inferenceNum, int justificationNum);

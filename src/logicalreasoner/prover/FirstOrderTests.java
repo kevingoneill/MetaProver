@@ -18,7 +18,7 @@ import java.util.Set;
 public class FirstOrderTests {
   public static void runProver(Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
-    premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
+    premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
     SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true, 30);
     prover.run();
