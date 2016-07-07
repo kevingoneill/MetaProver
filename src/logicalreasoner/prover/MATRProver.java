@@ -15,6 +15,10 @@ public class MATRProver extends SemanticProver {
     super(premises, interest, false);
   }
 
+  public MATRProver(Set<Sentence> premises, Sentence interest, int runTime) {
+    super(premises, interest, false, runTime);
+  }
+
   @Override
   /**
    * Create inferences for every closed branch
