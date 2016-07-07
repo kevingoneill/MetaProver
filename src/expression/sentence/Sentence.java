@@ -45,7 +45,7 @@ public abstract class Sentence extends Expression {
   public static Sentence makeSentence(String sExpr) {
     if (instances.containsKey(sExpr))
       return instances.get(sExpr);
-    Sentence s = new StrictSentenceReader().parse(sExpr);
+    Sentence s = new SentenceReader().parse(sExpr);
     instances.put(sExpr, s);
     return s;
   }
