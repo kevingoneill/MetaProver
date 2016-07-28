@@ -7,6 +7,7 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The And class represents the generalized logical conjunction
@@ -18,6 +19,10 @@ public class And extends Sentence {
 
   protected And(ArrayList<Sentence> a) {
     super(a, NAME, SYMBOL, Sort.BOOLEAN);
+  }
+
+  protected And(Sentence... sentences) {
+    super(new ArrayList<>(Arrays.asList(sentences)), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {

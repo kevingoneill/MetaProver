@@ -132,8 +132,9 @@ public class FirstOrderProver extends SemanticProver {
     if (i instanceof UniversalInstantiation) {
       inferenceList.add(i);
       return i.infer(i.getParent());
-    } else
+    } else {
       return super.infer(i);
+    }
   }
 
   /**

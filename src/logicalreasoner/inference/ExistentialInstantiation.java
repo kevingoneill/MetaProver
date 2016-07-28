@@ -1,64 +1,44 @@
 package logicalreasoner.inference;
 
-import expression.sentence.Constant;
 import expression.sentence.Exists;
 import expression.sentence.Sentence;
-import logicalreasoner.truthassignment.Pair;
+import expression.sentence.Variable;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
- * An existential instantiation is the substitution of an
- * existentially quantified variable, which can be replaced by
- * any number of branching constants. The number of branches in
- * the instantiation depends on the number of active constants in
- * that branch.
+ * Created by kevin on 7/18/16.
  */
-public class ExistentialInstantiation extends Branch {
-  private List<Sentence> constants;
+public class ExistentialInstantiation extends Decomposition {
+  private Sentence instance;
+  private Variable var;
 
-  public ExistentialInstantiation(TruthAssignment h, Exists o, int i, int j, Set<Sentence> s) {
-    super(h, o, i, j);
-    constants = new ArrayList<>(s);
-    constants.add(Constant.getNewUniqueConstant());
-    constants.forEach(constant -> {
-      TruthAssignment t = new TruthAssignment();
-      t.setTrue(o.instantiate(constant, o.getVariable()), i);
-      addBranch(t);
-    });
+  public ExistentialInstantiation(TruthAssignment h, Exists e, int i, int j, Sentence s, Variable v) {
+    super(h, e, i, j);
+    setTrue(e.getSentence().instantiate(s, v), i);
+    instance = s;
+    var = v;
   }
 
-  @Override
-  public Stream<Pair> infer(TruthAssignment h) {
-    Set<Sentence> s = h.getConstants();
-    List<TruthAssignment> l = new ArrayList<>();
-    for (int i = 0; i < constants.size(); ++i) {
-      if (s.contains(constants.get(i)))
-        l.add(branches.get(i));
+  public Sentence getInstance() {
+    return origin.instantiate(instance, var);
+  }
+
+  public Variable getVar() {
+    return var;
+  }
+
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o instanceof ExistentialInstantiation) {
+      ExistentialInstantiation i = (ExistentialInstantiation) o;
+      return super.equals(i) && instance.equals(i.instance) && var.equals(i.var);
     }
-    l.add(branches.get(branches.size() - 1)); // add branch for new constant
-    if (l.size() == 1)
-      return h.merge(new TruthAssignment(l.get(0)));
-    else
-      return h.addChildren(l);
-  }
-
-  public List<Sentence> getConstants() {
-    return constants;
-  }
-
-  @Override
-  public int size() {
-    return constants.size();
+    return false;
   }
 
   public String toString() {
-    return "ExistentialInstantiation " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] over constants: " +
-            constants.stream().map(s -> s.toString() + " ").collect(Collectors.joining());
+    return "ExistentialInstantiation " + inferenceNum + "- of " + instance + " over " + origin
+            + "=" + parent.models(origin) + " [" + justificationNum + "]";
   }
 }

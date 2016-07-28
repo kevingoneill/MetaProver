@@ -72,20 +72,25 @@ public class SentenceReader extends AbstractSentenceReader {
   }
 
   protected Sentence parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
-    String exprName = stack.pop();
-    String sort = null;
+    String s = stack.pop();
+    String exprName,
+            sort = null;
 
     if (stack.peek().equals(":")) {
       stack.pop();
-      sort = stack.pop();
+      exprName = stack.pop();
+      sort = s;
+    } else {
+      exprName = s;
     }
 
     if (quantifiedVars.containsKey(exprName)) {
-      Variable v = quantifiedVars.get(exprName);
-      if (sort != null && !v.getSort().isSuperSort(Sort.getSort(sort)))
-        throw new AbstractSentenceReader.SentenceParseException("Cannot create a variable of multiple sorts");
-      return v;
+      Variable var = quantifiedVars.get(exprName);
+      if (sort != null && !var.getSort().isSuperSort(Sort.getSort(sort)))
+        throw new AbstractSentenceReader.SentenceParseException("Cannot quantify over an existing variable of conflicting sort");
+      return var;
     }
+
     if (sort == null)
       sort = "Object";
     if (Sentence.instances.containsKey(exprName)) {
@@ -117,12 +122,16 @@ public class SentenceReader extends AbstractSentenceReader {
   }
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
-    String exprName = stack.pop();
-    String sort = null;
+    String s = stack.pop();
+    String exprName,
+            sort = null;
 
     if (stack.peek().equals(":")) {
       stack.pop();
-      sort = stack.pop();
+      exprName = stack.pop();
+      sort = s;
+    } else {
+      exprName = s;
     }
 
     if (quantifiedVars.containsKey(exprName)) {
@@ -185,6 +194,11 @@ public class SentenceReader extends AbstractSentenceReader {
         if (args.size() != 2)
           throw new AbstractSentenceReader.SentenceParseException("Iff Sentence must have exactly two arguments.\n" + args);
         return new Iff(args.get(0), args.get(1));
+      }
+      case "=": {
+        if (args.size() != 2)
+          throw new SentenceParseException("Equals Sentence must have exactly two arguments.\n" + args);
+        return new Equals(args.get(0), args.get(1));
       }
       case "forAll": {
         if (args.size() != 2)

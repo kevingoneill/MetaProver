@@ -1,1 +1,1 @@
-(exists x (P x))
+(exists s (AT obj1 d s))

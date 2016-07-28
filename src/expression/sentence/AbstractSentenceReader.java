@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractSentenceReader {
 
-  protected ArrayList<String> PROPOSITIONS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff"));
+  protected ArrayList<String> PROPOSITIONS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
   protected ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
 
   public Sentence parse(String s) {

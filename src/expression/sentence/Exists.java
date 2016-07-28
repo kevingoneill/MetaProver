@@ -2,6 +2,7 @@ package expression.sentence;
 
 import expression.Sort;
 import logicalreasoner.inference.Decomposition;
+import logicalreasoner.inference.ExistentialInstantiation;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
@@ -24,7 +25,7 @@ public class Exists extends Sentence {
 
   public String toString() {
     if (TOSTRING == null)
-      TOSTRING = symbol + getVariable() + getSentence();
+      TOSTRING = symbol + getVariable() + (getSentence().isQuantifier() ? getSentence() : " " + getSentence());
     return TOSTRING;
   }
 
@@ -45,9 +46,11 @@ public class Exists extends Sentence {
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
     h.setDecomposed(this);
     if (h.models(this)) {
-      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-      d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
-      return d;
+      //Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      //d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
+
+      return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, Constant.getNewUniqueConstant(), getVariable());
+
       /*
        Set<Sentence> s = h.getConstants();
        if (s.isEmpty()) {
@@ -55,7 +58,7 @@ public class Exists extends Sentence {
          d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
          return d;
        }
-       return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
+       return new BranchingExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
        */
     } else {
       Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);

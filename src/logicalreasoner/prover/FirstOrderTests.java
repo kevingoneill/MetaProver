@@ -20,7 +20,7 @@ public class FirstOrderTests {
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true, 30);
+    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true, 240);
     prover.run();
 
     if (!prover.finishedProof()) {

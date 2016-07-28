@@ -35,6 +35,10 @@ public abstract class Sentence extends Expression {
     HASH_CODE = toString().hashCode();
   }
 
+  public List<Sentence> getArgs() {
+    return new ArrayList<>(args);
+  }
+
   /**
    * Obtain a Sentence instance by direct lookup using
    * the full s-expression string of the statement

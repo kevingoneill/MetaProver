@@ -4,6 +4,9 @@ import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -14,12 +17,18 @@ public abstract class Inference {
   TruthAssignment parent;
   Sentence origin;
   int inferenceNum, justificationNum;
+  public List<TruthAssignment> inferredOver;
 
   public Inference(TruthAssignment p, Sentence o, int i, int j) {
     parent = p;
     origin = o;
     inferenceNum = i;
     justificationNum = j;
+    inferredOver = Collections.synchronizedList(new ArrayList<>());
+  }
+
+  public List<TruthAssignment> getInferredOver() {
+    return inferredOver;
   }
 
   public int getInferenceNum() {

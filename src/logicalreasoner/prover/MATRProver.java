@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Created by kevin on 7/5/16.
  */
-public class MATRProver extends SemanticProver {
+public class MATRProver extends FirstOrderProver {
 
   public MATRProver(Set<Sentence> premises, Sentence interest) {
     super(premises, interest, false);
@@ -17,6 +17,14 @@ public class MATRProver extends SemanticProver {
 
   public MATRProver(Set<Sentence> premises, Sentence interest, int runTime) {
     super(premises, interest, false, runTime);
+  }
+
+  public MATRProver(Set<Sentence> premises, Sentence interest, boolean print) {
+    super(premises, interest, print);
+  }
+
+  public MATRProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
+    super(premises, interest, print, runTime);
   }
 
   @Override

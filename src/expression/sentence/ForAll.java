@@ -23,7 +23,7 @@ public class ForAll extends Sentence {
 
   public String toString() {
     if (TOSTRING == null)
-      TOSTRING = symbol + getVariable() + getSentence();
+      TOSTRING = symbol + getVariable() + (getSentence().isQuantifier() ? getSentence() : " " + getSentence());
     return TOSTRING;
   }
 

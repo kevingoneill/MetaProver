@@ -1,1 +1,6 @@
-(exists x (and (P x) (Q x)))
+(AT obj1 b s0)
+(forAll s (implies (AT obj1 b s) (AT obj1 c (push obj1 b c s))))
+(forAll s (implies (AT obj1 c s) (AT obj1 d (push obj1 c d s))))
+
+
+

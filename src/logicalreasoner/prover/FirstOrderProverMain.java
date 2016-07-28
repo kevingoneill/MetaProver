@@ -3,6 +3,7 @@ package logicalreasoner.prover;
 import expression.sentence.Sentence;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -22,6 +23,7 @@ public class FirstOrderProverMain {
     long startTime = System.nanoTime();
 
     if (args.length != 2) {
+      System.out.println(Arrays.asList(args));
       System.out.println(SemanticProverMain.usage(args[0]));
       return;
     }

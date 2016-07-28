@@ -80,7 +80,6 @@ public class SemanticProver implements Runnable {
     if (i != j)
       return i - j;
 
-
     return b2.getInferenceNum() - b1.getInferenceNum();
   };
 

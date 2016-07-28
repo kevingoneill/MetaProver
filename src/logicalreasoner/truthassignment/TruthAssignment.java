@@ -295,7 +295,7 @@ public class TruthAssignment {
   }
 
   public List<Pair> getInheritedMappings() {
-    return inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())).collect(Collectors.toList());
+    return inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())).collect(Collectors.toList());
   }
 
   /**
@@ -432,7 +432,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.setTrue(inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
       if (s.isAtomic())
         setDecomposed(s);
@@ -457,7 +457,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.setFalse(inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
@@ -481,7 +481,7 @@ public class TruthAssignment {
         t = new TruthValue(s);
         t.set(b, inferenceNum);
         map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(new Pair(s, this)), s.getConstants());
+        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
       }
 
       if (s.isAtomic())
@@ -545,17 +545,17 @@ public class TruthAssignment {
 
   public Stream<Pair> flattenParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().map(s -> new Pair(s, this));
+      return map.keySet().parallelStream().map(s -> Pair.makePair(s, this));
     return //Stream.concat(parent.flattenParallel(),
-            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> new Pair(e.getKey(), e.getValue())),
-                    map.keySet().parallelStream().map(s -> new Pair(s, this)));
+            Stream.concat(inheritedMappings.entrySet().parallelStream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
+                    map.keySet().parallelStream().map(s -> Pair.makePair(s, this)));
   }
 
   public Stream<Pair> flattenSerial() {
     if (parent == null)
-      return map.keySet().stream().map(s -> new Pair(s, this));
-    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> new Pair(e.getKey(), e.getValue())),
-            map.keySet().stream().map(s -> new Pair(s, this)));
+      return map.keySet().stream().map(s -> Pair.makePair(s, this));
+    return Stream.concat(inheritedMappings.entrySet().stream().map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().stream().map(s -> Pair.makePair(s, this)));
   }
 
   /**
@@ -564,10 +564,10 @@ public class TruthAssignment {
    */
   public Stream<Pair> flattenUndecomposedParallel() {
     if (parent == null)
-      return map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this));
+      return map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
     return Stream.concat(inheritedMappings.entrySet().parallelStream()
-                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> new Pair(e.getKey(), e.getValue())),
-            map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this)));
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().parallelStream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
   }
 
   /**
@@ -576,10 +576,10 @@ public class TruthAssignment {
    */
   public Stream<Pair> flattenUndecomposedSerial() {
     if (parent == null)
-      return map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this));
+      return map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this));
     return Stream.concat(inheritedMappings.entrySet().stream()
-                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> new Pair(e.getKey(), e.getValue())),
-            map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> new Pair(s, this)));
+                    .filter(e -> !e.getValue().isDecomposed(e.getKey())).map(e -> Pair.makePair(e.getKey(), e.getValue())),
+            map.keySet().stream().filter(s -> !isDecomposed(s)).map(s -> Pair.makePair(s, this)));
   }
 
 
@@ -608,10 +608,10 @@ public class TruthAssignment {
         map.put(e.getKey(), truthValue);
         if (e.getKey().isAtomic())
           truthValue.setDecomposed();
-        return new Pair(e.getKey(), this);
+        return Pair.makePair(e.getKey(), this);
       } else {
         truthValue.putAll(e.getValue());
-        return new Pair(truthValue.getSentence(), this);
+        return Pair.makePair(truthValue.getSentence(), this);
       }
     }).collect(Collectors.toList());
 
@@ -760,13 +760,13 @@ public class TruthAssignment {
       TruthAssignment child = new TruthAssignment(c, this);
       leaves.add(child);
       child.addConstants(constants);
-      child.refreshInstantiatedConstants();
       child.inheritedMappings.putAll(inheritedMappings);
       map.keySet().forEach(s -> child.inheritedMappings.put(s, this));
+      child.refreshInstantiatedConstants();
 
       if (parent != null)
         parent.replaceLeaf(child, this);
-      return child.map.keySet().stream().map(s -> new Pair(s, child));
+      return child.map.keySet().stream().map(s -> Pair.makePair(s, child));
     });
   }
 

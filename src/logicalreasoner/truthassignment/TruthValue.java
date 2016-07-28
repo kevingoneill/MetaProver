@@ -95,6 +95,7 @@ public class TruthValue {
   }
 
   public void addInstantiations(Collection<Sentence> constants) {
+    //System.out.println("ADDING INSTANTIATIONS TO " + sentence + ": " + constants);
     constants.forEach(c -> {
       if (!instantiations.contains(c))
         uninstantiatedConstants.add(c);

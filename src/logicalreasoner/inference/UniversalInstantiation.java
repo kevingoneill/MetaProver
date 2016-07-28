@@ -30,15 +30,18 @@ public class UniversalInstantiation extends Inference {
 
   @Override
   public Stream<Pair> infer(TruthAssignment h) {
+    inferredOver.clear();
     ForAll f = (ForAll) origin;
     List<Pair> l = instances.stream().flatMap(instance -> {
       List<TruthAssignment> origins = h.getConstantOrigins(instance);
       if (origins.isEmpty()) {
+        inferredOver.add(h);
         TruthAssignment truthAssignment = new TruthAssignment();
         truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
         return h.merge(truthAssignment);
       } else {
         return origins.stream().flatMap(o -> {
+          inferredOver.add(o);
           TruthAssignment truthAssignment = new TruthAssignment();
           truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
           return o.merge(truthAssignment);
@@ -50,6 +53,10 @@ public class UniversalInstantiation extends Inference {
 
   public List<Sentence> getInstances() {
     return instances.stream().map(i -> origin.instantiate(i, var)).collect(Collectors.toList());
+  }
+
+  public List<Sentence> getInstanceVars() {
+    return instances;
   }
 
   public Variable getVar() {

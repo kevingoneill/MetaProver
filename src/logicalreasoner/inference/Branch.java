@@ -5,7 +5,6 @@ import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -18,16 +17,10 @@ import java.util.stream.Stream;
 public class Branch extends Inference implements Comparable<Branch> {
 
   protected List<TruthAssignment> branches;
-  private List<TruthAssignment> inferredOver;
 
   public Branch(TruthAssignment p, Sentence s, int i, int j) {
     super(p, s, i, j);
     branches = new ArrayList<>();
-    inferredOver = Collections.synchronizedList(new ArrayList<>());
-  }
-
-  public List<TruthAssignment> getInferredOver() {
-    return inferredOver;
   }
 
   @Override
