@@ -302,7 +302,7 @@ public class OSCARTests {
   public void prob73c() {
     Set<String> premises = new HashSet<>();
     premises.add("(exists x (implies P (F x)))");
-    premises.add("(exists x (implies (F x) p))");
+    premises.add("(exists x (implies (F x) P))");
     runProver(premises, "(exists x (iff P (F x)))", true);
   }
 
@@ -492,7 +492,7 @@ public class OSCARTests {
     runProver(premises, "(forAll x (implies (F x) (G x)))", true);
   }
 
-  @Test
+  //@Test
   public void prob99c() throws InterruptedException {
     Thread.sleep(10000);
     Set<String> premises = new HashSet<>();

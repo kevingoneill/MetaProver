@@ -5,7 +5,6 @@ import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -18,7 +17,7 @@ public class Not extends Sentence {
   public static String NAME = "not", SYMBOL = "¬";
 
   public Not(Sentence e) {
-    super(new ArrayList<>(Arrays.asList(e)), NAME, SYMBOL, Sort.BOOLEAN);
+    super(Arrays.asList(e), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public String toString() {
@@ -28,9 +27,6 @@ public class Not extends Sentence {
   }
 
   public Boolean eval(TruthAssignment h) {
-    //if (h.isMapped(this))
-    //    return h.models(this);
-
     Boolean val = args.get(0).eval(h);
     if (val == null)
       return null;

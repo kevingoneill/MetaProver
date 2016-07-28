@@ -4,17 +4,19 @@ import expression.Sort;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Created by kevin on 7/28/16.
+ * The function class represents some uninterpreted operation
+ * on any number of arguments, and evaluating to a specific Sort.
+ * While logical operations and Atoms are representable as Functions,
+ * we reserve this class to include only uninterpreted functions
+ * with no underlying semantics. This means that semantics must
+ * be encoded via separate logical axioms.
  */
 public class Function extends Sentence {
 
-  static Map<String, ArrayList<Sort>> functionDeclarations = new HashMap<>();
+  static Map<String, List<Sort>> functionDeclarations = new HashMap<>();
 
   /**
    * Create a declaration for a function named s, taking arguments of argTypes arnd returning a returnType
@@ -53,7 +55,7 @@ public class Function extends Sentence {
     super(new ArrayList<>(Arrays.asList(sentences)), n, n, sort);
   }
 
-  public Function(String n, Sort sort, ArrayList<Sentence> sentences) {
+  public Function(String n, Sort sort, List<Sentence> sentences) {
     super(sentences, n, n, sort);
   }
 
@@ -100,8 +102,6 @@ public class Function extends Sentence {
 
   @Override
   public Boolean eval(TruthAssignment h) {
-    if (h.isMapped(this))
-      return h.models(this);
     return null;
   }
 

@@ -17,7 +17,7 @@ public class ForAll extends Sentence {
   public static String NAME = "forAll", SYMBOL = "∀";
 
   public ForAll(Variable v, Sentence s) {
-    super(new ArrayList<>(Arrays.asList(v, s)), NAME, SYMBOL, Sort.BOOLEAN);
+    super(Arrays.asList(v, s), NAME, SYMBOL, Sort.BOOLEAN);
     HASH_CODE = instantiate(Variable.EMPTY_VAR, getVariable()).hashCode();
   }
 
@@ -57,7 +57,6 @@ public class ForAll extends Sentence {
     } else {
       h.setDecomposed(this);
       Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-      //d.setTrue(new Exists(getVariable(), new Not(getSentence())));
       d.setTrue(Sentence.makeSentence(Exists.NAME, getVariable(),
               Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
       return d;
@@ -78,8 +77,6 @@ public class ForAll extends Sentence {
   public Sentence instantiate(Sentence c, Variable v) {
     if (v.equals(getVariable()))
       return getSentence().instantiate(c, v);
-
-    //return new ForAll(getVariable(), getSentence().instantiate(c, v));
     return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
   }
 

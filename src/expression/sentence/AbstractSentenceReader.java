@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
  * as Strings into their unique Sentence Objects.
  */
 public abstract class AbstractSentenceReader {
-
   protected ArrayList<String> PROPOSITIONS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
   protected ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
 

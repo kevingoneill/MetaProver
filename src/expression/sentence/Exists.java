@@ -6,7 +6,6 @@ import logicalreasoner.inference.ExistentialInstantiation;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -19,7 +18,7 @@ public class Exists extends Sentence {
 
 
   public Exists(Variable v, Sentence s) {
-    super(new ArrayList<>(Arrays.asList(v, s)), NAME, SYMBOL, Sort.BOOLEAN);
+    super(Arrays.asList(v, s), NAME, SYMBOL, Sort.BOOLEAN);
     HASH_CODE = instantiate(Variable.EMPTY_VAR, getVariable()).hashCode();
   }
 
@@ -62,7 +61,6 @@ public class Exists extends Sentence {
        */
     } else {
       Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-      //d.setTrue(new ForAll(getVariable(), new Not(getSentence())));
       d.setTrue(Sentence.makeSentence(ForAll.NAME, getVariable(), Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
       return d;
     }

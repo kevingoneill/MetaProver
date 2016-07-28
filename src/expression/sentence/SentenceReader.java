@@ -2,10 +2,7 @@ package expression.sentence;
 
 import expression.Sort;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -48,6 +45,12 @@ public class SentenceReader extends AbstractSentenceReader {
     Sentence s = Sentence.instances.get(exprName);
     if (s != null)
       return s;
+
+    List<Sort> l = Function.functionDeclarations.get(exprName);
+    if (l == null)
+      throw new SentenceParseException("Proposition: " + exprName + " has not been declared.");
+    if (l.size() != 1 || l.get(0) != Sort.BOOLEAN)
+      throw new SentenceParseException("Cannot create a proposition named " + exprName + ": a conflicting declaration exists.");
 
     Proposition p = new Proposition(exprName);
     Sentence.instances.putIfAbsent(exprName, p);
@@ -113,6 +116,21 @@ public class SentenceReader extends AbstractSentenceReader {
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
+
+    List<Sort> sorts = new ArrayList<>(Function.functionDeclarations.get(exprName));
+    if (sorts == null || sorts.size() < 1)
+      throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
+
+    if (sorts.remove(0) != Sort.BOOLEAN)
+      throw new SentenceParseException("Cannot create Predicate: " + exprName + " returning a non-Boolean Sort.");
+    if (sorts.size() != list.size())
+      throw new SentenceParseException("Predicate: " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
+    IntStream.range(0, sorts.size()).forEach(i -> {
+      if (!list.get(i).getSort().isSubSort(sorts.get(i)))
+        throw new SentenceParseException("Argument: " + list.get(i).toSExpression() + " in predicate " + exprName
+                + " is of Sort: " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
+    });
+
     String s = sentenceString(exprName, list);
     if (Sentence.instances.containsKey(s))
       return Sentence.instances.get(s);
@@ -130,7 +148,7 @@ public class SentenceReader extends AbstractSentenceReader {
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
-    ArrayList<Sort> sorts = Function.functionDeclarations.get(exprName);
+    List<Sort> sorts = Function.functionDeclarations.get(exprName);
     if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Function: " + exprName + " has not been declared.");
 
@@ -142,7 +160,7 @@ public class SentenceReader extends AbstractSentenceReader {
     if (sorts.size() != list.size())
       throw new SentenceParseException("Function: " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
     IntStream.range(0, sorts.size()).forEach(i -> {
-      if (list.get(i).getSort() != sorts.get(i))
+      if (!list.get(i).getSort().isSubSort(sorts.get(i)))
         throw new SentenceParseException("Argument: " + list.get(i).toSExpression() + " to function " + exprName
                 + " is of Sort: " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
     });
@@ -152,31 +170,17 @@ public class SentenceReader extends AbstractSentenceReader {
   }
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
-    String s = stack.pop();
-    String exprName,
-            sort = null;
+    String exprName = stack.pop();
 
-    if (stack.peek().equals(":")) {
-      stack.pop();
-      exprName = stack.pop();
-      sort = s;
-    } else {
-      exprName = s;
-    }
-
-    if (quantifiedVars.containsKey(exprName)) {
-      Variable v = quantifiedVars.get(exprName);
-      if (sort != null && !v.getSort().isSuperSort(Sort.getSort(sort)))
-        throw new AbstractSentenceReader.SentenceParseException("Cannot create a variable of multiple sorts");
-      return v;
-    }
+    if (quantifiedVars.containsKey(exprName))
+      return quantifiedVars.get(exprName);
 
     if (Sentence.instances.containsKey(exprName))
       return Sentence.instances.get(exprName);
 
-    if (sort == null)
-      sort = "Object";
-    return Constant.getConstant(exprName, Sort.getSort(sort));
+    if (!Constant.constantExists(exprName))
+      throw new SentenceParseException("Constant: " + exprName + " has not been declared.");
+    return Constant.getConstant(exprName);
   }
 
   public Sentence parseSExpression(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {

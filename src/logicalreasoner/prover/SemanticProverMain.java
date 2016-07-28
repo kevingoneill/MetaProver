@@ -1,6 +1,7 @@
 package logicalreasoner.prover;
 
 import expression.sentence.Sentence;
+import expression.sentence.SentenceParser;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -24,7 +25,7 @@ public class SemanticProverMain {
   public static void main(String[] args) {
     long startTime = System.nanoTime();
 
-    if (args.length != 2) {
+    if (args.length != 3) {
       System.out.println(usage(args[0]));
       return;
     }
@@ -33,7 +34,15 @@ public class SemanticProverMain {
     Sentence interest;
 
     try {
-      premises = readSentences(args[0]);
+      readDeclarations(args[0]);
+    } catch (IOException ioe) {
+      System.out.println("Exception while reading declarations: \n");
+      ioe.printStackTrace();
+      return;
+    }
+
+    try {
+      premises = readSentences(args[1]);
     } catch (IOException ioe) {
       System.out.println("Exception while reading premises: \n");
       ioe.printStackTrace();
@@ -41,9 +50,9 @@ public class SemanticProverMain {
     }
 
     try {
-      interest = readSentence(args[1]);
+      interest = readSentence(args[2]);
     } catch (IOException ioe) {
-      System.out.println("Exception while reading premises: \n");
+      System.out.println("Exception while reading interest: \n");
       ioe.printStackTrace();
       return;
     }
@@ -55,7 +64,17 @@ public class SemanticProverMain {
   }
 
   public static String usage(String arg0) {
-    return "usage: java " + arg0 + " <premisesFile> <interestsFile>";
+    return "usage: java " + arg0 + " <declarationsFile> <premisesFile> <interestsFile>";
+  }
+
+  public static void readDeclarations(String fileName) throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(fileName));
+    String line;
+
+    while ((line = reader.readLine()) != null) {
+      if (!SentenceParser.ParseDeclaration(line))
+        throw new RuntimeException("Failed to parse declaration: " + line);
+    }
   }
 
   public static Set<Sentence> readSentences(String fileName) throws IOException {

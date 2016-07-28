@@ -14,8 +14,8 @@ public class Sort {
   public static final Sort OBJECT = new Sort("Object", null);
   public static final Sort BOOLEAN = new Sort("Boolean", OBJECT);
   public static Map<String, Sort> instances = new HashMap<String, Sort>() {{
-    this.put("Object", OBJECT);
-    this.put("Boolean", BOOLEAN);
+    this.put(OBJECT.getName(), OBJECT);
+    this.put(BOOLEAN.getName(), BOOLEAN);
   }};
 
   private String name;
@@ -40,24 +40,20 @@ public class Sort {
    * @return the Sort with the given name
    */
   public static Sort getSort(String name, Sort superSort) {
-    if (instances.containsKey(name)) {
-      Sort s = instances.get(name);
+    Sort s = instances.get(name);
+    if (s != null) {
       if (!s.getSuperSort().equals(superSort))
         throw new ExistingSortException("Cannot create a Sort with an existing name");
       return instances.get(name);
     }
-
-    instances.put(name, new Sort(name, superSort));
-    superSort.addSubSort(instances.get(name));
-    return instances.get(name);
+    s = new Sort(name, superSort);
+    instances.put(name, s);
+    superSort.addSubSort(s);
+    return s;
   }
 
   public String toString() {
     return name;
-  }
-
-  public boolean sortExists(String name) {
-    return instances.containsKey(name);
   }
 
   /**
@@ -67,16 +63,16 @@ public class Sort {
    * @return the Sort with the given name
    */
   public static Sort getSort(String name) {
-    if (instances.containsKey(name)) {
-      return instances.get(name);
-    }
-
-    instances.put(name, new Sort(name, Sort.OBJECT));
-    Sort.OBJECT.addSubSort(instances.get(name));
-    return instances.get(name);
+    Sort s = instances.get(name);
+    if (s != null)
+      return s;
+    s = new Sort(name, Sort.OBJECT);
+    instances.put(name, s);
+    Sort.OBJECT.addSubSort(s);
+    return s;
   }
 
-  public static Boolean isSort(String name) {
+  public static boolean isSort(String name) {
     return instances.containsKey(name);
   }
 
@@ -114,6 +110,16 @@ public class Sort {
    * @return true if s is a supersort of this
    */
   public boolean isSubSort(Sort s) {
+    return this.equals(s) || (superSort != null && (superSort.equals(s) || superSort.isSubSort(s)));
+  }
+
+  /**
+   * Test if this is a subsort of another sort
+   *
+   * @param s the possible supersort of this
+   * @return true if s is a supersort of this
+   */
+  public boolean isSubSortExclusive(Sort s) {
     if (superSort == null)
       return false;
 
@@ -135,6 +141,8 @@ public class Sort {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o != null && o instanceof Sort) {
       Sort s = (Sort) o;
       return name.equals(s.getName()) && ((superSort == null && s.getSuperSort() == null) || superSort.equals(s.getSuperSort()));

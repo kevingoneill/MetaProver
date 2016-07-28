@@ -6,7 +6,7 @@ import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Or class represents the generalized logical disjunction
@@ -16,24 +16,17 @@ import java.util.ArrayList;
 public class Or extends Sentence {
   public static String NAME = "or", SYMBOL = "∨";
 
-  public Or(ArrayList<Sentence> a) {
+  public Or(List<Sentence> a) {
     super(a, NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
-    //return pre-mapped value for this
-    //if (h.isMapped(this))
-    //    return h.models(this);
-
     //if any atoms are unmapped, return null
     if (args.contains(null))
       return null;
 
     //Create a new mapping in h for this with newly computed value
-    //boolean val =
     return args.stream().anyMatch(arg -> arg.eval(h));
-    //h.set(this, val);
-    //return val;
   }
 
   @Override

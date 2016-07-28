@@ -16,19 +16,18 @@ import java.util.stream.Stream;
  */
 public abstract class Sentence extends Expression {
   static HashMap<String, Sentence> instances = new HashMap<>();
-  protected ArrayList<Sentence> args;
+  protected List<Sentence> args;
   Sort sort;
   protected Integer SIZE = null, QUANTIFIER_COUNT = null, ATOM_COUNT = null;
 
   /**
    * Create a new logical Sentence
-   *
-   * @param a    its arguments
+   *  @param a    its arguments
    * @param n    its name
    * @param s    its symbol
    * @param type its Sort
    */
-  protected Sentence(ArrayList<Sentence> a, String n, String s, Sort type) {
+  protected Sentence(List<Sentence> a, String n, String s, Sort type) {
     super(n, s);
     args = a;
     sort = type;
@@ -127,7 +126,6 @@ public abstract class Sentence extends Expression {
       builder.append(")");
       TOSEXPR = builder.toString();
     }
-    //return toSExpression();
     return TOSEXPR;
   }
 
@@ -227,32 +225,6 @@ public abstract class Sentence extends Expression {
       return -1;
     } else if (e2 instanceof Exists)
       return 1;
-
     return 0;
-    /*
-    ForAll f1 = (ForAll) e1,
-            f2 = (ForAll) e2;
-
-    if (f1.getSentence().isLiteral() && !f2.getSentence().isLiteral())
-      return -1;
-    else if (!f1.getSentence().isLiteral() && f2.getSentence().isLiteral())
-      return 1;
-
-    int q1 = f1.quantifierCount(),
-            q2 = f2.quantifierCount();   // Always instantiate statements with less quantifiers
-
-    if (q1 != q2)
-      return q1 - q2;
-
-    if (f1.getSentence().size() != f2.getSentence().size())
-      return f1.getSentence().size() - f2.getSentence().size();
-
-    q1 = f1.atomCount();
-    q2 = f2.atomCount();   // Always instantiate statements with less atoms
-    if (q1 != q2)
-      return q1 - q2;
-
-    return f1.getSentence().numArgs() - f2.getSentence().numArgs();
-    */
   };
 }

@@ -5,7 +5,6 @@ import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -16,7 +15,7 @@ public class Iff extends Sentence {
   public static String NAME = "iff", SYMBOL = "⟷";
 
   public Iff(Sentence expr1, Sentence expr2) {
-    super(new ArrayList<>(Arrays.asList(expr1, expr2)), NAME, SYMBOL, Sort.BOOLEAN);
+    super(Arrays.asList(expr1, expr2), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {

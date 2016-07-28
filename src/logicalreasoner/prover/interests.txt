@@ -1,1 +1,1 @@
-(exists s (AT obj1 d s))
+(implies (A a) (C a))

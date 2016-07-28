@@ -1,8 +1,6 @@
 package expression.sentence;
 
 import expression.Sort;
-import logicalreasoner.inference.Inference;
-import logicalreasoner.truthassignment.TruthAssignment;
 
 import java.util.*;
 
@@ -34,12 +32,21 @@ public class Constant extends Atom {
   };
 
 
-  private Constant(String name, Sort s) {
+  protected Constant(String name, Sort s) {
     super(name, s);
   }
 
-  private Constant(String name) {
+  protected Constant(String name) {
     super(name, Sort.OBJECT);
+  }
+
+  public static boolean constantExists(String name) {
+    return constants.containsKey(name);
+  }
+
+  public static boolean constantExists(String name, Sort s) {
+    Constant c = constants.get(name);
+    return c != null && c.getSort() == s;
   }
 
   public static Constant getConstant(String name, Sort s) {
@@ -49,8 +56,11 @@ public class Constant extends Atom {
         throw new RuntimeException("Cannot create a constant with an existing name");
       return c;
     }
-
     constants.put(name, new Constant(name, s));
+    return constants.get(name);
+  }
+
+  public static Constant getConstant(String name) {
     return constants.get(name);
   }
 
@@ -64,37 +74,13 @@ public class Constant extends Atom {
     return constants.get(name);
   }
 
-  public String toString() {
-    return name;
-  }
-
-  private String getCharForNumber(int i) {
-    return i > 0 && i < 27 ? String.valueOf((char) (i + 'A' - 1)).toLowerCase() : null;
-  }
-
-  public String toSExpression() {
-    return name;
-  }
-
   @Override
   public Set<Sentence> getConstants() {
-    Set<Sentence> s = new HashSet<>();
-    s.add(this);
-    return s;
+    return Collections.singleton(this);
   }
 
   @Override
   public Sentence instantiate(Sentence c, Variable v) {
     return this;
-  }
-
-  @Override
-  public Boolean eval(TruthAssignment h) {
-    return null;
-  }
-
-  @Override
-  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    return null;
   }
 }

@@ -6,7 +6,6 @@ import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -19,7 +18,7 @@ public class Implies extends Sentence {
   public static String NAME = "implies", SYMBOL = "⟶";
 
   public Implies(Sentence ifExpr, Sentence thenExpr) {
-    super(new ArrayList<>(Arrays.asList(ifExpr, thenExpr)), NAME, SYMBOL, Sort.BOOLEAN);
+    super(Arrays.asList(ifExpr, thenExpr), NAME, SYMBOL, Sort.BOOLEAN);
   }
 
   public Boolean eval(TruthAssignment h) {
