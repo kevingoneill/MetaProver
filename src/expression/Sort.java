@@ -72,6 +72,10 @@ public class Sort {
     return instances.get(name);
   }
 
+  public static Boolean isSort(String name) {
+    return instances.containsKey(name);
+  }
+
   /**
    * Get the unique name of this Sort
    *
