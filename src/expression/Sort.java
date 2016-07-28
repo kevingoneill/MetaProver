@@ -56,6 +56,10 @@ public class Sort {
     return name;
   }
 
+  public boolean sortExists(String name) {
+    return instances.containsKey(name);
+  }
+
   /**
    * Get an instance of a new or existing Sort
    *

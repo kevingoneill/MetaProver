@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /**
  * SentenceReader is an interface for the parsing of logical Sentences
@@ -108,7 +109,7 @@ public class SentenceReader extends AbstractSentenceReader {
     ArrayList<Sentence> list = new ArrayList<>();
     while (!stack.peek().equals(")")) {
       if (stack.peek() == null)
-        throw new AbstractSentenceReader.SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
+        throw new AbstractSentenceReader.SentenceParseException("Predicate: " + exprName + " has no closing parentheses.");
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
@@ -119,6 +120,35 @@ public class SentenceReader extends AbstractSentenceReader {
     Predicate p = new Predicate(exprName, list);
     Sentence.instances.put(p.toSExpression(), p);
     return p;
+  }
+
+  protected Sentence parseFunction(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+    ArrayList<Sentence> list = new ArrayList<>();
+    while (!stack.peek().equals(")")) {
+      if (stack.peek() == null)
+        throw new AbstractSentenceReader.SentenceParseException("Function: " + exprName + " has no closing parentheses.");
+      list.add(parseTerm(stack, quantifiedVars));
+    }
+    stack.pop();
+    ArrayList<Sort> sorts = Function.functionDeclarations.get(exprName);
+    if (sorts == null || sorts.size() < 1)
+      throw new SentenceParseException("Function: " + exprName + " has not been declared.");
+
+    String s = sentenceString(exprName, list);
+    if (Sentence.instances.containsKey(s))
+      return Sentence.instances.get(s);
+    Sort returnSort = sorts.remove(0);
+
+    if (sorts.size() != list.size())
+      throw new SentenceParseException("Function: " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
+    IntStream.range(0, sorts.size()).forEach(i -> {
+      if (list.get(i).getSort() != sorts.get(i))
+        throw new SentenceParseException("Argument: " + list.get(i).toSExpression() + " to function " + exprName
+                + " is of Sort: " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
+    });
+    Function f = new Function(exprName, returnSort, list);
+    Sentence.instances.put(f.toSExpression(), f);
+    return f;
   }
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {

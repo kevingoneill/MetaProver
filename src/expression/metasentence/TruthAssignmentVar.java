@@ -69,7 +69,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public TruthAssignmentVar addChild(TruthAssignment h) {
-    truthAssignment.addChildren(Collections.singletonList(h));
+    truthAssignment.addChildren(Collections.singletonList(h)).count();
     return new TruthAssignmentVar(truthAssignment.getChildren().get(truthAssignment.getChildren().size() - 1), this);
   }
 
