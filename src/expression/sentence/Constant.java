@@ -64,6 +64,11 @@ public class Constant extends Atom {
     return constants.get(name);
   }
 
+  public static void clearConstants() {
+    constants.clear();
+    newConstants = 1;
+  }
+
   public static Constant getNewUniqueConstant() {
     String name = "#" + newConstants;
     while (constants.containsKey(name)) { // Increment until a unique constant is found

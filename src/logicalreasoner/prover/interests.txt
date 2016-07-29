@@ -1,1 +1,1 @@
-(implies (A a) (C a))
+A

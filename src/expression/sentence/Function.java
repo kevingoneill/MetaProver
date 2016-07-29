@@ -51,6 +51,11 @@ public class Function extends Sentence {
     return true;
   }
 
+
+  public static void clearDeclarations() {
+    functionDeclarations.clear();
+  }
+
   public Function(String n, Sort sort, Sentence... sentences) {
     super(new ArrayList<>(Arrays.asList(sentences)), n, n, sort);
   }

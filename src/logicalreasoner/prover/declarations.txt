@@ -1,6 +1,3 @@
-typedef Person
-typedef Human Person
-Boolean A Object
-Boolean B Object
-Boolean C Object
-Object a
+Boolean A
+Boolean B
+Boolean C

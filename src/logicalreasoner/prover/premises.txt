@@ -1,2 +1,3 @@
-(implies (A a) (B a))
-(implies (B a) (C a))
+(implies A (and B C))
+(iff C B)
+(not C)

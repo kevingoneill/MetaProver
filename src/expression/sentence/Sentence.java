@@ -34,6 +34,12 @@ public abstract class Sentence extends Expression {
     HASH_CODE = toString().hashCode();
   }
 
+  public static void clearDeclarations() {
+    instances.clear();
+    Function.clearDeclarations();
+    Constant.clearConstants();
+  }
+
   public List<Sentence> getArgs() {
     return new ArrayList<>(args);
   }
