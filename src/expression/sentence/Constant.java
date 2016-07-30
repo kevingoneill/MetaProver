@@ -2,14 +2,16 @@ package expression.sentence;
 
 import expression.Sort;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 
 /**
  * A Constant is a known object with a unique name.
  */
 public class Constant extends Atom {
 
-  public static Map<String, Constant> constants = new HashMap<>();
   private static long newConstants = 1;
 
   public static Comparator<Sentence> constantComparator = (c1, c2) -> {
@@ -41,42 +43,58 @@ public class Constant extends Atom {
   }
 
   public static boolean constantExists(String name) {
-    return constants.containsKey(name);
+    return Sentence.instances.containsKey(name);
   }
 
   public static boolean constantExists(String name, Sort s) {
-    Constant c = constants.get(name);
-    return c != null && c.getSort() == s;
+    Sentence c = Sentence.instances.get(name);
+    return c != null && c instanceof Constant && c.getSort() == s;
   }
 
   public static Constant getConstant(String name, Sort s) {
-    if (constants.containsKey(name)) {
-      Constant c = constants.get(name);
-      if (!c.getSort().equals(s))
+    Sentence c = Sentence.instances.get(name);
+    if (c != null) {
+      if (!(c instanceof Constant) || !c.getSort().equals(s))
         throw new RuntimeException("Cannot create a constant with an existing name");
-      return c;
+      return (Constant) c;
     }
-    constants.put(name, new Constant(name, s));
-    return constants.get(name);
+    c = new Constant(name, s);
+    Function.addDeclaration(name, s, new ArrayList<>());
+    Sentence.instances.put(name, c);
+    return (Constant) c;
   }
 
   public static Constant getConstant(String name) {
-    return constants.get(name);
+    return (Constant) Sentence.instances.get(name);
   }
 
   public static void clearConstants() {
-    constants.clear();
     newConstants = 1;
   }
 
   public static Constant getNewUniqueConstant() {
+    String name = getNextConstantName();
+    Constant c = new Constant(name);
+    Sentence.instances.put(name, c);
+    Function.addDeclaration(name, c.getSort(), new ArrayList<>());
+    return c;
+  }
+
+  public static Constant getNewUniqueConstant(Sort s) {
+    String name = getNextConstantName();
+    Constant c = new Constant(name, s);
+    Sentence.instances.put(name, c);
+    Function.addDeclaration(name, c.getSort(), new ArrayList<>());
+    return c;
+  }
+
+  private static String getNextConstantName() {
     String name = "#" + newConstants;
-    while (constants.containsKey(name)) { // Increment until a unique constant is found
+    while (Sentence.instances.containsKey(name)) { // Increment until a unique constant is found
       ++newConstants;
       name = "#" + newConstants;
     }
-    constants.put(name, new Constant(name));
-    return constants.get(name);
+    return name;
   }
 
   @Override

@@ -10,9 +10,9 @@ import java.util.Collections;
  * An atom is a logical Sentence with no arguments. It can be a
  * proposition, a constant, or a variable.
  */
-public abstract class Atom extends Sentence {
+public abstract class Atom extends Function {
   public Atom(String name, Sort s) {
-    super(Collections.emptyList(), name, name, s);
+    super(name, s, Collections.emptyList());
   }
 
   @Override

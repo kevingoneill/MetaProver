@@ -20,6 +20,16 @@ public class BooleanSentence extends Atom {
     value = b;
   }
 
+  @Override
+  public String toSExpression() {
+    return Boolean.toString(value);
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
+
   public Boolean eval(TruthAssignment h) {
     return value;
   }

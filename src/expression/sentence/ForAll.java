@@ -18,13 +18,21 @@ public class ForAll extends Sentence {
 
   public ForAll(Variable v, Sentence s) {
     super(Arrays.asList(v, s), NAME, SYMBOL, Sort.BOOLEAN);
-    HASH_CODE = instantiate(Variable.EMPTY_VAR, getVariable()).hashCode();
+    HASH_CODE = hashString(v).hashCode();
+    System.out.println(toSExpression() + "\t\t\t" + hashString(v));
   }
 
   public String toString() {
     if (TOSTRING == null)
-      TOSTRING = symbol + getVariable() + (getSentence().isQuantifier() ? getSentence() : " " + getSentence());
+      TOSTRING = symbol + getVariable() + ((getSentence().isQuantifier() || getSentence().isLiteral()) ? getSentence() : " " + getSentence());
     return TOSTRING;
+  }
+
+  @Override
+  public String toSExpression() {
+    if (TOSEXPR == null)
+      TOSEXPR = "(" + name + " (" + getVariable().getSort().getName() + " " + getVariable().toSExpression() + ") " + getSentence().toSExpression() + ")";
+    return TOSEXPR;
   }
 
   public Sentence getSentence() {
@@ -81,11 +89,15 @@ public class ForAll extends Sentence {
   }
 
   public boolean equals(Object o) {
-    if (o instanceof ForAll) {
+    if (this == o)
+      return true;
+    if (hashCode() == o.hashCode() && o instanceof ForAll) {
       ForAll f = (ForAll) o;
       if (f.getVariable().equals(getVariable()))
         return f.getSentence().equals(getSentence());
-      return f.instantiate(getVariable(), f.getVariable()).equals(getSentence());
+      else if (f.getVariable().getSort() == getVariable().getSort())
+        return f.instantiate(getVariable(), f.getVariable()).equals(getSentence());
+      return false;
     }
     return false;
   }

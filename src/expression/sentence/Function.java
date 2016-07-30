@@ -19,7 +19,7 @@ public class Function extends Sentence {
   static Map<String, List<Sort>> functionDeclarations = new HashMap<>();
 
   /**
-   * Create a declaration for a function named s, taking arguments of argTypes arnd returning a returnType
+   * Create a declaration for a function named s, taking arguments of argTypes and returning a returnType
    *
    * @param s          the name of the new Function declaration
    * @param returnType the return type of the Function being declared
@@ -35,7 +35,7 @@ public class Function extends Sentence {
   }
 
   /**
-   * Create a declaration for a function named s, taking arguments of argTypes arnd returning a returnType
+   * Create a declaration for a function named s, taking arguments of argTypes and returning a returnType
    *
    * @param s          the name of the new Function declaration
    * @param returnType the return type of the Function being declared

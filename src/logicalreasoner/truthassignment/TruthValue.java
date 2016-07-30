@@ -1,5 +1,6 @@
 package logicalreasoner.truthassignment;
 
+import expression.Sort;
 import expression.sentence.Sentence;
 
 import java.util.Collection;
@@ -17,12 +18,15 @@ public class TruthValue {
   private HashMap<Boolean, Integer> vals;
   private boolean isDecomposed;
   private Sentence sentence;
+  private Sort quantifiedSort = null;
   private Set<Sentence> instantiations, uninstantiatedConstants;
 
   public TruthValue(Sentence s) {
     vals = new HashMap<>();
     isDecomposed = false;
     sentence = s;
+    if (s.isQuantifier())
+      quantifiedSort = s.getSubSentence(0).getSort();
     instantiations = new HashSet<>();
     uninstantiatedConstants = new HashSet<>();
   }
@@ -31,6 +35,7 @@ public class TruthValue {
     vals = new HashMap<>(tv.vals);
     isDecomposed = false;
     sentence = tv.sentence;
+    quantifiedSort = tv.quantifiedSort;
     instantiations = new HashSet<>();
     uninstantiatedConstants = new HashSet<>();
   }
@@ -95,16 +100,14 @@ public class TruthValue {
   }
 
   public void addInstantiations(Collection<Sentence> constants) {
-    //System.out.println("ADDING INSTANTIATIONS TO " + sentence + ": " + constants);
-    constants.forEach(c -> {
-      if (!instantiations.contains(c))
-        uninstantiatedConstants.add(c);
-    });
+    constants.forEach(this::addInstantiation);
   }
 
-  public void addInstantiation(Sentence constant) {
-    if (!instantiations.contains(constant))
-      uninstantiatedConstants.add(constant);
+  public void addInstantiation(Sentence c) {
+    if (!instantiations.contains(c) && c.getSort().isSubSort(quantifiedSort))
+      uninstantiatedConstants.add(c);
+    else if (!instantiations.contains(c))
+      instantiations.add(c);
   }
 
   public Set<Sentence> getUninstantiatedConstants() {

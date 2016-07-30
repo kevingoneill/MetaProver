@@ -1,7 +1,7 @@
 package logicalreasoner.prover;
 
+import expression.sentence.DeclarationParser;
 import expression.sentence.Sentence;
-import expression.sentence.SentenceParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,17 +19,15 @@ import java.util.Set;
 public class SemanticProverTest {
   static void runProver(Set<String> declarations, Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
-    declarations.forEach(SentenceParser::ParseDeclaration);
+    declarations.forEach(DeclarationParser::ParseDeclaration);
     premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
     SemanticProver prover = new SemanticProver(p, Sentence.makeSentenceStrict(interest), true, 1);
     prover.run();
-    if (validArgument) {
+    if (validArgument)
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());
-    } else {
+    else
       Assert.assertTrue("Prover determined an invalid argument was valid", prover.isConsistent());
-    }
-
     Sentence.clearDeclarations();
   }
 

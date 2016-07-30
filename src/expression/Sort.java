@@ -7,12 +7,12 @@ import java.util.Set;
 
 /**
  * A Sort is a hierarchical type of a logical formula. Sorts can be subsorts and supersorts
- * of other sorts, and each sort has a unique name and supersort. The most general sort,
- * OBJECT, has no supersort.
+ * of other sorts, and each sort has a unique name and supersort. The most general sorts,
+ * OBJECT and BOOLEAN, have no supersort.
  */
 public class Sort {
   public static final Sort OBJECT = new Sort("Object", null);
-  public static final Sort BOOLEAN = new Sort("Boolean", OBJECT);
+  public static final Sort BOOLEAN = new Sort("Boolean", null);
   public static Map<String, Sort> instances = new HashMap<String, Sort>() {{
     this.put(OBJECT.getName(), OBJECT);
     this.put(BOOLEAN.getName(), BOOLEAN);

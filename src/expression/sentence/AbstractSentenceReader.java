@@ -32,14 +32,14 @@ public abstract class AbstractSentenceReader {
 
   protected abstract Sentence parseSExpression(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) throws SentenceParseException;
 
-  protected abstract Sentence makeSentence(String name, ArrayList<Sentence> args) throws SentenceParseException;
+  public abstract Sentence makeSentence(String name, List<Sentence> args) throws SentenceParseException;
 
   static String sentenceString(String name, List<Sentence> args) {
     return "(" + name + args.stream().map(a -> " " + a.toSExpression()).collect(Collectors.joining()) + ")";
   }
 
   static String sentenceString(String name, Variable var, Sentence s) {
-    return "(" + name + " " + var.toSExpression() + " " + s.toSExpression() + ")";
+    return "(" + name + " (" + var.getSort() + " " + var.toSExpression() + ") " + s.toSExpression() + ")";
   }
 
   /**

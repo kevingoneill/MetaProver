@@ -1,5 +1,7 @@
 package expression.sentence;
 
+import expression.Sort;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -7,7 +9,7 @@ import java.util.Set;
  * The Proposition class represents a single atomic sentence.
  * It can be a proposition, constant, or variable.
  */
-public class Proposition extends Predicate {
+public class Proposition extends Constant {
 
   /**
    * Create a new Proposition object with the given name
@@ -15,7 +17,7 @@ public class Proposition extends Predicate {
    * @param n the name of the Proposition
    */
   public Proposition(String n) {
-    super(n, Collections.emptyList());
+    super(n, Sort.BOOLEAN);
   }
 
   @Override

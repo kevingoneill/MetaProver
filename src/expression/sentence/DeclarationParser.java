@@ -25,10 +25,10 @@ import java.util.ArrayList;
  *
  */
 
-public class SentenceParser {
+public class DeclarationParser {
 
     public static boolean ParseDeclaration(String s) {
-        String[] arr = s.split("\\s");
+      String[] arr = s.split("\\s");
       if (arr[0].equals("typedef")) {
             //If it starts with typedef it is a Sort Declaration
             if (arr.length == 0) {
@@ -48,12 +48,12 @@ public class SentenceParser {
             }
             return true;
         } else if (arr.length == 2) {
-            //A const is a Function with no Parameters
+        //A constant is a Function with no Parameters
             if (!Sort.isSort(arr[0])) {throw new ParserException(arr[0]+" is not defined.");}
             Sort returnType = Sort.getSort(arr[0]);
-        if (returnType == Sort.BOOLEAN)
-          functionDec(arr[1], returnType, new ArrayList<>());
-        else
+        //if (returnType == Sort.BOOLEAN)
+        //  functionDec(arr[1], returnType, new ArrayList<>());
+        //else
           constDec(arr[1], returnType);
             return true;
         } else {

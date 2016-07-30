@@ -29,6 +29,7 @@ public class SentenceReader extends AbstractSentenceReader {
         return parseQuantifier(exprName, stack, quantifiedVars);
       else if (PROPOSITIONS.contains(exprName))  // Parse the proposition
         return parseSExpression(exprName, stack, quantifiedVars);
+
       return parsePredicate(exprName, stack, quantifiedVars); // The sentence must now be a Predicate
     } else if (stack.peek().equalsIgnoreCase("true") || stack.peek().equals("⊤")) {
       stack.pop();
@@ -46,10 +47,10 @@ public class SentenceReader extends AbstractSentenceReader {
     if (s != null)
       return s;
 
-    List<Sort> l = Function.functionDeclarations.get(exprName);
-    if (l == null)
+    Constant c = Constant.getConstant(exprName);
+    if (c == null)
       throw new SentenceParseException("Proposition: " + exprName + " has not been declared.");
-    if (l.size() != 1 || l.get(0) != Sort.BOOLEAN)
+    if (c.getSort() != Sort.BOOLEAN)
       throw new SentenceParseException("Cannot create a proposition named " + exprName + ": a conflicting declaration exists.");
 
     Proposition p = new Proposition(exprName);
@@ -65,13 +66,13 @@ public class SentenceReader extends AbstractSentenceReader {
 
     Sentence s = parseVariable(stack, quantifiedVars);
     args.add(s);
-    quantifiedVars.put(s.toSExpression(), (Variable) s);
+    quantifiedVars.put(s.toString(), (Variable) s);
 
     args.add(parse(stack, quantifiedVars));
     if (stack.peek() == null || !stack.peek().equals(")"))
       throw new AbstractSentenceReader.SentenceParseException("Missing parentheses after quantifier: " + exprName + " " + args.get(0) + ".");
     stack.pop();
-    quantifiedVars.remove(s.toSExpression());
+    quantifiedVars.remove(s.toString());
     return makeSentence(exprName, args);
   }
 
@@ -80,32 +81,33 @@ public class SentenceReader extends AbstractSentenceReader {
     String exprName,
             sort = null;
 
-    if (stack.peek().equals(":")) {
-      stack.pop();
+    if (s.equals("(")) {
+      sort = stack.pop();
       exprName = stack.pop();
-      sort = s;
+      stack.pop();
+      if (sort == null || exprName == null)
+        throw new SentenceParseException("Missing Sort or variable on quantifier.");
     } else {
       exprName = s;
+      sort = Sort.OBJECT.getName();
     }
 
     if (quantifiedVars.containsKey(exprName)) {
       Variable var = quantifiedVars.get(exprName);
-      if (sort != null && !var.getSort().isSuperSort(Sort.getSort(sort)))
+      if (var.getSort() != Sort.getSort(sort))
         throw new AbstractSentenceReader.SentenceParseException("Cannot quantify over an existing variable of conflicting sort");
       return var;
     }
 
-    if (sort == null)
-      sort = "Object";
     if (Sentence.instances.containsKey(exprName)) {
-      if (!(Sentence.instances.get(exprName) instanceof Variable))
+      Sentence v = Sentence.instances.get(exprName);
+      if (!(v instanceof Variable) || v.getSort() != Sort.getSort(sort))
         throw new AbstractSentenceReader.SentenceParseException("Cannot create a variable with a pre-existing name");
       return Sentence.instances.get(exprName);
     }
 
-    Variable v = new Variable(exprName, Sort.getSort(sort));
-    Sentence.instances.put(exprName, v);
-    return v;
+    return new Variable(exprName, Sort.getSort(sort));
+
   }
 
   protected Sentence parsePredicate(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -117,8 +119,11 @@ public class SentenceReader extends AbstractSentenceReader {
     }
     stack.pop();
 
+    if (!Function.functionDeclarations.containsKey(exprName))
+      throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
+
     List<Sort> sorts = new ArrayList<>(Function.functionDeclarations.get(exprName));
-    if (sorts == null || sorts.size() < 1)
+    if (sorts.size() < 1)
       throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
 
     if (sorts.remove(0) != Sort.BOOLEAN)
@@ -170,17 +175,23 @@ public class SentenceReader extends AbstractSentenceReader {
   }
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
-    String exprName = stack.pop();
+    String exprName = stack.peek();
 
     if (quantifiedVars.containsKey(exprName))
-      return quantifiedVars.get(exprName);
+      return quantifiedVars.get(stack.pop());
 
     if (Sentence.instances.containsKey(exprName))
-      return Sentence.instances.get(exprName);
+      return Sentence.instances.get(stack.pop());
 
-    if (!Constant.constantExists(exprName))
-      throw new SentenceParseException("Constant: " + exprName + " has not been declared.");
-    return Constant.getConstant(exprName);
+    if (exprName.equals(Variable.EMPTY_VAR.getName())) {
+      stack.pop();
+      return Variable.EMPTY_VAR;
+    }
+
+    if (Constant.constantExists(exprName))
+      return Constant.getConstant(stack.pop());
+
+    return parseVariable(stack, quantifiedVars);
   }
 
   public Sentence parseSExpression(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
@@ -194,7 +205,7 @@ public class SentenceReader extends AbstractSentenceReader {
     return makeSentence(exprName, list);
   }
 
-  protected Sentence makeSentence(String name, ArrayList<Sentence> args) {
+  public Sentence makeSentence(String name, List<Sentence> args) {
     if (name.isEmpty())
       throw new AbstractSentenceReader.SentenceParseException("Cannot create an Sentence from an empty string.");
 

@@ -1,7 +1,7 @@
 package logicalreasoner.prover;
 
+import expression.sentence.DeclarationParser;
 import expression.sentence.Sentence;
-import expression.sentence.SentenceParser;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -72,7 +72,7 @@ public class SemanticProverMain {
     String line;
 
     while ((line = reader.readLine()) != null) {
-      if (!SentenceParser.ParseDeclaration(line))
+      if (!DeclarationParser.ParseDeclaration(line))
         throw new RuntimeException("Failed to parse declaration: " + line);
     }
   }

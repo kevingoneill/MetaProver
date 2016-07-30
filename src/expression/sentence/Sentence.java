@@ -31,7 +31,7 @@ public abstract class Sentence extends Expression {
     super(n, s);
     args = a;
     sort = type;
-    HASH_CODE = toString().hashCode();
+    HASH_CODE = toSExpression().hashCode();
   }
 
   public static void clearDeclarations() {
@@ -67,11 +67,16 @@ public abstract class Sentence extends Expression {
    * @return the corresponding Sentence Object
    */
   public static Sentence makeSentence(String name, List<Sentence> args) {
-    return makeSentence(AbstractSentenceReader.sentenceString(name, args));
+    String s = AbstractSentenceReader.sentenceString(name, args);
+    if (instances.containsKey(s))
+      return instances.get(s);
+    Sentence sentence = new SentenceReader().makeSentence(name, args);
+    instances.put(s, sentence);
+    return sentence;
   }
 
   public static Sentence makeSentence(String name, Variable var, Sentence s) {
-    return makeSentence(AbstractSentenceReader.sentenceString(name, var, s));
+    return makeSentence(name, Arrays.asList(var, s));
   }
 
   /**
@@ -159,12 +164,31 @@ public abstract class Sentence extends Expression {
     return builder.toString();
   }
 
+  /**
+   * This function is used by quantifiers to recursively remove a variable from a string
+   *
+   * @param v
+   * @return the string of this sentence, with all instances of v replaced with Variable.EMPTY_VAR
+   */
+  protected final String hashString(Variable v) {
+    if (args.isEmpty() && this.equals(v))
+      return Variable.EMPTY_VAR.toString();
+    else if (args.isEmpty())
+      return this.toSExpression();
+
+    return "(" + name + args.stream().map(a -> {
+      if (a.equals(v))
+        return " " + Variable.EMPTY_VAR.toString();
+      return " " + a.hashString(v);
+    }).collect(Collectors.joining()) + ")";
+  }
+
   public boolean equals(Object o) {
     return this == o;
   }
 
   public boolean isAtomic() {
-    return this instanceof Atom || this instanceof Predicate;
+    return args.isEmpty() || this instanceof Predicate;
   }
 
   public boolean isLiteral() {

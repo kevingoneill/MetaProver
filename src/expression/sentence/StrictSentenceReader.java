@@ -28,14 +28,6 @@ public class StrictSentenceReader extends SentenceReader {
     throw new AbstractSentenceReader.SentenceParseException("Proposition: " + exprName + " must begin with an uppercase character");
   }
 
-  protected Sentence parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) throws SentenceParseException {
-    String exprName = stack.peek();
-    if (Character.isLetter(exprName.charAt(0)) && Character.isLowerCase(exprName.charAt(0)))
-      return super.parseVariable(stack, quantifiedVars);
-
-    throw new AbstractSentenceReader.SentenceParseException("Term: " + exprName + " must begin with a lowercase character.");
-  }
-
   protected Sentence parsePredicate(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars)
           throws SentenceParseException {
     if (Character.isLetter(exprName.charAt(0)) && Character.isUpperCase(exprName.charAt(0)))
