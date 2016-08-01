@@ -19,7 +19,6 @@ public class ForAll extends Sentence {
   public ForAll(Variable v, Sentence s) {
     super(Arrays.asList(v, s), NAME, SYMBOL, Sort.BOOLEAN);
     HASH_CODE = hashString(v).hashCode();
-    System.out.println(toSExpression() + "\t\t\t" + hashString(v));
   }
 
   public String toString() {

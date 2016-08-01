@@ -56,6 +56,12 @@ public class Function extends Sentence {
     functionDeclarations.clear();
   }
 
+  public static List<Sort> getDeclaration(String funName) {
+    List<Sort> l = functionDeclarations.get(funName);
+    if (l == null) return null;
+    return new ArrayList<>(l);
+  }
+
   public Function(String n, Sort sort, Sentence... sentences) {
     super(new ArrayList<>(Arrays.asList(sentences)), n, n, sort);
   }

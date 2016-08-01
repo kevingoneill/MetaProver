@@ -30,6 +30,8 @@ public abstract class Sentence extends Expression {
   protected Sentence(List<Sentence> a, String n, String s, Sort type) {
     super(n, s);
     args = a;
+    if (args.contains(null))
+      throw new RuntimeException();
     sort = type;
     HASH_CODE = toSExpression().hashCode();
   }

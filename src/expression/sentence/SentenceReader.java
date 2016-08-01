@@ -122,8 +122,8 @@ public class SentenceReader extends AbstractSentenceReader {
     if (!Function.functionDeclarations.containsKey(exprName))
       throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
 
-    List<Sort> sorts = new ArrayList<>(Function.functionDeclarations.get(exprName));
-    if (sorts.size() < 1)
+    List<Sort> sorts = Function.getDeclaration(exprName);
+    if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
 
     if (sorts.remove(0) != Sort.BOOLEAN)
@@ -153,7 +153,7 @@ public class SentenceReader extends AbstractSentenceReader {
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
-    List<Sort> sorts = Function.functionDeclarations.get(exprName);
+    List<Sort> sorts = Function.getDeclaration(exprName);
     if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Function: " + exprName + " has not been declared.");
 
@@ -255,8 +255,25 @@ public class SentenceReader extends AbstractSentenceReader {
           throw new AbstractSentenceReader.SentenceParseException("Exists Sentence must have exactly two arguments.\n" + args);
         return new Exists((Variable) args.get(0), args.get(1));
       }
-      default:
-        return null;
+      default: {
+        List<Sort> l = Function.getDeclaration(name);
+        if (l == null || l.isEmpty())
+          return null;
+        Sort sort = l.remove(0);
+        if (l.size() == 1 && args.isEmpty()) {
+          if (sort == Sort.BOOLEAN)
+            return new Predicate(name, args);
+          return new Function(name, sort, args);
+        }
+
+        if (l.size() == args.size() && IntStream.range(0, l.size()).allMatch(i -> args.get(i).getSort().isSubSort(l.get(i)))) {
+          if (sort == Sort.BOOLEAN)
+            return new Predicate(name, args);
+          return new Function(name, sort, args);
+        }
+        System.out.println(name + " " + args);
+        throw new SentenceParseException("Cannot parse Sentence named " + name + ": no matching declaration exists.\n");
+      }
     }
   }
 }
