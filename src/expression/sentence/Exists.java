@@ -11,7 +11,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Created by kevin on 5/27/16.
+ * Exists is a quantified Sentence, which states that there must be
+ * some constant, which when instantiated over its subsentence,
+ * is satisfied.
  */
 public class Exists extends Sentence {
   public static String NAME = "exists", SYMBOL = "∃";
@@ -23,8 +25,12 @@ public class Exists extends Sentence {
   }
 
   public String toString() {
-    if (TOSTRING == null)
-      TOSTRING = symbol + getVariable() + (getSentence().isQuantifier() ? getSentence() : " " + getSentence());
+    if (TOSTRING == null) {
+      if (getVariable().getSort() == Sort.OBJECT)
+        TOSTRING = symbol + getVariable() + getSentence();
+      else
+        TOSTRING = symbol + "(" + getVariable().getSort() + " " + getVariable() + ")" + getSentence();
+    }
     return TOSTRING;
   }
 

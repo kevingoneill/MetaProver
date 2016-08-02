@@ -1,13 +1,14 @@
 package logicalreasoner.prover;
 
 import expression.sentence.DeclarationParser;
+import expression.sentence.ParserException;
 import expression.sentence.Sentence;
+import expression.sentence.SentenceReader;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This is the main driver class for running the Semantic Logical Reasoner
@@ -15,88 +16,109 @@ import java.util.Set;
 public class SemanticProverMain {
 
   /**
-   * Run the prover given premises and interests
+   * Run the prover given premises and goal provided
+   * by the input file
    * <p>
-   * args[1] - premises txt file (one premise per line)
-   * ars[2] - interests txt file (one interest per line)
+   * args[1] - the input file to read formulae from,
+   * using the lisp-macro-like expressions
    *
-   * @param args input files for reasoning
+   * (declarations [Sort/Function Declarations]*)
+   * (premises [Propositional Sentences]*)
+   * (goal [Propositional Sentence])
+   *
+   * Syntax of Sort/Function/Constant declarations is given
+   * by DeclarationParser. Syntax for propositional sentences
+   * is given by SentenceReader. All commands follow standard
+   * S-Expression syntax.
+   *
+   * @param args input file for reasoning
    */
   public static void main(String[] args) {
     long startTime = System.nanoTime();
-
-    if (args.length != 3) {
-      System.out.println(usage(args[0]));
+    if (args.length == 0)
+      throw new IllegalArgumentException("Please provide an input file to read problems from. ");
+    if (args.length != 1) {
+      System.out.println(usage());
       return;
     }
 
-    Set<Sentence> premises;
-    Sentence interest;
+    Set<Sentence> premises = new HashSet<>();
+    Sentence goal;
 
     try {
-      readDeclarations(args[0]);
+      goal = readInputFile(args[0], premises);
     } catch (IOException ioe) {
-      System.out.println("Exception while reading declarations: \n");
+      System.out.println("File not found: " + args[0] + " \n");
       ioe.printStackTrace();
       return;
     }
 
-    try {
-      premises = readSentences(args[1]);
-    } catch (IOException ioe) {
-      System.out.println("Exception while reading premises: \n");
-      ioe.printStackTrace();
-      return;
-    }
-
-    try {
-      interest = readSentence(args[2]);
-    } catch (IOException ioe) {
-      System.out.println("Exception while reading interest: \n");
-      ioe.printStackTrace();
-      return;
-    }
-
-    SemanticProver prover = new SemanticProver(premises, interest, true);
+    SemanticProver prover = new SemanticProver(premises, goal, true);
     prover.run();
-
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }
 
-  public static String usage(String arg0) {
-    return "usage: java " + arg0 + " <declarationsFile> <premisesFile> <interestsFile>";
+  public static String usage() {
+    return "usage: java SemanticProverMain <inputFile>\n";
   }
 
-  public static void readDeclarations(String fileName) throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(fileName));
-    String line;
+  public static Sentence readInputFile(String fileName, Set<Sentence> premises) throws FileNotFoundException {
+    Sentence goal;
+    Scanner scanner = new Scanner(new File(fileName)).useDelimiter("\\Z");
+    String file = scanner.next().replaceAll("[;].*?\\n", "");
+    scanner.close();
+    boolean declarationsAdded = false,
+            premisesAdded = false,
+            goalsAdded = false;
+    SentenceReader reader = new SentenceReader();
+    LinkedList<String> stack = reader.tokenize(file);
 
-    while ((line = reader.readLine()) != null) {
-      if (!DeclarationParser.ParseDeclaration(line))
-        throw new RuntimeException("Failed to parse declaration: " + line);
+    if (stack.isEmpty())
+      throw new ParserException("Input file is empty.\n");
+    if (!stack.pop().equals("(") || stack.isEmpty() || !stack.pop().equals("declarations"))
+      throw new ParserException("Missing declarations command.\n");
+    parseDeclarations(stack);
+
+    if (stack.isEmpty() || !stack.pop().equals("(") || stack.isEmpty() || !stack.pop().equals("premises"))
+      throw new ParserException("Missing premises command.\n");
+
+    // parse premises
+    while (!stack.peek().equals(")")) {
+      if (stack.isEmpty())
+        throw new ParserException("Missing closing parenthesis after premises. \n");
+      premises.add(reader.parse(stack, new HashMap<>()));
     }
+    stack.pop();
+
+    if (stack.isEmpty() || !stack.pop().equals("(") || stack.isEmpty() || !stack.pop().equals("goal"))
+      throw new ParserException("Missing goal command.\n");
+    goal = reader.parse(stack, new HashMap<>());
+    stack.pop();
+
+    if (!stack.isEmpty())
+      throw new ParserException("Unparsed text after goal.");
+    return goal;
   }
 
-  public static Set<Sentence> readSentences(String fileName) throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(fileName));
-    String line;
+  public static void parseDeclarations(LinkedList<String> stack) {
+    StringBuilder decl = new StringBuilder();
+    while (!stack.peek().equals(")")) {  // While not at end of macro
+      if (stack.isEmpty())
+        throw new ParserException("Missing closing parenthesis after declarations. \n");
 
-    Set<Sentence> sentences = new HashSet<>();
-
-    while ((line = reader.readLine()) != null) {
-      sentences.add(Sentence.makeSentence(line));
+      //loop for every definition in the macro
+      while (stack.peek().equals("(")) {
+        stack.pop();
+        while (!stack.peek().equals(")"))
+          decl.append(stack.pop()).append(" ");
+        if (!stack.peek().equals(")"))
+          throw new ParserException("Missing closing parenthesis after declaration: " + decl + " \n");
+        stack.pop();
+        DeclarationParser.ParseDeclaration(decl.toString());
+        decl = new StringBuilder();
+      }
     }
-    return sentences;
+    stack.pop();
   }
 
-  public static Sentence readSentence(String fileName) throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(fileName));
-    String line;
-
-    if ((line = reader.readLine()) != null) {
-      return Sentence.makeSentence(line);
-    }
-
-    return null;
-  }
 }

@@ -17,8 +17,13 @@ import java.util.stream.Stream;
 public abstract class Sentence extends Expression {
   static HashMap<String, Sentence> instances = new HashMap<>();
   protected List<Sentence> args;
+  String FULL_SEXPR = null;
   Sort sort;
   protected Integer SIZE = null, QUANTIFIER_COUNT = null, ATOM_COUNT = null;
+
+  public static Set<Sentence> getAllConstants() {
+    return instances.values().stream().filter(s -> s.getSort() != Sort.BOOLEAN && s instanceof Constant).collect(Collectors.toSet());
+  }
 
   /**
    * Create a new logical Sentence
@@ -73,7 +78,7 @@ public abstract class Sentence extends Expression {
     if (instances.containsKey(s))
       return instances.get(s);
     Sentence sentence = new SentenceReader().makeSentence(name, args);
-    instances.put(s, sentence);
+    instances.put(sentence.toFullSExpression(), sentence);
     return sentence;
   }
 
@@ -92,7 +97,7 @@ public abstract class Sentence extends Expression {
     if (instances.containsKey(sExpr))
       return instances.get(sExpr);
     Sentence s = new StrictSentenceReader().parse(sExpr);
-    instances.put(sExpr, s);
+    instances.put(s.toFullSExpression(), s);
     return s;
   }
 
@@ -142,6 +147,21 @@ public abstract class Sentence extends Expression {
     return TOSEXPR;
   }
 
+  public String toFullSExpression() {
+    if (FULL_SEXPR == null) {
+      if (this instanceof Variable) {
+        FULL_SEXPR = "(" + getSort() + " " + name + ")";
+      } else {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(").append(name);
+        args.forEach(arg -> builder.append(" ").append(arg.toFullSExpression()));
+        builder.append(")");
+        FULL_SEXPR = builder.toString();
+      }
+    }
+    return FULL_SEXPR;
+  }
+
   public String toMATR() {
     if (args.isEmpty())
       return sort.toString() + ":" + name;
@@ -155,7 +175,7 @@ public abstract class Sentence extends Expression {
     IntStream.rangeClosed(0, args.size() - 1).forEach(i -> {
       if (i == 0)
         builder.append(args.get(i).toMATR());
-      builder.append(" " + args.get(i).toMATR());
+      builder.append(" ").append(args.get(i).toMATR());
     });
     //args.forEach(arg -> builder.append(" ").append(arg.toMATR()));
 
@@ -169,7 +189,7 @@ public abstract class Sentence extends Expression {
   /**
    * This function is used by quantifiers to recursively remove a variable from a string
    *
-   * @param v
+   * @param v the variable to erase from the string
    * @return the string of this sentence, with all instances of v replaced with Variable.EMPTY_VAR
    */
   protected final String hashString(Variable v) {

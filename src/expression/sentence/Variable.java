@@ -21,6 +21,7 @@ public class Variable extends Atom {
 
   public String toString() {
     return name;
+    //return "(" + getSort() + " " + name + ")";
   }
 
   public String toSExpression() {

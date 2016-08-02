@@ -1,3 +1,0 @@
-(implies A (and B C))
-(iff C B)
-(not C)

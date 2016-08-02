@@ -1,7 +1,7 @@
 package expression.sentence;
 
 /**
- * Created by eamon on 7/28/16.
+ * A simple Exception class to deal with parse errors.
  */
 
 public class ParserException extends RuntimeException {

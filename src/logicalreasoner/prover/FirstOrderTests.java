@@ -24,7 +24,7 @@ public class FirstOrderTests {
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true, 240);
+    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true);
     prover.run();
     if (!prover.finishedProof())
       throw new RuntimeException("Prover could not finish proof in the given amount of time.");

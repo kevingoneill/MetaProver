@@ -3,7 +3,7 @@ package logicalreasoner.prover;
 import expression.sentence.Sentence;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -22,34 +22,24 @@ public class FirstOrderProverMain {
   public static void main(String[] args) {
     long startTime = System.nanoTime();
 
-    if (args.length != 2) {
-      System.out.println(Arrays.asList(args));
-      System.out.println(SemanticProverMain.usage(args[0]));
+    if (args.length != 1) {
+      System.out.println(SemanticProverMain.usage());
       return;
     }
 
-    Set<Sentence> premises;
-    Sentence interest;
+    Set<Sentence> premises = new HashSet<>();
+    Sentence goal;
 
     try {
-      premises = SemanticProverMain.readSentences(args[0]);
+      goal = SemanticProverMain.readInputFile(args[0], premises);
     } catch (IOException ioe) {
-      System.out.println("Exception while reading premises: \n");
+      System.out.println("File not found: " + args[0] + " \n");
       ioe.printStackTrace();
       return;
     }
 
-    try {
-      interest = SemanticProverMain.readSentence(args[1]);
-    } catch (IOException ioe) {
-      System.out.println("Exception while reading premises: \n");
-      ioe.printStackTrace();
-      return;
-    }
-
-    SemanticProver prover = new FirstOrderProver(premises, interest, true);
+    SemanticProver prover = new FirstOrderProver(premises, goal, true);
     prover.run();
-
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }
 }

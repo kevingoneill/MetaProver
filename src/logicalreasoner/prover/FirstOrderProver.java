@@ -1,5 +1,6 @@
 package logicalreasoner.prover;
 
+import expression.Sort;
 import expression.sentence.Constant;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
@@ -7,9 +8,11 @@ import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
+import logicalreasoner.truthassignment.TruthValue;
 
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -83,7 +86,7 @@ public class FirstOrderProver extends SemanticProver {
     //System.out.println("################################################\n");
     //printQueue(quantifierQueue);
     Inference i = null;
-    Pair p = null;
+    Pair p;
 
     while (i == null) {
       if (quantifierQueue.isEmpty()) {
@@ -95,15 +98,23 @@ public class FirstOrderProver extends SemanticProver {
       }
 
       p = quantifierQueue.poll();
+      if (p.truthAssignment.isDecomposed(p.sentence))
+        continue;
 
       if (p.sentence == null)
         return null;
       if (p.truthAssignment.models(p.sentence) && p.sentence instanceof ForAll) {
-        Constant c = Constant.getNewUniqueConstant();
-        p.truthAssignment.getLeavesParallel().forEach(l -> {
-          if (l.getConstants().isEmpty())
-            l.addConstant(c);
-        });
+        TruthValue v = p.truthAssignment.getTruthValue(p.sentence);
+        Sort s = ((ForAll) p.sentence).getVariable().getSort();
+
+        if ((v.getUninstantiatedConstants().isEmpty() && v.getInstantiatedConstants().isEmpty()) ||
+                p.truthAssignment.getLeaves().anyMatch(l -> l.getConstants(s).isEmpty())) {
+          Constant c = Constant.getNewUniqueConstant(s);
+          p.truthAssignment.getLeavesParallel().forEach(l -> {
+            if (l.getConstants(s).isEmpty())
+              l.addConstant(c);
+          });
+        }
       }
 
       i = p.sentence.reason(p.truthAssignment, inferenceCount,
@@ -111,18 +122,19 @@ public class FirstOrderProver extends SemanticProver {
 
       if (i == null) {
         System.out.println(p.sentence);
-        System.out.println(p.truthAssignment.getConstants());
+        System.out.println(p.truthAssignment.getConstants().stream().map(c -> c.getSort() + " " + c.getName()).collect(Collectors.toList()));
         System.out.println(p.truthAssignment.getTruthValue(p.sentence).getUninstantiatedConstants());
         System.out.println(p.truthAssignment.getTruthValue(p.sentence).getInstantiatedConstants());
+        System.out.println(p.truthAssignment.isDecomposed(p.sentence));
         System.exit(1);
       }
 
-      if (i != null) {
+      //if (i != null) {
         ++inferenceCount;
         //System.out.println(i + "\n----------------------------------------------\n");
         //if (p.truthAssignment.models(p.sentence))
         //  System.out.println("Instantiating: " + p.sentence + "\n");
-      }
+      //}
     }
 
     return i;

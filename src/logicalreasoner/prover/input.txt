@@ -1,0 +1,8 @@
+(declarations
+  (declare-sort Man Object)
+  (Man Socrates)
+  (Boolean Mortal Object))
+
+(premises (forAll (Man x) (Mortal x)))
+
+(goal (Mortal Socrates))

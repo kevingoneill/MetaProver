@@ -78,7 +78,7 @@ public class SemanticProver implements Runnable {
             }).filter(l::isMapped).count()).sum();
 
     if (i != j)
-      return i - j;
+      return j - i;
 
     return b2.getInferenceNum() - b1.getInferenceNum();
   };
@@ -91,7 +91,7 @@ public class SemanticProver implements Runnable {
    * @param print    Print log output if true
    */
   public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print) {
-    this.premises = premises;
+    this.premises = new HashSet<>(premises);
     if (premises == null)
       this.premises = new HashSet<>();
     interests = new HashSet<>();
@@ -102,10 +102,11 @@ public class SemanticProver implements Runnable {
     inferenceList = new CopyOnWriteArrayList<>();
     inferenceCount = 1;
     masterFunction = new TruthAssignment();
-
+    masterFunction.addConstants(Sentence.getAllConstants());
     Decomposition c = new Decomposition(masterFunction, null, 0, 0);
     int premiseCount = -1;
-    for (Sentence s : premises) {
+
+    for (Sentence s : this.premises) {
       Decomposition p = new Decomposition(masterFunction, null, premiseCount--, 0);
       p.setTrue(s);
       p.infer(masterFunction);
@@ -223,7 +224,7 @@ public class SemanticProver implements Runnable {
       if (isInvalid())
         break;
 
-      System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size());
+      System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size() + "\t\tBranch Queue Size:\t" + branchQueue.size());
     }
 
     //printInferenceList();

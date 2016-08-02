@@ -3,6 +3,7 @@ package expression.sentence;
 import expression.Sort;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -10,15 +11,15 @@ import java.util.stream.IntStream;
  */
 public class SentenceReader extends AbstractSentenceReader {
 
-  protected LinkedList<String> tokenize(String s) {
+  public LinkedList<String> tokenize(String s) {
     String[] arr = s.split("(?<=[(])|(?=[)])|(?=[)])|(?>=[(])|\\s");
     LinkedList<String> l = new LinkedList<>(Arrays.asList(arr));
-    l.removeIf(string -> string.replaceAll("\\s", "").isEmpty());
-    //System.out.println(l);
+    l = l.stream().map(String::trim).collect(Collectors.toCollection(LinkedList::new));
+    l.removeIf(String::isEmpty);
     return l;
   }
 
-  protected Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
+  public Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     if (stack.isEmpty())
       return null;
 
@@ -27,7 +28,7 @@ public class SentenceReader extends AbstractSentenceReader {
       String exprName = stack.pop();
       if (QUANTIFIERS.contains(exprName))   // Parse the quantifier
         return parseQuantifier(exprName, stack, quantifiedVars);
-      else if (PROPOSITIONS.contains(exprName))  // Parse the proposition
+      else if (OPERATORS.contains(exprName))  // Parse the proposition
         return parseSExpression(exprName, stack, quantifiedVars);
 
       return parsePredicate(exprName, stack, quantifiedVars); // The sentence must now be a Predicate
@@ -66,20 +67,19 @@ public class SentenceReader extends AbstractSentenceReader {
 
     Sentence s = parseVariable(stack, quantifiedVars);
     args.add(s);
-    quantifiedVars.put(s.toString(), (Variable) s);
+    quantifiedVars.put(s.toSExpression(), (Variable) s);
 
     args.add(parse(stack, quantifiedVars));
     if (stack.peek() == null || !stack.peek().equals(")"))
       throw new AbstractSentenceReader.SentenceParseException("Missing parentheses after quantifier: " + exprName + " " + args.get(0) + ".");
     stack.pop();
-    quantifiedVars.remove(s.toString());
+    quantifiedVars.remove(s.toSExpression());
     return makeSentence(exprName, args);
   }
 
   protected Sentence parseVariable(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     String s = stack.pop();
-    String exprName,
-            sort = null;
+    String exprName, sort;
 
     if (s.equals("(")) {
       sort = stack.pop();
@@ -136,12 +136,12 @@ public class SentenceReader extends AbstractSentenceReader {
                 + " is of Sort: " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
     });
 
-    String s = sentenceString(exprName, list);
+    String s = fullSentenceString(exprName, list);
     if (Sentence.instances.containsKey(s))
       return Sentence.instances.get(s);
 
     Predicate p = new Predicate(exprName, list);
-    Sentence.instances.put(p.toSExpression(), p);
+    Sentence.instances.put(p.toFullSExpression(), p);
     return p;
   }
 
@@ -177,9 +177,12 @@ public class SentenceReader extends AbstractSentenceReader {
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     String exprName = stack.peek();
 
-    if (quantifiedVars.containsKey(exprName))
-      return quantifiedVars.get(stack.pop());
+    //System.out.println(exprName + "\t\t" + stack + "\t\t\t\t" + quantifiedVars);
 
+    if (quantifiedVars.containsKey(exprName)) {
+      Variable v = quantifiedVars.get(stack.pop());
+      return v;
+    }
     if (Sentence.instances.containsKey(exprName))
       return Sentence.instances.get(stack.pop());
 
@@ -210,7 +213,7 @@ public class SentenceReader extends AbstractSentenceReader {
       throw new AbstractSentenceReader.SentenceParseException("Cannot create an Sentence from an empty string.");
 
     //Check if this Sentence has already been created
-    Sentence s = Sentence.instances.get(sentenceString(name, args));
+    Sentence s = Sentence.instances.get(fullSentenceString(name, args));
     if (s != null)
       return s;
 

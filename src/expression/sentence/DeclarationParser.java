@@ -13,7 +13,7 @@ import java.util.ArrayList;
  *
  *  * Sort
  *  e.g.
- *  typedef <Sort name 0> <Parent Sort name>
+ *  declare-sort <Sort name 0> <Parent Sort name>
  *
  *  * Const
  *  e.g.
@@ -29,10 +29,10 @@ public class DeclarationParser {
 
     public static boolean ParseDeclaration(String s) {
       String[] arr = s.split("\\s");
-      if (arr[0].equals("typedef")) {
-            //If it starts with typedef it is a Sort Declaration
+      if (arr[0].equals("declare-sort")) {
+        //If it starts with declare-sort it is a Sort Declaration
             if (arr.length == 0) {
-              throw new ParserException("typdef requires at least one argument.");
+              throw new ParserException("declare-sort requires at least one argument.");
             } else if (arr.length == 2) {
                 // If no parent is provided default to object
                 sortDec(arr[1], Sort.OBJECT);

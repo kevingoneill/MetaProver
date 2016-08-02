@@ -22,8 +22,12 @@ public class ForAll extends Sentence {
   }
 
   public String toString() {
-    if (TOSTRING == null)
-      TOSTRING = symbol + getVariable() + ((getSentence().isQuantifier() || getSentence().isLiteral()) ? getSentence() : " " + getSentence());
+    if (TOSTRING == null) {
+      if (getVariable().getSort() == Sort.OBJECT)
+        TOSTRING = symbol + getVariable() + getSentence();
+      else
+        TOSTRING = symbol + "(" + getVariable().getSort() + " " + getVariable() + ")" + getSentence();
+    }
     return TOSTRING;
   }
 
@@ -55,8 +59,10 @@ public class ForAll extends Sentence {
 
     if (v.isModelled()) {
       List<Sentence> a = new ArrayList<>(v.getUninstantiatedConstants());
-      if (a.isEmpty())
+      if (a.isEmpty()) {
+        System.out.println("2");
         return null;
+      }
       UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, a, getVariable());
       v.getInstantiatedConstants().addAll(a);
       v.getUninstantiatedConstants().clear();

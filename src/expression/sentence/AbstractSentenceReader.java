@@ -9,16 +9,16 @@ import java.util.stream.Collectors;
  * as Strings into their unique Sentence Objects.
  */
 public abstract class AbstractSentenceReader {
-  protected ArrayList<String> PROPOSITIONS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
+  protected ArrayList<String> OPERATORS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
   protected ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
 
   public Sentence parse(String s) {
     return parse(tokenize(s), new HashMap<>());
   }
 
-  protected abstract LinkedList<String> tokenize(String s);
+  public abstract LinkedList<String> tokenize(String s);
 
-  protected abstract Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) throws SentenceParseException;
+  public abstract Sentence parse(LinkedList<String> stack, Map<String, Variable> quantifiedVars) throws SentenceParseException;
 
   protected abstract Sentence parseProposition(String exprName) throws SentenceParseException;
 
@@ -38,8 +38,16 @@ public abstract class AbstractSentenceReader {
     return "(" + name + args.stream().map(a -> " " + a.toSExpression()).collect(Collectors.joining()) + ")";
   }
 
+  static String fullSentenceString(String name, List<Sentence> args) {
+    return "(" + name + args.stream().map(a -> " " + a.toFullSExpression()).collect(Collectors.joining()) + ")";
+  }
+
   static String sentenceString(String name, Variable var, Sentence s) {
     return "(" + name + " (" + var.getSort() + " " + var.toSExpression() + ") " + s.toSExpression() + ")";
+  }
+
+  static String fullSentenceString(String name, Variable var, Sentence s) {
+    return "(" + name + " " + var.toFullSExpression() + " " + s.toFullSExpression() + ")";
   }
 
   /**

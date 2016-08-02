@@ -1,5 +1,6 @@
 package logicalreasoner.truthassignment;
 
+import expression.Sort;
 import expression.sentence.BooleanSentence;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
@@ -249,8 +250,8 @@ public class TruthAssignment {
    * it to all children. Used for caching mappings, rather than
    * using recursion.
    *
-   * @param s the Sentence to be found in t
-   * @param t the TruthAssignment containing a mapping for s
+   * @param c the constants, paired with the TruthAssignments containing them,
+   *          to be added to this.
    */
   public void addMappingsDownward(Collection<Pair> c) {
     if (c.isEmpty())
@@ -267,8 +268,7 @@ public class TruthAssignment {
    * it to all children. Used for caching mappings, rather than
    * using recursion.
    *
-   * @param s the Sentence to be found in t
-   * @param t the TruthAssignment containing a mapping for s
+   * @param c the paired Constants and TruthAssignments to add
    */
   public void addMappings(Collection<Pair> c) {
     if (c.isEmpty())
@@ -304,6 +304,14 @@ public class TruthAssignment {
    */
   public Set<Sentence> getConstants() {
     return constants;
+  }
+
+  /**
+   * Get a Set of all constants of sort superSort which are represented in this TruthAssignment
+   * @return a Set of valid constants in this TruthAssignment
+   */
+  public Set<Sentence> getConstants(Sort superSort) {
+    return constants.stream().filter(c -> c.getSort().isSubSort(superSort)).collect(Collectors.toSet());
   }
 
   /**
@@ -353,8 +361,7 @@ public class TruthAssignment {
   public TruthTree makeTruthTree() {
     TreeBranch root = makeBranch(map.keySet(), children.isEmpty());
     children.forEach(child -> root.addChild(child.makeTruthTree().getRoot()));
-    TruthTree tree = new TruthTree(root);
-    return tree;
+    return new TruthTree(root);
   }
 
   private TreeBranch makeBranch(Set<Sentence> sens, boolean isLeaf) {
@@ -700,8 +707,8 @@ public class TruthAssignment {
       if (p != null)
         tv = p.map.get(s);
     }
-    if (tv != null)
-      tv.setDecomposed();
+
+    tv.setDecomposed();
   }
 
   /**
@@ -710,10 +717,9 @@ public class TruthAssignment {
    * @param s theSentence to search for
    * @return true if s has been reasoned over, false otherwise
    */
-  private boolean isDecomposed(Sentence s) {
+  public boolean isDecomposed(Sentence s) {
     TruthValue tv = map.get(s);
     if (tv == null) {
-      System.exit(1);
       TruthAssignment p = inheritedMappings.get(s);
       if (p == null)
         return false;
@@ -722,8 +728,11 @@ public class TruthAssignment {
         return false;
     }
     // Check for finished Universal Quantifiers
-    if (tv.isModelled() && s instanceof ForAll)
-      return tv.instantiatedAll() && (getConstants().size() > 0 || tv.getInstantiatedConstants().size() > getConstants().size());
+    if (tv.isModelled() && s instanceof ForAll) {
+      Sort sort = ((ForAll) s).getVariable().getSort();
+      Set<Sentence> constants = getConstants(sort);
+      return tv.instantiatedAll() && (constants.size() > 0 || tv.getInstantiatedConstants().size() > constants.size());
+    }
     return tv.isDecomposed();
   }
 

@@ -106,8 +106,8 @@ public class TruthValue {
   public void addInstantiation(Sentence c) {
     if (!instantiations.contains(c) && c.getSort().isSubSort(quantifiedSort))
       uninstantiatedConstants.add(c);
-    else if (!instantiations.contains(c))
-      instantiations.add(c);
+    //else if (!instantiations.contains(c))
+    //  instantiations.add(c);
   }
 
   public Set<Sentence> getUninstantiatedConstants() {

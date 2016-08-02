@@ -60,8 +60,8 @@ public class Branch extends Inference implements Comparable<Branch> {
     return "Branch " + inferenceNum + "- from: " + origin + "=" + parent.models(origin) + " [" + justificationNum + "] to branches: " +
             branches.stream().map(b -> "{" +
                     b.keySet().stream().map(s ->
-                            s.toString() + "=" + b.models(s)).collect(Collectors.joining())
-                    + "} ").collect(Collectors.joining());
+                            " " + s.toString() + "=" + b.models(s)).collect(Collectors.joining())
+                    + " } ").collect(Collectors.joining());
   }
 
   @Override
@@ -74,18 +74,30 @@ public class Branch extends Inference implements Comparable<Branch> {
     if (this.size() != o.size())
       return o.size() - this.size();
 
+    if (origin.isLiteral() && !o.getOrigin().isLiteral())
+      return -1;
+    if (!origin.isLiteral() && o.getOrigin().isLiteral())
+      return 1;
+
+    if (origin.isQuantifier() && o.getOrigin().isQuantifier()) {
+      if (origin.getSubSentence(1).isLiteral() && !o.getOrigin().getSubSentence(1).isLiteral())
+        return -1;
+      if (!origin.getSubSentence(1).isLiteral() && o.getOrigin().getSubSentence(1).isLiteral())
+        return 1;
+    }
+
     i = this.getOrigin().quantifierCount();
     j = o.getOrigin().quantifierCount();
     if (i != j)
       return i - j;
 
-    i = branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
-    j = o.branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
+    i = this.getOrigin().atomCount();
+    j = o.getOrigin().atomCount();
     if (i != j)
       return i - j;
 
-    i = this.getOrigin().atomCount();
-    j = o.getOrigin().atomCount();
+    i = branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
+    j = o.branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
     if (i != j)
       return i - j;
 
