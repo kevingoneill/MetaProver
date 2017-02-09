@@ -51,4 +51,9 @@ public class Not extends Sentence {
   public Set<Sentence> getConstants() {
     return args.get(0).getConstants();
   }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    return args.get(0).expectedBranchCount(!truthValue, h);
+  }
 }

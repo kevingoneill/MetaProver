@@ -68,6 +68,13 @@ public class Constant extends Atom {
     return (Constant) Sentence.instances.get(name);
   }
 
+  public static Constant removeConstant(String name) {
+    if (!constantExists(name))
+      return null;
+    Function.removeDeclaration(name);
+    return (Constant) Sentence.instances.remove(name);
+  }
+
   public static void clearConstants() {
     newConstants = 1;
   }

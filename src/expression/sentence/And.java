@@ -26,15 +26,15 @@ public class And extends Sentence {
   }
 
   public Boolean eval(TruthAssignment h) {
-    //return pre-mapped value for this
-    if (h.isMapped(this))
-      return h.models(this);
-
     //if any atoms are unmapped, return null
     if (args.contains(null))
       return null;
 
-    return args.stream().allMatch(arg -> arg.eval(h));
+    return args.stream().map(arg -> arg.eval(h)).distinct().reduce(true, (a, b) -> {
+      if (a == null || b == null)
+        return null;
+      return a && b;
+    });
   }
 
   @Override
@@ -58,5 +58,15 @@ public class And extends Sentence {
       });
       return b;
     }
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    // This And will Decompose, not Branch
+    if (truthValue)
+      return args.stream().mapToInt(a -> a.expectedBranchCount(true, h)).sum();
+
+    // This And will lead to a branch
+    return args.size() + args.stream().mapToInt(a -> a.expectedBranchCount(false, h)).sum();
   }
 }

@@ -20,14 +20,14 @@ public class SortTests {
   @Test
   public void test1() {
     List<String> declarations = new ArrayList<>();
-    declarations.add("typedef Man Object");
+    declarations.add("declare-sort Man Object");
     declarations.add("Man Socrates");
     declarations.add("Boolean Mortal Object");
     Set<String> premises = new HashSet<>();
     premises.add("(forAll (Man x) (Mortal x))");
     runProver(declarations, premises, "(Mortal Socrates)", true);
 
-    declarations.add("typedef Woman Object");
+    declarations.add("declare-sort Woman Object");
     declarations.add("Woman SocratesWife");
     runProver(declarations, premises, "(Mortal SocratesWife)", false);
   }
@@ -37,13 +37,15 @@ public class SortTests {
     List<String> declarations = new ArrayList<>();
     declarations.add("Object Zoey");
     declarations.add("Object Mel");
+    declarations.add("Boolean TellsTruth Object");
+    declarations.add("declare-sort Knight Object");
+    declarations.add("declare-sort Knave Object");
 
-    declarations.add("Boolean Knight Object");
     Set<String> premises = new HashSet<>();
     premises.add("(forAll (Knight x) (TellsTruth x))");
     premises.add("(forAll (Knave x) (not (TellsTruth x)))");
 
 
-    runProver(declarations, premises, "(Mortal Socrates)", true);
+    runProver(declarations, premises, "(TellsTruth Zoey)", false);
   }
 }

@@ -3,9 +3,11 @@ package logicalreasoner.inference;
 import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
+import logicalreasoner.truthassignment.TruthValue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +36,12 @@ public class Branch extends Inference implements Comparable<Branch> {
   }
 
   public void addBranch(TruthAssignment h) {
+    branches.add(h);
+    h.keySet().forEach(h::addSupposition);
+  }
+
+  public void addBranch(Map<Sentence, TruthValue> map) {
+    TruthAssignment h = new TruthAssignment(map, -1);
     branches.add(h);
     h.keySet().forEach(h::addSupposition);
   }
@@ -72,18 +80,13 @@ public class Branch extends Inference implements Comparable<Branch> {
     int i, j;
 
     if (this.size() != o.size())
-      return o.size() - this.size();
-
-    if (origin.isLiteral() && !o.getOrigin().isLiteral())
-      return -1;
-    if (!origin.isLiteral() && o.getOrigin().isLiteral())
-      return 1;
+      return this.size() - o.size();
 
     if (origin.isQuantifier() && o.getOrigin().isQuantifier()) {
       if (origin.getSubSentence(1).isLiteral() && !o.getOrigin().getSubSentence(1).isLiteral())
-        return -1;
-      if (!origin.getSubSentence(1).isLiteral() && o.getOrigin().getSubSentence(1).isLiteral())
         return 1;
+      if (!origin.getSubSentence(1).isLiteral() && o.getOrigin().getSubSentence(1).isLiteral())
+        return -1;
     }
 
     i = this.getOrigin().quantifierCount();
@@ -96,13 +99,19 @@ public class Branch extends Inference implements Comparable<Branch> {
     if (i != j)
       return i - j;
 
-    i = branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
-    j = o.branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
+    i = origin.expectedBranchCount(parent) * parent.getNumLeaves();
+    j = o.origin.expectedBranchCount(o.parent) * o.parent.getNumLeaves();
     if (i != j)
       return i - j;
 
+
     i = this.getOrigin().size();
     j = o.getOrigin().size();
+    if (i != j)
+      return i - j;
+
+    i = branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
+    j = o.branches.parallelStream().mapToInt(b -> b.getConstants().size()).sum();
     if (i != j)
       return i - j;
 

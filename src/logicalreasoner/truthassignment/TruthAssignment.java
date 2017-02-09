@@ -62,6 +62,15 @@ public class TruthAssignment {
     suppositions = new HashMap<>();
   }
 
+  public TruthAssignment(Map<Sentence, TruthValue> m, long id) {
+    this(id);
+    merge(m, m.keySet().stream().flatMap(s -> s.getConstants().stream()).collect(Collectors.toSet()));
+  }
+
+  public TruthAssignment(Map<Sentence, TruthValue> m) {
+    this(m, truthAssignmentCount++);
+  }
+
   /**
    * Create a copy of another TruthAssignment, th
    *
@@ -287,7 +296,11 @@ public class TruthAssignment {
       return;
 
     this.constants.addAll(constants);
-    addInstantiatedConstants(constants);
+    if (children.isEmpty())
+      addInstantiatedConstants(constants);
+
+
+
     children.forEach(child -> {
       c.forEach(p -> child.inheritedMappings.putIfAbsent(p.sentence, p.truthAssignment));
       child.addMappingsAndConstants(c, constants);
@@ -550,6 +563,15 @@ public class TruthAssignment {
     return map.keySet();
   }
 
+  /**
+   * Stream all of the TruthValues local to this TruthAssignment
+   *
+   * @return a stream of TruthValues
+   */
+  public Stream<TruthValue> stream() {
+    return map.values().stream();
+  }
+
   public Stream<Pair> flattenParallel() {
     if (parent == null)
       return map.keySet().parallelStream().map(s -> Pair.makePair(s, this));
@@ -608,7 +630,16 @@ public class TruthAssignment {
    * @param h the mappings to add to this
    */
   public Stream<Pair> merge(TruthAssignment h) {
-    List<Pair> l = h.map.entrySet().stream().map(e -> {
+    return merge(h.map, h.constants);
+  }
+
+  /**
+   * Add all of the mappings of h into this TruthAssignment
+   *
+   * @param h the mappings to add to this
+   */
+  public Stream<Pair> merge(Map<Sentence, TruthValue> h, Collection<Sentence> newConstants) {
+    List<Pair> l = h.entrySet().stream().map(e -> {
       TruthValue truthValue = map.get(e.getKey());
       if (truthValue == null) {
         truthValue = new TruthValue(e.getValue());
@@ -622,8 +653,11 @@ public class TruthAssignment {
       }
     }).collect(Collectors.toList());
 
-    refreshInstantiatedConstants();
-    addMappingsAndConstants(l, h.getConstants());
+    if (constants.containsAll(newConstants))
+      addMappingsAndConstants(l, constants);
+    else
+      addMappingsAndConstants(l, Stream.concat(getConstants().stream(), newConstants.stream()).collect(Collectors.toSet()));
+
     return l.stream();
   }
 
@@ -634,14 +668,18 @@ public class TruthAssignment {
    */
   public boolean consistencyTest() {
     return map.keySet().stream().allMatch(s -> {
+      TruthValue v = map.get(s);
       // Check if the Sentence has multiple values in THIS TruthAssignment
-      if (!map.get(s).isConsistent() || (s instanceof BooleanSentence && map.get(s).isModelled() != s.eval(this)))
+      if (!v.isConsistent()
+              || (s instanceof BooleanSentence && v.isModelled() != s.eval(this)))
         return false;
 
       if (parent == null)
         return true;
       Boolean b = parent.models(s);
-      return (b == null || b == models(s));
+      TruthAssignment h = inheritedMappings.get(s);
+
+      return (b == null || b == models(s)) && (h == null || h.models(s) == models(s));
     });
   }
 
@@ -775,7 +813,10 @@ public class TruthAssignment {
 
       if (parent != null)
         parent.replaceLeaf(child, this);
-      return child.map.keySet().stream().map(s -> Pair.makePair(s, child));
+
+      // enable this if ever needed - wasteful if unused.
+      //return child.map.keySet().stream().map(s -> Pair.makePair(s, child));
+      return Stream.empty();
     });
   }
 
@@ -807,6 +848,10 @@ public class TruthAssignment {
     if (leaves.isEmpty())
       return Stream.of(this);
     return new HashSet<>(leaves).parallelStream();
+  }
+
+  public int getNumLeaves() {
+    return leaves.size();
   }
 
   /**

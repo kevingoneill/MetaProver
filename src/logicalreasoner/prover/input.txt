@@ -1,8 +1,14 @@
 (declarations
-  (declare-sort Man Object)
-  (Man Socrates)
-  (Boolean Mortal Object))
+    (declare-sort Person Object)
+    (Boolean P Person)
+    (Boolean Q Person)
+    (Boolean R Person)
+    (Person valerie)
+    )
 
-(premises (forAll (Man x) (Mortal x)))
+(premises
+        ; this is  comment
+    (or (implies (P valerie) (Q valerie)) (not (implies (P valerie) (Q valerie))))
+)
 
-(goal (Mortal Socrates))
+(goal (R valerie))

@@ -14,7 +14,7 @@ public class ExistentialInstantiation extends Decomposition {
 
   public ExistentialInstantiation(TruthAssignment h, Exists e, int i, int j, Sentence s, Variable v) {
     super(h, e, i, j);
-    setTrue(e.getSentence().instantiate(s, v), i);
+    setTrue(e.getSentence().instantiate(s, v));
     instance = s;
     var = v;
   }

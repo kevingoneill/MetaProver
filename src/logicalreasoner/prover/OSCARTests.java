@@ -658,7 +658,8 @@ public class OSCARTests {
   }
 
   @Test
-  public void prob88c() {
+  public void prob88c() throws InterruptedException {
+    //Thread.sleep(10000);
     List<String> declarations = new ArrayList<>();
     Set<String> premises = new HashSet<>();
     declarations.add("Boolean F Object Object");
@@ -821,19 +822,19 @@ public class OSCARTests {
     List<String> declarations = new ArrayList<>();
     Set<String> premises = new HashSet<>();
 
-    declarations.add("typedef Animal Object");
-    declarations.add("typedef Wolf Animal");
+    declarations.add("declare-sort Animal Object");
+    declarations.add("declare-sort Wolf Animal");
     declarations.add("Wolf wolf");
-    declarations.add("typedef Fox Animal");
+    declarations.add("declare-sort Fox Animal");
     declarations.add("Fox fox");
-    declarations.add("typedef Bird Animal");
+    declarations.add("declare-sort Bird Animal");
     declarations.add("Bird bird");
-    declarations.add("typedef Caterpillar Animal");
+    declarations.add("declare-sort Caterpillar Animal");
     declarations.add("Caterpillar caterpillar");
-    declarations.add("typedef Snail Animal");
+    declarations.add("declare-sort Snail Animal");
     declarations.add("Snail snail");
-    declarations.add("typedef Plant Object");
-    declarations.add("typedef Grain Plant");
+    declarations.add("declare-sort Plant Object");
+    declarations.add("declare-sort Grain Plant");
     declarations.add("Grain grain");
 
     declarations.add("Boolean E Animal Object");

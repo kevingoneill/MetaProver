@@ -51,6 +51,22 @@ public class Function extends Sentence {
     return true;
   }
 
+  /**
+   * Remove a declaration for a function named s
+   *
+   * @param s the name of the Function to be removed
+   * @return true if the declaration was removed, false if no such declaration existed
+   */
+  public static boolean removeDeclaration(String s) {
+    if (!functionDeclarations.containsKey(s))
+      return false;
+    functionDeclarations.remove(s);
+    return true;
+  }
+
+  public static boolean isDeclaration(String s) {
+    return functionDeclarations.containsKey(s);
+  }
 
   public static void clearDeclarations() {
     functionDeclarations.clear();
@@ -80,6 +96,16 @@ public class Function extends Sentence {
     if (TOSEXPR == null)
       TOSEXPR = print(false);
     return TOSEXPR;
+  }
+
+  @Override
+  public int expectedBranchCount(TruthAssignment h) {
+    return 0;
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    return 0;
   }
 
   private String print(boolean prefix) {

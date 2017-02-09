@@ -74,7 +74,8 @@ public class Exists extends Sentence {
        */
     } else {
       Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-      d.setTrue(Sentence.makeSentence(ForAll.NAME, getVariable(), Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
+      d.setTrue(Sentence.makeSentence(ForAll.NAME, getVariable(),
+              Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
       return d;
     }
   }
@@ -95,6 +96,16 @@ public class Exists extends Sentence {
       return getSentence().instantiate(c, v);
 
     return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    //This will be instantiated at most once
+    if (truthValue)
+      return getSentence().expectedBranchCount(true, h);
+
+    // This will turn into a ForAll, leading to n times the expected branching statements
+    return getSentence().expectedBranchCount(false, h) * Math.max(1, h.getConstants(getVariable().getSort()).size());
   }
 
   public boolean equals(Object o) {

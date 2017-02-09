@@ -9,10 +9,12 @@ import java.util.stream.Collectors;
  * as Strings into their unique Sentence Objects.
  */
 public abstract class AbstractSentenceReader {
-  protected ArrayList<String> OPERATORS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
-  protected ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
+  public static ArrayList<String> OPERATORS = new ArrayList<>(Arrays.asList("not", "and", "or", "implies", "iff", "="));
+  public static ArrayList<String> QUANTIFIERS = new ArrayList<>(Arrays.asList("forAll", "exists"));
 
   public Sentence parse(String s) {
+    if (s.isEmpty())
+      throw new SentenceParseException("Cannot parse an empty string");
     return parse(tokenize(s), new HashMap<>());
   }
 
@@ -53,7 +55,7 @@ public abstract class AbstractSentenceReader {
   /**
    * The SentenceParseException is a helper class which
    */
-  protected static class SentenceParseException extends RuntimeException {
+  public static class SentenceParseException extends RuntimeException {
     public SentenceParseException(String message) {
       super(message);
     }

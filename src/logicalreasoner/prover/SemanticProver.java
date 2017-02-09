@@ -46,8 +46,10 @@ public class SemanticProver implements Runnable {
   //Keep an ordered list of inferences for proof printing
   protected List<Inference> inferenceList;
   protected boolean print, addedBranches, finishedProof;
+
   protected Comparator<Branch> branchComparator = (b1, b2) -> {
     int i, j;
+
     i = b1.getParent().getLeavesParallel().filter(openBranches::contains).mapToInt(l ->
             (int) b1.getBranches().stream().filter(b -> {
               b.setParent(l);
@@ -90,14 +92,8 @@ public class SemanticProver implements Runnable {
    * @param interest the interest of the prover (to be negated)
    * @param print    Print log output if true
    */
-  public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print) {
+  public SemanticProver(Set<Sentence> premises, Set<Sentence> interests, boolean print) {
     this.premises = new HashSet<>(premises);
-    if (premises == null)
-      this.premises = new HashSet<>();
-    interests = new HashSet<>();
-
-    if (interest != null)
-      interests.add(interest);
 
     inferenceList = new CopyOnWriteArrayList<>();
     inferenceCount = 1;
@@ -113,6 +109,8 @@ public class SemanticProver implements Runnable {
       inferenceList.add(p);
     }
 
+    if (interests.contains(null))
+      interests.removeIf(Objects::isNull);
     interests.forEach(c::setFalse);
     c.infer(masterFunction);
     inferenceList.add(c);
@@ -125,6 +123,21 @@ public class SemanticProver implements Runnable {
     this.print = print;
     addedBranches = false;
     finishedProof = false;
+  }
+
+  /**
+   * Initialize the reasoner with the premises and the negation of all interests
+   *
+   * @param premises the prior knowledge of the prover
+   * @param interest the interest of the prover (to be negated)
+   * @param print    Print log output if true
+   */
+  public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print) {
+    this(premises, Collections.singleton(interest), print);
+  }
+
+  public SemanticProver(Set<Sentence> premises, boolean print) {
+    this(premises, Collections.emptySet(), print);
   }
 
   public List<Inference> getInferenceList() {
@@ -191,6 +204,7 @@ public class SemanticProver implements Runnable {
    */
   public void run() {
     startTime = System.currentTimeMillis();
+
     printArgument();
     runPropositionally();
     finishedProof = true;
@@ -207,7 +221,7 @@ public class SemanticProver implements Runnable {
       int i = inferenceList.size();
       // Always decompose all statements before branching
       while (updated && !openBranches.isEmpty()) {
-        openBranches.parallelStream().flatMap(b -> reason(b, false)).collect(Collectors.toCollection(HashSet::new)).forEach(this::infer);
+        openBranches.parallelStream().flatMap(b -> reason(b, false)).collect(Collectors.toList()).forEach(this::infer);
 
         updated = i != inferenceList.size();
         i = inferenceList.size();
@@ -225,6 +239,7 @@ public class SemanticProver implements Runnable {
         break;
 
       System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size() + "\t\tBranch Queue Size:\t" + branchQueue.size());
+      //printInferences();
     }
 
     //printInferenceList();

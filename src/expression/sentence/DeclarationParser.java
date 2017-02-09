@@ -13,21 +13,23 @@ import java.util.ArrayList;
  *
  *  * Sort
  *  e.g.
- *  declare-sort <Sort name 0> <Parent Sort name>
+ *  (declare-sort <Sort name 0> <Parent Sort name>)
  *
  *  * Const
  *  e.g.
- *  <Sort> <Const Name>
+ *  (<Sort> <Const Name>)
  *
  *  * Function
  *  e.g.
- *  <Return Sort> <Function Name> [<Parameter 0> ... <Parameter n>]
+ *  (<Return Sort> <Function Name> [<Parameter 0> ... <Parameter n>])
  *
  */
 
 public class DeclarationParser {
 
     public static boolean ParseDeclaration(String s) {
+      if (s.startsWith("(") && s.endsWith(")"))
+        s = s.substring(1, s.length() - 1);
       String[] arr = s.split("\\s");
       if (arr[0].equals("declare-sort")) {
         //If it starts with declare-sort it is a Sort Declaration
@@ -82,4 +84,53 @@ public class DeclarationParser {
     private static boolean functionDec(String name, Sort returnType, ArrayList<Sort> argTypes) {
         return Function.addDeclaration(name, returnType, argTypes);
     }
+
+  /**
+   * Remove a Sort, Constant or Function declaration from the cache
+   *
+   * @param s the declaration to remove
+   * @return true if successful, false otherwise
+   */
+  public static boolean removeDeclaration(String s) {
+    if (isSortDeclaration(s))
+      Sort.removeSort(getName(s));
+    else {
+      if (s.startsWith("(") && s.endsWith(")"))
+        s = s.substring(1, s.length() - 1);
+      if (s.split("\\s").length == 2)
+        Constant.removeConstant(getName(s));
+      else
+        Function.removeDeclaration(getName(s));
+    }
+    return true;
+  }
+
+  /**
+   * Given a *valid* declaration, this function checks to see whether the declaration
+   * creates a new sort or some function symbol
+   *
+   * @param s the declaration to check
+   * @return true if s declares a new sort, false otherwise
+   */
+  public static boolean isSortDeclaration(String s) {
+    if (s.startsWith("(") && s.endsWith(")"))
+      s = s.substring(1, s.length() - 1);
+    return s.startsWith("declare-sort");
+  }
+
+  /**
+   * Given a *valid* declaration, this function obtains the name of the
+   * Sort, Constant, or Function being declared
+   *
+   * @param s the declaration to parse
+   * @return the name of the object being declared by s
+   */
+  public static String getName(String s) {
+    if (s.startsWith("(") && s.endsWith(")"))
+      s = s.substring(1, s.length() - 1);
+    String[] arr = s.split("\\s");
+    if (arr.length < 2)
+      throw new ParserException("Invalid sort/function/constant declaration.");
+    return arr[1];
+  }
 }

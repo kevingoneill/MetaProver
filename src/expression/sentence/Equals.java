@@ -29,4 +29,9 @@ public class Equals extends Sentence {
     h.setDecomposed(this);
     return null;
   }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    return 0;
+  }
 }

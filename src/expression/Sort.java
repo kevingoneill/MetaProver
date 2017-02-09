@@ -72,13 +72,41 @@ public class Sort {
     return s;
   }
 
+  /**
+   * Remove the instance of the sort named name, along with all of
+   * its subsorts
+   *
+   * @param name the name of the sort to remove
+   * @return true if the sort existed and was removed, false otherwise
+   */
+  public static boolean removeSort(String name) {
+    if (!isSort(name))
+      return false;
+
+    instances.remove(name)
+            .getSubSorts().forEach(Sort::removeSort);
+    return true;
+  }
+
+  /**
+   * Remove the instance of the sort s, along with all of
+   * its subsorts
+   *
+   * @param s the sort to remove
+   * @return true if the sort existed and was removed, false otherwise
+   */
+  public static boolean removeSort(Sort s) {
+    instances.remove(s.name);
+    s.getSubSorts().forEach(Sort::removeSort);
+    return true;
+  }
+
   public static boolean isSort(String name) {
     return instances.containsKey(name);
   }
 
   /**
    * Get the unique name of this Sort
-   *
    * @return the name of this Sort
    */
   public String getName() {
@@ -87,12 +115,19 @@ public class Sort {
 
   /**
    * Get the parent of this Sort
-   *
    * @return the supersort of this Sort
    */
   public Sort getSuperSort() {
     return superSort;
   }
+
+  /**
+   * Get the sub-Sorts of this Sort
+   *
+   * @return the sub-sorts of this sort
+   */
+  public Set<Sort> getSubSorts() {
+    return subSorts; }
 
   /**
    * Add a subSort to this sort

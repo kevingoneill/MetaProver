@@ -93,6 +93,16 @@ public class ForAll extends Sentence {
     return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
   }
 
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    // This will be instantiated many times, leaving many opportunities for branching
+    if (truthValue)
+      return getSentence().expectedBranchCount(true, h) * Math.max(1, h.getConstants(getVariable().getSort()).size());
+
+    // This will turn into an Exists, leading to a single instantiations
+    return getSentence().expectedBranchCount(false, h);
+  }
+
   public boolean equals(Object o) {
     if (this == o)
       return true;

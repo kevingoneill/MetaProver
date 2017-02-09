@@ -26,7 +26,11 @@ public class Or extends Sentence {
       return null;
 
     //Create a new mapping in h for this with newly computed value
-    return args.stream().anyMatch(arg -> arg.eval(h));
+    return args.stream().map(arg -> arg.eval(h)).distinct().reduce(true, (a, b) -> {
+      if (a == null || b == null)
+        return null;
+      return a || b;
+    });
   }
 
   @Override
@@ -50,5 +54,15 @@ public class Or extends Sentence {
       args.forEach(d::setFalse);
       return d;
     }
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    // This Implies will branch
+    if (truthValue)
+      return args.size() + args.stream().mapToInt(a -> a.expectedBranchCount(true, h)).sum();
+
+    // This Or will decompose
+    return args.stream().mapToInt(a -> a.expectedBranchCount(false, h)).sum();
   }
 }

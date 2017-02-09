@@ -2,6 +2,7 @@ package logicalreasoner.prover;
 
 import expression.Sort;
 import expression.sentence.Constant;
+import expression.sentence.Exists;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Inference;
@@ -10,6 +11,7 @@ import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 import logicalreasoner.truthassignment.TruthValue;
 
+import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,6 +51,14 @@ public class FirstOrderProver extends SemanticProver {
     super(premises, interest, print, runTime);
   }
 
+  public FirstOrderProver(Set<Sentence> sentences, boolean b) {
+    this(sentences, Collections.emptySet(), b);
+  }
+
+  public FirstOrderProver(Set<Sentence> premises, Set<Sentence> interests, boolean print) {
+    super(premises, interests, print);
+  }
+
   private PriorityQueue<Pair> makeQuantifierQueue() {
     PriorityQueue<Pair> quantifierQueue = new PriorityQueue<>((e1, e2) -> {
       if (!e1.truthAssignment.models(e1.sentence)) {      // Always remove negations (false assignments) first
@@ -62,11 +72,8 @@ public class FirstOrderProver extends SemanticProver {
       return Sentence.quantifierComparator.compare(e1.sentence, e2.sentence);
     });
 
-    openBranches.forEach(h ->
-            h.flattenUndecomposedParallel().filter(p -> p.sentence.isQuantifier()).forEachOrdered(e -> {
-              if (!quantifierQueue.contains(e))
-                quantifierQueue.add(e);
-            }));
+    openBranches.stream().flatMap(TruthAssignment::flattenUndecomposedSerial)
+            .filter(p -> p.sentence.isQuantifier()).forEach(quantifierQueue::add);
     return quantifierQueue;
   }
 
@@ -87,54 +94,47 @@ public class FirstOrderProver extends SemanticProver {
     //printQueue(quantifierQueue);
     Inference i = null;
     Pair p;
+    TruthAssignment h;
+    Sentence s;
 
     while (i == null) {
       if (quantifierQueue.isEmpty()) {
-        //printInferences();
-        //printInferenceList();
-        //System.exit(1);
-
         return null;
       }
 
       p = quantifierQueue.poll();
-      if (p.truthAssignment.isDecomposed(p.sentence))
+      h = p.truthAssignment;
+      s = p.sentence;
+      if (h.isDecomposed(s))
         continue;
 
-      if (p.sentence == null)
+      if (s == null)
         return null;
-      if (p.truthAssignment.models(p.sentence) && p.sentence instanceof ForAll) {
-        TruthValue v = p.truthAssignment.getTruthValue(p.sentence);
-        Sort s = ((ForAll) p.sentence).getVariable().getSort();
+      if (h.models(s) && s instanceof ForAll) {
+        TruthValue v = h.getTruthValue(s);
+        Sort sort = ((ForAll) s).getVariable().getSort();
 
         if ((v.getUninstantiatedConstants().isEmpty() && v.getInstantiatedConstants().isEmpty()) ||
-                p.truthAssignment.getLeaves().anyMatch(l -> l.getConstants(s).isEmpty())) {
-          Constant c = Constant.getNewUniqueConstant(s);
-          p.truthAssignment.getLeavesParallel().forEach(l -> {
-            if (l.getConstants(s).isEmpty())
+                h.getLeaves().anyMatch(l -> l.getConstants(sort).isEmpty())) {
+          Constant c = Constant.getNewUniqueConstant(sort);
+          h.getLeavesParallel().forEach(l -> {
+            if (l.getConstants(sort).isEmpty())
               l.addConstant(c);
           });
         }
       }
 
-      i = p.sentence.reason(p.truthAssignment, inferenceCount,
-              p.truthAssignment.getInferenceNum(p.sentence, p.truthAssignment.models(p.sentence)));
+      i = s.reason(h, inferenceCount++,
+              h.getInferenceNum(s, h.models(s)));
 
       if (i == null) {
-        System.out.println(p.sentence);
-        System.out.println(p.truthAssignment.getConstants().stream().map(c -> c.getSort() + " " + c.getName()).collect(Collectors.toList()));
-        System.out.println(p.truthAssignment.getTruthValue(p.sentence).getUninstantiatedConstants());
-        System.out.println(p.truthAssignment.getTruthValue(p.sentence).getInstantiatedConstants());
-        System.out.println(p.truthAssignment.isDecomposed(p.sentence));
+        System.out.println(s);
+        System.out.println(h.getConstants().stream().map(c -> c.getSort() + " " + c.getName()).collect(Collectors.toList()));
+        System.out.println(h.getTruthValue(s).getUninstantiatedConstants());
+        System.out.println(h.getTruthValue(s).getInstantiatedConstants());
+        System.out.println(h.isDecomposed(s));
         System.exit(1);
       }
-
-      //if (i != null) {
-        ++inferenceCount;
-        //System.out.println(i + "\n----------------------------------------------\n");
-        //if (p.truthAssignment.models(p.sentence))
-        //  System.out.println("Instantiating: " + p.sentence + "\n");
-      //}
     }
 
     return i;
@@ -156,42 +156,41 @@ public class FirstOrderProver extends SemanticProver {
     startTime = System.currentTimeMillis();
     printArgument();
     while (!reasoningCompleted()) {
-      boolean updated = true;
+      boolean updated = false;
       runPropositionally();
 
       if (maxRuntime != null && (System.currentTimeMillis() - startTime) >= maxRuntime)
         return;
-
-      if (isInvalid() || openBranches.isEmpty()) {
+      if (isInvalid() || openBranches.isEmpty())
         break;
-      }
-
-      //printInferences();
-      //printInferenceList();
 
       PriorityQueue<Pair> quantifierQueue = makeQuantifierQueue();
       Inference i;
       while (!(quantifierQueue.isEmpty())) {
         i = instantiateQuantifier(quantifierQueue);
-        updated = updated && i != null;
+        updated = updated || i != null;
         if (i != null) {
           infer(i).filter(p -> p.sentence.isQuantifier()).forEach(p -> {
             if (!quantifierQueue.contains(p))
               quantifierQueue.add(p);
           });
-
-          //printInferences();
-          //printInferenceList();
         }
       }
 
       while (updated && !branchQueue.isEmpty())
         addBranches();
 
+      runPropositionally();
+
+
       //printInferences();
       //printInferenceList();
     }
     finishedProof = true;
     printResult();
+  }
+
+  private boolean isExistentialQuantifier(Pair p) {
+    return p.sentence instanceof Exists;
   }
 }

@@ -19,8 +19,8 @@ public class Iff extends Sentence {
   }
 
   public Boolean eval(TruthAssignment h) {
-    Boolean antecedent = h.models(args.get(0)),
-            consequent = h.models(args.get(1));
+    Boolean antecedent = args.get(0).eval(h),
+            consequent = args.get(1).eval(h);
 
     if (antecedent == null || consequent == null)
       return null;
@@ -53,5 +53,12 @@ public class Iff extends Sentence {
       b.addBranch(t1);
       return b;
     }
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    // Not matter what, Iff results in two branches, with a total of 4 contingent statements
+    return 2 + args.get(0).expectedBranchCount(true, h) + args.get(0).expectedBranchCount(false, h)
+            + args.get(1).expectedBranchCount(true, h) + args.get(1).expectedBranchCount(false, h);
   }
 }

@@ -19,10 +19,13 @@ public abstract class Sentence extends Expression {
   protected List<Sentence> args;
   String FULL_SEXPR = null;
   Sort sort;
-  protected Integer SIZE = null, QUANTIFIER_COUNT = null, ATOM_COUNT = null;
+  protected Integer SIZE = null, QUANTIFIER_COUNT = null, ATOM_COUNT = null, EXPECTED_BRANCH_COUNT;
 
   public static Set<Sentence> getAllConstants() {
-    return instances.values().stream().filter(s -> s.getSort() != Sort.BOOLEAN && s instanceof Constant).collect(Collectors.toSet());
+    return instances.values()
+            .stream()
+            .filter(s -> s.getSort() != Sort.BOOLEAN && s instanceof Constant)
+            .collect(Collectors.toSet());
   }
 
   /**
@@ -239,6 +242,16 @@ public abstract class Sentence extends Expression {
     return false;
   }
 
+  /**
+   * Check to see if this Sentence is propositional in nature
+   * (ie, it contains no quantifiers)
+   *
+   * @return true if this Sentence is propositional, false otherwise
+   */
+  public boolean isPropositional() {
+    return !isQuantifier() && args.stream().allMatch(Sentence::isPropositional);
+  }
+
   public Set<Sentence> getConstants() {
     return args.stream()
             .flatMap(s -> s.getConstants().stream())
@@ -268,6 +281,14 @@ public abstract class Sentence extends Expression {
       return Stream.of(this);
     return Stream.concat(Stream.of(this), args.stream().flatMap(Sentence::getSubSentences));
   }
+
+  public int expectedBranchCount(TruthAssignment h) {
+    if (EXPECTED_BRANCH_COUNT == null)
+      EXPECTED_BRANCH_COUNT = expectedBranchCount(h.models(this), h);
+    return EXPECTED_BRANCH_COUNT;
+  }
+
+  protected abstract int expectedBranchCount(boolean truthValue, TruthAssignment h);
 
   public static Comparator<Sentence> quantifierComparator = (e1, e2) -> {
     if (e1 instanceof Exists) {   // Always instantiate existential quantifiers before universals

@@ -106,6 +106,9 @@ public class SentenceReader extends AbstractSentenceReader {
       return Sentence.instances.get(exprName);
     }
 
+    if (!Sort.isSort(sort))
+      throw new SentenceParseException("Sort " + sort + " does not exist");
+
     return new Variable(exprName, Sort.getSort(sort));
 
   }
@@ -114,26 +117,26 @@ public class SentenceReader extends AbstractSentenceReader {
     ArrayList<Sentence> list = new ArrayList<>();
     while (!stack.peek().equals(")")) {
       if (stack.peek() == null)
-        throw new AbstractSentenceReader.SentenceParseException("Predicate: " + exprName + " has no closing parentheses.");
+        throw new AbstractSentenceReader.SentenceParseException("Predicate " + exprName + " has no closing parentheses.");
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
 
     if (!Function.functionDeclarations.containsKey(exprName))
-      throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
+      throw new SentenceParseException("Predicate " + exprName + " has not been declared.");
 
     List<Sort> sorts = Function.getDeclaration(exprName);
     if (sorts == null || sorts.size() < 1)
-      throw new SentenceParseException("Predicate: " + exprName + " has not been declared.");
+      throw new SentenceParseException("Predicate " + exprName + " has not been declared.");
 
     if (sorts.remove(0) != Sort.BOOLEAN)
-      throw new SentenceParseException("Cannot create Predicate: " + exprName + " returning a non-Boolean Sort.");
+      throw new SentenceParseException("Cannot create Predicate " + exprName + " returning a non-Boolean Sort.");
     if (sorts.size() != list.size())
-      throw new SentenceParseException("Predicate: " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
+      throw new SentenceParseException("Predicate " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
     IntStream.range(0, sorts.size()).forEach(i -> {
       if (!list.get(i).getSort().isSubSort(sorts.get(i)))
-        throw new SentenceParseException("Argument: " + list.get(i).toSExpression() + " in predicate " + exprName
-                + " is of Sort: " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
+        throw new SentenceParseException("Argument " + list.get(i).toSExpression() + " in predicate " + exprName
+                + " is of Sort " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
     });
 
     String s = fullSentenceString(exprName, list);
@@ -176,9 +179,6 @@ public class SentenceReader extends AbstractSentenceReader {
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     String exprName = stack.peek();
-
-    //System.out.println(exprName + "\t\t" + stack + "\t\t\t\t" + quantifiedVars);
-
     if (quantifiedVars.containsKey(exprName)) {
       Variable v = quantifiedVars.get(stack.pop());
       return v;

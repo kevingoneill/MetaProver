@@ -22,8 +22,8 @@ public class Implies extends Sentence {
   }
 
   public Boolean eval(TruthAssignment h) {
-    Boolean antecedent = h.models(args.get(0)),
-            consequent = h.models(args.get(1));
+    Boolean antecedent = args.get(0).eval(h),
+            consequent = args.get(1).eval(h);
 
     //Return null if any atoms are unmapped
     if (antecedent == null || consequent == null)
@@ -49,5 +49,15 @@ public class Implies extends Sentence {
       d.setFalse(args.get(1));
       return d;
     }
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    // This Implies will branch
+    if (truthValue)
+      return 2 + args.get(0).expectedBranchCount(false, h) + args.get(1).expectedBranchCount(true, h);
+
+    // This Implies will decompose
+    return args.get(0).expectedBranchCount(true, h) + args.get(1).expectedBranchCount(false, h);
   }
 }
