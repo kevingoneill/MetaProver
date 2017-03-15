@@ -2,11 +2,10 @@ package logicalreasoner.truthassignment;
 
 import expression.Sort;
 import expression.sentence.Sentence;
+import logicalreasoner.inference.Inference;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -14,8 +13,9 @@ import java.util.stream.Collectors;
  * a given TruthAssignment. This can be a Set of boolean values, each with
  * an associated number which represents the inference which set this TruthValue.
  */
-public class TruthValue {
+public class TruthValue implements Serializable {
   private HashMap<Boolean, Integer> vals;
+  private HashMap<Integer, Inference> justifications;
   private boolean isDecomposed;
   private Sentence sentence;
   private Sort quantifiedSort = null;
@@ -29,6 +29,7 @@ public class TruthValue {
       quantifiedSort = s.getSubSentence(0).getSort();
     instantiations = new HashSet<>();
     uninstantiatedConstants = new HashSet<>();
+    justifications = new HashMap<>();
   }
 
   public TruthValue(TruthValue tv) {
@@ -38,6 +39,7 @@ public class TruthValue {
     quantifiedSort = tv.quantifiedSort;
     instantiations = new HashSet<>();
     uninstantiatedConstants = new HashSet<>();
+    justifications = new HashMap<>(tv.justifications);
   }
 
   public Sentence getSentence() {
@@ -106,8 +108,6 @@ public class TruthValue {
   public void addInstantiation(Sentence c) {
     if (!instantiations.contains(c) && c.getSort().isSubSort(quantifiedSort))
       uninstantiatedConstants.add(c);
-    //else if (!instantiations.contains(c))
-    //  instantiations.add(c);
   }
 
   public Set<Sentence> getUninstantiatedConstants() {
@@ -120,6 +120,18 @@ public class TruthValue {
 
   public boolean instantiatedAll() {
     return uninstantiatedConstants.isEmpty();
+  }
+
+  public void addJustification(int inferenceNum, Inference inference) {
+    justifications.put(inferenceNum, inference);
+  }
+
+  public Inference getJustification(int inferenceNum) {
+    return justifications.get(inferenceNum);
+  }
+
+  public Map<Integer, Inference> getJustifications() {
+    return justifications;
   }
 
   public String toString() {

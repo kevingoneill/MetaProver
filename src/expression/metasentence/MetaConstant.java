@@ -33,4 +33,9 @@ public class MetaConstant extends MetaSentence {
     return null;
   }
 
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
+  }
+
 }

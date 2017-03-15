@@ -171,11 +171,16 @@ public class Proof {
     }
 
     ArrayList<Step> proof = generateProof();
+
+    // Get the maximum metasentence length
+    Integer max = proof.stream().mapToInt(s -> s.getMetaSentence().toSExpression().length()).max().orElse(10) + 10;
+
     for (int i = 0; i < proof.size(); ++i) {
       Step s = proof.get(i);
       MetaInference justification = s.getJustification();
 
-      System.out.print(i + ".  " + s.getMetaSentence().toSExpression() + "\t\t\t" + s.getReason() + " ");
+      //System.out.print(i + ".  " + s.getMetaSentence().toSExpression() + "\t\t\t" + s.getReason() + " ");
+      System.out.printf("%2d. %-" + max + "s %s ", i, s.getMetaSentence().toSExpression(), s.getReason());
 
       if (s.isForwards() && justification != null)
         System.out.println(indexOf(proof, s.getJustification().getOrigin()));

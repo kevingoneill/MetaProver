@@ -19,7 +19,7 @@ import java.util.Set;
 public class SemanticProverTest {
   static void runProver(Set<String> declarations, Set<String> premises, String interest, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
-    declarations.forEach(DeclarationParser::ParseDeclaration);
+    declarations.forEach(DeclarationParser::parseDeclaration);
     premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
     SemanticProver prover = new SemanticProver(p, Sentence.makeSentenceStrict(interest), true, 1);

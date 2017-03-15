@@ -45,7 +45,7 @@ public class SemanticProver implements Runnable {
 
   //Keep an ordered list of inferences for proof printing
   protected List<Inference> inferenceList;
-  protected boolean print, addedBranches, finishedProof;
+  protected boolean print, addedBranches, finishedProof, decomposeAll;
 
   protected Comparator<Branch> branchComparator = (b1, b2) -> {
     int i, j;
@@ -89,13 +89,13 @@ public class SemanticProver implements Runnable {
    * Initialize the reasoner with the premises and the negation of all interests
    *
    * @param premises the prior knowledge of the prover
-   * @param interest the interest of the prover (to be negated)
+   * @param interests the interests of the prover (to be negated)
    * @param print    Print log output if true
    */
   public SemanticProver(Set<Sentence> premises, Set<Sentence> interests, boolean print) {
     this.premises = new HashSet<>(premises);
 
-    inferenceList = new CopyOnWriteArrayList<>();
+    inferenceList = new ArrayList<>();
     inferenceCount = 1;
     masterFunction = new TruthAssignment();
     masterFunction.addConstants(Sentence.getAllConstants());
@@ -103,7 +103,7 @@ public class SemanticProver implements Runnable {
     int premiseCount = -1;
 
     for (Sentence s : this.premises) {
-      Decomposition p = new Decomposition(masterFunction, null, premiseCount--, 0);
+      Decomposition p = new Decomposition(masterFunction, null, premiseCount, premiseCount--);
       p.setTrue(s);
       p.infer(masterFunction);
       inferenceList.add(p);
@@ -115,6 +115,7 @@ public class SemanticProver implements Runnable {
     c.infer(masterFunction);
     inferenceList.add(c);
     interests.forEach(masterFunction::addSupposition);
+    this.interests = new HashSet<>(interests);
 
     openBranches = new CopyOnWriteArrayList<>();
     openBranches.add(masterFunction);
@@ -123,6 +124,7 @@ public class SemanticProver implements Runnable {
     this.print = print;
     addedBranches = false;
     finishedProof = false;
+    decomposeAll = false;
   }
 
   /**
@@ -145,8 +147,8 @@ public class SemanticProver implements Runnable {
   }
 
   public SemanticProver(TruthAssignment truthAssignment) {
-    premises = null;
-    interests = null;
+    premises = truthAssignment.keySet().stream().filter(truthAssignment::models).collect(Collectors.toSet());
+    interests = truthAssignment.keySet().stream().filter(s -> !truthAssignment.models(s)).collect(Collectors.toSet());
 
     masterFunction = truthAssignment;
     inferenceList = new CopyOnWriteArrayList<>();
@@ -159,6 +161,7 @@ public class SemanticProver implements Runnable {
     print = false;
     addedBranches = false;
     finishedProof = false;
+    decomposeAll = true;
   }
 
   public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
@@ -235,7 +238,7 @@ public class SemanticProver implements Runnable {
 
       closeBranches();
 
-      if (isInvalid())
+      if (!decomposeAll && isInvalid())
         break;
 
       System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size() + "\t\tBranch Queue Size:\t" + branchQueue.size());
@@ -368,5 +371,9 @@ public class SemanticProver implements Runnable {
 
   protected boolean isInvalid() {
     return branchQueue.isEmpty() && openBranches.parallelStream().anyMatch(TruthAssignment::isSatisfied);
+  }
+
+  public ArrayList<Branch> getBranchQueue() {
+    return branchQueue;
   }
 }

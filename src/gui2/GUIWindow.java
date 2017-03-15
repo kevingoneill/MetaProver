@@ -12,7 +12,8 @@ import java.awt.event.InputEvent;
 public class GUIWindow extends JFrame {
   private JMenuBar menuBar;
   private Runnable prover;
-  private GraphPanel graphPanel;
+  //private GraphPanel graphPanel;
+  private JGraphXPanel graphPanel;
 
   public GUIWindow() {
     super("SemanticProver");
@@ -20,7 +21,7 @@ public class GUIWindow extends JFrame {
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     initMenu();
-    graphPanel = new GraphPanel();
+    graphPanel = new JGraphXPanel();
     add(graphPanel);
     setVisible(true);
   }
@@ -80,8 +81,10 @@ public class GUIWindow extends JFrame {
    */
   public void setProver(SemanticProver r) {
     this.prover = r;
+    TruthAssignmentPanel.prover = r;
     prover.run();
-    graphPanel.makeNode(r.getTruthAssignment());
+    graphPanel.makeTree(r.getTruthAssignment());
+    graphPanel.runLayout();
   }
 
 

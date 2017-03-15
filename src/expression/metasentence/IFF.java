@@ -25,6 +25,11 @@ public class IFF extends MetaSentence {
     return reason(p, inferenceNum);
   }
 
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
+  }
+
   public MetaInference reason(Proof p, int inferenceNum) {
     if (args.get(0) instanceof MODELS && args.get(1) instanceof MODELS) {
       MODELS arg1 = (MODELS) args.get(0),

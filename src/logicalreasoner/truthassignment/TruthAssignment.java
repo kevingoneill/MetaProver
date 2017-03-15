@@ -8,6 +8,7 @@ import gui.truthtreevisualization.TreeBranch;
 import gui.truthtreevisualization.TruthTree;
 import logicalreasoner.inference.Closure;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
  * logically plausible universe; the TruthAssignment is
  * a logical model of the world
  */
-public class TruthAssignment {
+public class TruthAssignment implements Serializable {
   private static long truthAssignmentCount = 0;
 
   private long UID;
@@ -53,8 +54,8 @@ public class TruthAssignment {
    */
   public TruthAssignment(long id) {
     UID = id;
-    map = new ConcurrentHashMap<>();
-    inheritedMappings = new ConcurrentHashMap<>();
+    map = new HashMap<>();
+    inheritedMappings = new HashMap<>();
     parent = null;
     children = new ArrayList<>();
     leaves = new HashSet<>();
@@ -78,16 +79,10 @@ public class TruthAssignment {
    */
   public TruthAssignment(TruthAssignment ta) {
     UID = truthAssignmentCount++;
-    this.map = new ConcurrentHashMap<>();
+    this.map = new HashMap<>();
     suppositions = ta.suppositions;
-    inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
-    ta.map.forEach((k, v) -> {
-      map.put(k, new TruthValue(v));
-      if (k.isAtomic())
-        setDecomposed(k);
-      addSupposition(k);
-    });
-
+    inheritedMappings = new HashMap<>(ta.inheritedMappings);
+    ta.map.forEach(this::set);
     this.parent = ta.parent;
     children = new ArrayList<>(ta.children);
     leaves = new HashSet<>(ta.leaves);
@@ -112,12 +107,7 @@ public class TruthAssignment {
     constants = new HashSet<>(ta.constants);
     parent.children.add(this);
     parent.leaves.add(this);
-    ta.map.forEach((k, v) -> {
-      v.getValues().forEach((b, i) -> set(k, b, i));
-      if (k.isAtomic())
-        setDecomposed(k);
-      addSupposition(k);
-    });
+    ta.map.forEach(this::set);
   }
 
   public int getUID() {
@@ -155,7 +145,7 @@ public class TruthAssignment {
    * @return true if the mappings of t and this are equal
    */
   public boolean assignmentsEqual(TruthAssignment t) {
-    return t.map.equals(map);
+    return t.map.keySet().stream().allMatch(s -> map.containsKey(s) && t.models(s) == models(s));
   }
 
   /**
@@ -436,7 +426,6 @@ public class TruthAssignment {
     return new ArrayList<>(suppositions.entrySet());
   }
 
-
   /**
    * Add a new mapping to the TruthAssignment
    *
@@ -507,6 +496,18 @@ public class TruthAssignment {
       if (s.isAtomic())
         setDecomposed(s);
       if (b && s instanceof ForAll)
+        map.get(s).addInstantiations(getConstants());
+    }
+  }
+
+  public void set(Sentence s, TruthValue v) {
+    if (!map.containsKey(s) && v.getSentence() == s) {
+      map.put(s, new TruthValue(v));
+      addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
+
+      if (s.isAtomic())
+        setDecomposed(s);
+      if (v.isModelled() && s instanceof ForAll)
         map.get(s).addInstantiations(getConstants());
     }
   }
@@ -796,6 +797,14 @@ public class TruthAssignment {
    */
   public List<TruthAssignment> getChildren() {
     return children;
+  }
+
+  public boolean hasChildren() {
+    return !children.isEmpty();
+  }
+
+  public TruthAssignment getChild(int index) {
+    return children.get(index);
   }
 
   /**

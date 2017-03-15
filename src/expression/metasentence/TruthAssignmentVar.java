@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TruthAssignmentVar is a wrapper class for TruthAssignment which
@@ -30,7 +31,11 @@ public class TruthAssignmentVar extends MetaSentence {
     truthAssignment = t;
     inferences = new ArrayList<>();
     parent = v;
-    reduce();
+
+    if (v == null)
+      reduce();
+    else
+      inferences.addAll(v.inferences.stream().filter(i -> i.getParent() == truthAssignment).collect(Collectors.toList()));
   }
 
   public TruthAssignmentVar(TruthAssignment t) {
@@ -102,9 +107,12 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public Inference getNextInference() {
-    //System.out.println(getName() + " " + getInferences());
+
+    System.out.println(getName() + " " + getInferences());
+
     if (currInference < inferences.size())
       return inferences.get(currInference++);
+
     return null;
   }
 
@@ -133,5 +141,10 @@ public class TruthAssignmentVar extends MetaSentence {
 
   private void reduce() {
     SemanticProver.decompose(truthAssignment, inferences);
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
   }
 }

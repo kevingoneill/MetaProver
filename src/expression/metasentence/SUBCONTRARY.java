@@ -22,6 +22,11 @@ public class SUBCONTRARY extends MetaSentence {
     return "[" + args.get(0).toSExpression() + " and " + args.get(1).toSExpression() + " are " + symbol + "]";
   }
 
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
+  }
+
   public MetaInference reasonForwards(Proof p, int inferenceNum) {
     return reason(p, inferenceNum);
   }

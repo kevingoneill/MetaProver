@@ -36,24 +36,24 @@ public class Decomposition extends Inference {
     TruthValue v = additions.get(s);
     if (v == null) {
       v = new TruthValue(s);
-      v.setTrue(inferenceNum);
       additions.put(s, v);
       constants.addAll(s.getConstants());
-    } else {
-      v.setTrue(inferenceNum);
     }
+
+    v.setTrue(inferenceNum);
+    v.addJustification(inferenceNum, this);
   }
 
   public void setFalse(Sentence s) {
     TruthValue v = additions.get(s);
     if (v == null) {
       v = new TruthValue(s);
-      v.setFalse(inferenceNum);
       additions.put(s, v);
       constants.addAll(s.getConstants());
-    } else {
-      v.setFalse(inferenceNum);
     }
+
+    v.setFalse(inferenceNum);
+    v.addJustification(inferenceNum, this);
   }
 
   public Map<Sentence, TruthValue> getAdditions() {

@@ -1,5 +1,6 @@
 package expression;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.Set;
  * of other sorts, and each sort has a unique name and supersort. The most general sorts,
  * OBJECT and BOOLEAN, have no supersort.
  */
-public class Sort {
+public class Sort implements Serializable {
   public static final Sort OBJECT = new Sort("Object", null);
   public static final Sort BOOLEAN = new Sort("Boolean", null);
   public static Map<String, Sort> instances = new HashMap<String, Sort>() {{

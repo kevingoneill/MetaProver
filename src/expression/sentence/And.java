@@ -17,11 +17,11 @@ import java.util.List;
 public class And extends Sentence {
   public static String NAME = "and", SYMBOL = "∧";
 
-  protected And(List<Sentence> a) {
+  public And(List<Sentence> a) {
     super(a, NAME, SYMBOL, Sort.BOOLEAN);
   }
 
-  protected And(Sentence... sentences) {
+  public And(Sentence... sentences) {
     super(Arrays.asList(sentences), NAME, SYMBOL, Sort.BOOLEAN);
   }
 

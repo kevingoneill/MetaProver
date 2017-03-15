@@ -106,12 +106,12 @@ public class Step {
     if (justification != null)
       return justification.getReason();
     return "...";
-        /*
-        if (metaSentence instanceof MODELS)
-            return "(sem. of " + ((MODELS)metaSentence).getSentence().getSymbol() + ")";
-        else if (metaSentence instanceof IS)
-            return  "(def. of " + ((IS) metaSentence).getConstant().getSymbol() + ")";
-        return "(def. of " + metaSentence.getSymbol() + ")";
-        */
+    /*
+    if (metaSentence instanceof MODELS)
+      return "(sem. of " + ((MODELS)metaSentence).getSentence().getSymbol() + ")";
+    else if (metaSentence instanceof IS)
+      return  "(def. of " + ((IS) metaSentence).getConstant().getSymbol() + ")";
+    return "(def. of " + metaSentence.getSymbol() + ")";
+    */
   }
 }

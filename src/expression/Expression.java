@@ -1,10 +1,12 @@
 package expression;
 
+import java.io.Serializable;
+
 /**
  * An Expression is a statement which makes a claim or
  * captures an idea or object.
  */
-public abstract class Expression implements Comparable<Expression> {
+public abstract class Expression implements Comparable<Expression>, Serializable {
   protected String name, symbol;
   protected Integer HASH_CODE = null;
   protected String TOSTRING = null, TOSEXPR = null;

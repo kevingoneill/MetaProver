@@ -51,4 +51,11 @@ public class NOT extends MetaSentence {
     return builder.toString();
   }
 
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    HashSet<TruthAssignmentVar> allVars = new HashSet<>(vars);
+    allVars.addAll(this.vars);
+    return new NOT((MetaSentence) args.get(0), allVars);
+  }
+
 }

@@ -3,6 +3,7 @@ package metareasoner;
 import expression.Expression;
 import expression.metasentence.MetaSentence;
 import expression.metasentence.MetaSentenceReader;
+import expression.sentence.DeclarationParser;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -13,6 +14,15 @@ import java.util.ArrayList;
  */
 public class MetaProverTest {
   private static void runProver(ArrayList<String> premises, String interest) {
+    ArrayList<String> declarations = new ArrayList<>();
+    declarations.add("Boolean φ");
+    declarations.add("Boolean ψ");
+    runProver(declarations, premises, interest);
+  }
+
+  private static void runProver(ArrayList<String> declarations, ArrayList<String> premises, String interest) {
+    declarations.forEach(DeclarationParser::parseDeclaration);
+
     ArrayList<MetaSentence> p = new ArrayList<MetaSentence>() {{
       premises.forEach(premise -> {
         Expression e = MetaSentenceReader.parse(premise);
@@ -36,6 +46,7 @@ public class MetaProverTest {
   public void test1() {
     ArrayList<String> premises = new ArrayList<>();
     premises.add("[EQUIVALENT φ ψ]");
+
     runProver(premises, "[AND [SUBSUMES φ ψ] [SUBSUMES ψ φ]]");
   }
 

@@ -114,7 +114,7 @@ public class SemanticProverMain {
         if (!stack.peek().equals(")"))
           throw new ParserException("Missing closing parenthesis after declaration: " + decl + " \n");
         stack.pop();
-        DeclarationParser.ParseDeclaration(decl.toString());
+        DeclarationParser.parseDeclaration(decl.toString());
         decl = new StringBuilder();
       }
     }

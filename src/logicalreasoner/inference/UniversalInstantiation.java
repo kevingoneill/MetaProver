@@ -34,21 +34,21 @@ public class UniversalInstantiation extends Inference {
     ForAll f = (ForAll) origin;
     List<Pair> l = instances.stream().flatMap(instance -> {
       List<TruthAssignment> origins = h.getConstantOrigins(instance);
-      if (origins.isEmpty()) {
-        inferredOver.add(h);
-        TruthAssignment truthAssignment = new TruthAssignment();
-        truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
-        return h.merge(truthAssignment);
-      } else {
-        return origins.stream().flatMap(o -> {
-          inferredOver.add(o);
-          TruthAssignment truthAssignment = new TruthAssignment();
-          truthAssignment.setTrue(f.instantiate(instance, var), inferenceNum);
-          return o.merge(truthAssignment);
-        });
-      }
+      if (origins.isEmpty())
+        return inferHelper(h, f, instance);
+      else
+        return origins.stream().flatMap(o -> inferHelper(o, f, instance));
     }).collect(Collectors.toList());
     return l.stream();
+  }
+
+  public Stream<Pair> inferHelper(TruthAssignment h, ForAll f, Sentence instance) {
+    inferredOver.add(h);
+    TruthAssignment truthAssignment = new TruthAssignment();
+    Sentence s = f.instantiate(instance, var);
+    truthAssignment.setTrue(s, inferenceNum);
+    truthAssignment.getTruthValue(s).addJustification(inferenceNum, this);
+    return h.merge(truthAssignment);
   }
 
   public List<Sentence> getInstances() {

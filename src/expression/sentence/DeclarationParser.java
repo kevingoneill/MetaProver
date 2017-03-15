@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 public class DeclarationParser {
 
-    public static boolean ParseDeclaration(String s) {
+  public static boolean parseDeclaration(String s) {
       if (s.startsWith("(") && s.endsWith(")"))
         s = s.substring(1, s.length() - 1);
       String[] arr = s.split("\\s");

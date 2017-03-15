@@ -38,6 +38,7 @@ public class Branch extends Inference implements Comparable<Branch> {
   public void addBranch(TruthAssignment h) {
     branches.add(h);
     h.keySet().forEach(h::addSupposition);
+    h.stream().forEach(v -> v.addJustification(inferenceNum, this));
   }
 
   public void addBranch(Map<Sentence, TruthValue> map) {

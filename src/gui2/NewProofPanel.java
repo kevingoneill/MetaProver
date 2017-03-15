@@ -89,7 +89,7 @@ public class NewProofPanel extends JPanel {
         return;
       }
       try {
-        DeclarationParser.ParseDeclaration(decl);
+        DeclarationParser.parseDeclaration(decl);
         declListModel.addElement(decl);
         declField.setText("");
         declField.requestFocus();
@@ -226,7 +226,7 @@ public class NewProofPanel extends JPanel {
         }
       }
 
-      window.setProver(new SemanticProver(premises, goal, true));
+      window.setProver(new SemanticProver(premises, goal, false));
       Component c = SwingUtilities.getRoot(this);
       c.dispatchEvent(new WindowEvent((Window) c, WindowEvent.WINDOW_CLOSING));
     });

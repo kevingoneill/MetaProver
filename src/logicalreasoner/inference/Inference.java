@@ -4,6 +4,7 @@ import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.Pair;
 import logicalreasoner.truthassignment.TruthAssignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
 /**
  * The inference stores changes to be made to a parent TruthAssignment.
  */
-public abstract class Inference {
+public abstract class Inference implements Serializable {
   private Integer HASH_CODE;
   TruthAssignment parent;
   Sentence origin;

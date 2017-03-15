@@ -5,10 +5,7 @@ import expression.sentence.Sentence;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * First Order Logic Tests from Bram's Handout.
@@ -20,11 +17,11 @@ import java.util.Set;
  */
 public class FirstOrderTests {
   public static void runProver(List<String> declarations, Set<String> premises, String interest, boolean validArgument) {
-    declarations.forEach(DeclarationParser::ParseDeclaration);
+    declarations.forEach(DeclarationParser::parseDeclaration);
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, Sentence.makeSentence(interest), true);
+    SemanticProver prover = new FirstOrderProver(p, Collections.singleton(Sentence.makeSentence(interest)), true);
     prover.run();
     if (!prover.finishedProof())
       throw new RuntimeException("Prover could not finish proof in the given amount of time.");
