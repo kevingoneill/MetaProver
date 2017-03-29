@@ -32,7 +32,7 @@ public class MetaProver implements Runnable {
 
   public boolean reasonForwards(Proof p) {
     List<MetaInference> inferences = p.getNewForwardSentences().stream()
-            .map(s -> s.reasonForwards(p, inferenceCount++)).filter(Objects::nonNull)
+            .map(s -> s.reason(p, inferenceCount++)).filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     inferences.forEach(i -> i.infer(p, true));
@@ -42,7 +42,7 @@ public class MetaProver implements Runnable {
 
   public boolean reasonBackwards(Proof p) {
     List<MetaInference> inferences = p.getNewBackwardSentences().stream()
-            .map(s -> s.reasonBackwards(p, inferenceCount++)).filter(Objects::nonNull)
+            .map(s -> s.reason(p, inferenceCount++)).filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     inferences.forEach(i -> i.infer(p, false));
@@ -63,20 +63,14 @@ public class MetaProver implements Runnable {
       if (!(f || b))
         break;
 
-
+      /*
       System.out.println("\nInferences: ");
       proof.printInferences();
       System.out.println("\nInterests: ");
       proof.printInterests();
       System.out.println("\n\n");
-
+      */
     }
-
-    System.out.println("\nInferences: ");
-    proof.printInferences();
-    System.out.println("\nInterests: ");
-    proof.printInterests();
-    System.out.println("\n\n");
 
     System.out.println("\n\n\nProof:\n");
     proof.printProof();

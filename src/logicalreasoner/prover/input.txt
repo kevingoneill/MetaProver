@@ -1,14 +1,16 @@
 (declarations
-    (declare-sort Person Object)
-    (Boolean P Person)
-    (Boolean Q Person)
-    (Boolean R Person)
-    (Person valerie)
-    )
-
-(premises
-        ; this is  comment
-    (or (implies (P valerie) (Q valerie)) (not (implies (P valerie) (Q valerie))))
+    (declare-sort Number Object)
+    (Number 0)
+    (Number s Number)
+    (Number + Number Number)
 )
 
-(goal (R valerie))
+(premises
+    ; this is a comment
+    (forAll (Number n) (not (= (s n) 0)))
+    (forAll (Number x) (forAll (Number y) (implies (= (s x) (s y)) (= x y))))
+    (forAll (Number n) (= (+ n 0) 0))
+    (forAll (Number x) (forAll (Number y) (= (+ x (s y)) (s (+ x y)))))
+)
+
+(goal (= (+ (s 0) 0) (s 0)))

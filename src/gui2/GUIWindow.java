@@ -12,17 +12,20 @@ import java.awt.event.InputEvent;
 public class GUIWindow extends JFrame {
   private JMenuBar menuBar;
   private Runnable prover;
-  //private GraphPanel graphPanel;
-  private JGraphXPanel graphPanel;
+  private GraphPanel graphPanel;
 
   public GUIWindow() {
     super("SemanticProver");
+    setVisible(true);
     setSize(1000, 750);
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     initMenu();
-    graphPanel = new JGraphXPanel();
-    add(graphPanel);
+    graphPanel = new GraphPanel();
+
+    JScrollPane scrollPane = new JScrollPane(graphPanel);
+    scrollPane.setPreferredSize(this.getSize());
+    add(scrollPane);
     setVisible(true);
   }
 
@@ -84,7 +87,6 @@ public class GUIWindow extends JFrame {
     TruthAssignmentPanel.prover = r;
     prover.run();
     graphPanel.makeTree(r.getTruthAssignment());
-    graphPanel.runLayout();
   }
 
 

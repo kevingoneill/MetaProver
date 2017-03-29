@@ -16,11 +16,7 @@ public class NOT extends MetaSentence {
     super(new ArrayList<>(Collections.singletonList(s)), "NOT", "NOT", vars);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return null;
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+  public MetaInference reason(Proof p, int inferenceNum) {
     return null;
   }
 

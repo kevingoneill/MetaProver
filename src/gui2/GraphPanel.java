@@ -1,103 +1,195 @@
 package gui2;
 
+import expression.sentence.DeclarationParser;
+import expression.sentence.Sentence;
+import logicalreasoner.prover.SemanticProver;
 import logicalreasoner.truthassignment.TruthAssignment;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.spriteManager.SpriteManager;
-import org.graphstream.ui.view.Viewer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.net.URL;
+import java.awt.geom.Line2D;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Created by kevin on 2/8/17.
+ * A GraphPanel is a custom JPanel for displaying TruthAssignment
+ * trees in a graphical format. TruthAssignments are represented by
+ * NodePanels, and edges are drawn as simple lines
  */
 public class GraphPanel extends JPanel {
+  public static int AUTO_MODE = 0,
+          PROOF_ASSISTANT_MODE = 1;
 
-  private Graph graph;
-  private Viewer viewer;
+  private NodePanel root = null;
+  private ArrayList<Line2D.Double> edges;
+  private int minX, maxX, minY, maxY;
+  private int mode;
 
   public GraphPanel() {
-    super(new GridLayout(1, 1));
-    System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+    super(null);
+    setVisible(true);
+    setBackground(Color.white);
+    minX = 0;
+    minY = 0;
+    maxX = getPreferredSize().width;
+    maxY = getPreferredSize().height;
+    mode = PROOF_ASSISTANT_MODE;
 
-    // Create a new graph using TruthAssignmentNodes instead of SingleNodes
-    graph = new SingleGraph("Proof");
-    graph.addAttribute("ui.quality");
-    graph.addAttribute("ui.antialias");
-    graph.addAttribute("layout.quality", 4);
+    // Create a test case
+    HashSet<String> declarations = new HashSet<>(),
+            premises = new HashSet<>();
+    declarations.add("Boolean A");
+    declarations.add("Boolean B");
+    declarations.add("Boolean C");
+    premises.add("(implies A (and B C))");
+    premises.add("(iff C B)");
+    premises.add("(not C)");
 
+    Set<Sentence> premiseSet = new HashSet<>();
+    declarations.forEach(DeclarationParser::parseDeclaration);
+    premises.forEach(premise -> premiseSet.add(Sentence.makeSentence(premise)));
+    SemanticProver prover = new SemanticProver(premiseSet, Sentence.makeSentenceStrict("(not A)"), false);
+    NodePanel.prover = prover;
+    //prover.run();
 
-    URL fileURL = this.getClass().getClassLoader().getResource("");
-    String filepath = fileURL.getPath() + "/gui2/graph_style.css";
-
-    graph.addAttribute("ui.stylesheet", "url('file:" + filepath + "')");
-    viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
-    //viewer.disableAutoLayout();
-    viewer.enableAutoLayout();
-
-    add(viewer.addDefaultView(false));
-    viewer.getDefaultView().setPreferredSize(new Dimension(1000, 750));
-
-    graph.addNode("A");
-    graph.addNode("B");
-    graph.addNode("C");
-    graph.addNode("D");
-    graph.addNode("E");
-    graph.addNode("F");
-    graph.addNode("G");
-    graph.addNode("H");
-    graph.addNode("I");
-    graph.addNode("J");
-    graph.addNode("K");
-    graph.addNode("L");
-    graph.addNode("M");
-    graph.addNode("N");
-    graph.addNode("O");
-    graph.addNode("P");
-    graph.addNode("Q");
-    graph.addNode("R");
-    graph.addNode("S");
-    graph.addNode("T");
-
-    graph.addEdge("AB", "A", "B", true);
-    graph.addEdge("BE", "B", "E", true);
-    graph.addEdge("EK", "E", "K", true);
-    graph.addEdge("EL", "E", "L", true);
-    graph.addEdge("BF", "B", "F", true);
-    graph.addEdge("FM", "F", "M", true);
-    graph.addEdge("FN", "F", "N", true);
-    graph.addEdge("AC", "A", "C", true);
-    graph.addEdge("CG", "C", "G", true);
-    graph.addEdge("AD", "A", "D", true);
-    graph.addEdge("DH", "D", "H", true);
-    graph.addEdge("HO", "H", "O", true);
-    graph.addEdge("HP", "H", "P", true);
-    graph.addEdge("DI", "D", "I", true);
-    graph.addEdge("IQ", "I", "Q", true);
-    graph.addEdge("IR", "I", "R", true);
-    graph.addEdge("DJ", "D", "J", true);
-    graph.addEdge("JS", "J", "S", true);
-    graph.addEdge("JT", "J", "T", true);
-
-    SpriteManager manager = new SpriteManager(graph);
-    manager.addSprite("spriteA").attachToNode("A");
-
+    edges = new ArrayList<>();
+    root = makeTree(prover.getTruthAssignment());
   }
 
-  public Node makeNode(TruthAssignment truthAssignment) {
-    // Create a node for the root and add attributes for each TruthValue
-    Node root = graph.addNode(truthAssignment.getName());
-    root.addAttribute("ui.label", truthAssignment.getName());
-    root.addAttribute("TA", truthAssignment);
-    root.addAttribute("layout.weight", 10);
-    truthAssignment.stream().forEach(truthValue -> root.addAttribute(truthValue.getSentence().toString(), truthValue.isModelled()));
+  public void setAutoMode() {
+    mode = AUTO_MODE;
+  }
 
-    // make nodes for each child and add corresponding edges
-    truthAssignment.getChildren().forEach(c -> graph.addEdge(truthAssignment.getName() + "-" + c.getName(), root, makeNode(c)));
+  public boolean isAutoMode() {
+    return mode == AUTO_MODE;
+  }
+
+  public void setProofAssistantMode() {
+    mode = PROOF_ASSISTANT_MODE;
+  }
+
+  public boolean isProofAssistantMode() {
+    return mode == PROOF_ASSISTANT_MODE;
+  }
+
+  public void addEdge(Line2D.Double edge) {
+    edges.add(edge);
+  }
+
+  public NodePanel getRoot() {
     return root;
+  }
+
+  public NodePanel makeTree(TruthAssignment root) {
+    NodePanel n = makeTree(root, 0);
+    new TreeLayout(n).run();
+    return n;
+  }
+
+  public NodePanel makeTree(TruthAssignment root, int depth) {
+    NodePanel node = new NodePanel(root, depth, this);
+    add(node);
+    node.setBounds(0, 0, node.getWidth(), node.getHeight());
+    int newDepth = depth + 1;
+    root.getChildren().forEach(c -> {
+      NodePanel child = makeTree(c, newDepth);
+      node.addChild(child);
+
+      Line2D.Double edge = new Line2D.Double(node.getBottomAnchor(), child.getTopAnchor());
+      node.addEdge(edge);
+      child.setParentEdge(edge);
+      edges.add(edge);
+    });
+
+    updateUI();
+    return node;
+  }
+
+  /**
+   * If there are negative coordinates, we need to translate the
+   * coordinates of every contained Component leftwards/downwards
+   */
+  public void validate() {
+    if (minX < 0 || minY < 0) {
+      // the distance to translate x and y
+      int deltaX = (minX < 0) ? -minX : 0,
+              deltaY = (minY < 0) ? -minY : 0;
+
+      minX += deltaX;
+      minY += deltaY;
+      maxX += deltaX;
+      maxY += deltaY;
+      updatePreferredSize(minX, maxX, minY, maxY);
+
+      // translate each NodePanel relative to deltaX and deltaY
+      Component[] components = getComponents();
+      Arrays.stream(components).forEach(c -> {
+        NodePanel n = (NodePanel) c;
+        n.movePanel(deltaX, deltaY);
+        n.updateBounds();
+      });
+    }
+  }
+
+  public void updateClosedBranches() {
+    Component[] components = getComponents();
+    Arrays.stream(components).forEach(c -> ((NodePanel) c).setClosed());
+
+    if (root.isClosed()) {
+      JOptionPane.showMessageDialog(this, "All branches are closed, so the argument is valid.",
+              "Argument Valid", JOptionPane.INFORMATION_MESSAGE);
+    } else if (root.isFinished()) {
+      JOptionPane.showMessageDialog(this,
+              "All statements are decomposed, but there remains an open branch.\nTherefore, the argument is invalid.",
+              "Sentences Satisfied", JOptionPane.INFORMATION_MESSAGE);
+    }
+  }
+
+  protected void paintComponent(Graphics g) {
+    // Afterwards, paint the nodes
+    super.paintComponent(g);
+
+    // Paint all edges
+    Graphics2D g2D = (Graphics2D) g;
+    g2D.setColor(Color.black);
+    edges.forEach(g2D::draw);
+    validate();
+  }
+
+  /**
+   * Change the preferred size of this JPanel, adjusting the presence
+   * of JScrollBars on the enclosing JScrollPane.
+   *
+   * @param left   the leftmost x value of the NodePanel
+   * @param right  the rightmost x value of the NodePanel
+   * @param top    the uppermost y value of the NodePanel
+   * @param bottom the bottommost y value of the NodePanel
+   */
+  public void updatePreferredSize(int left, int right, int top, int bottom) {
+    int stepSize = 100;
+    boolean changed = false;
+    if (left < minX) {
+      minX = left - stepSize;
+      changed = true;
+    }
+    if (right > maxX) {
+      maxX = right + stepSize;
+      changed = true;
+    }
+    if (top < minY) {
+      minY = top - stepSize;
+      changed = true;
+    }
+    if (bottom > maxY) {
+      maxY = bottom + stepSize;
+      changed = true;
+    }
+
+    if (changed)
+      setPreferredSize(new Dimension(maxX - minX, maxY - minY));
+    validate();
   }
 
 }

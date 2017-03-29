@@ -20,14 +20,6 @@ public class AND extends MetaSentence {
     super(new ArrayList<>(Arrays.asList(s1, s2)), "AND", "AND", v);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return infer(p, inferenceNum, true);
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
-    return infer(p, inferenceNum, false);
-  }
-
   @Override
   public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
     HashSet<TruthAssignmentVar> allVars = new HashSet<>(vars);
@@ -37,12 +29,15 @@ public class AND extends MetaSentence {
     return new AND(newArgs, allVars);
   }
 
-  private MetaInference infer(Proof p, int inferenceNum, boolean reasonForwards) {
+  public MetaInference reason(Proof p, int inferenceNum) {
+    ArrayList<MetaSentence> inferences = new ArrayList<>();
+    args.forEach(a -> inferences.add(((MetaSentence) a).toplevelCopy(vars)));
+    return new MetaInference(this, inferences, inferenceNum, false, symbol);
+  }
+
+  public MetaInference reasonContained(Proof p, int inferenceNum) {
     List<MetaInference> metaInferences;
-    if (reasonForwards)
-      metaInferences = args.stream().map(a -> ((MetaSentence) a).reasonForwards(p, inferenceNum)).collect(Collectors.toList());
-    else
-      metaInferences = args.stream().map(a -> ((MetaSentence) a).reasonBackwards(p, inferenceNum)).collect(Collectors.toList());
+    metaInferences = args.stream().map(a -> ((MetaSentence) a).reason(p, inferenceNum)).collect(Collectors.toList());
 
     ArrayList<MetaSentence> newArgs = new ArrayList<>();
     IntStream.range(0, metaInferences.size()).forEach(i -> {
@@ -55,15 +50,12 @@ public class AND extends MetaSentence {
     metaInferences.removeIf(Objects::isNull);
     AND and = new AND(newArgs, vars);
     if (metaInferences.stream().anyMatch(Objects::nonNull) && !equals(and)) {
-      System.out.println("INFERRING--- " + and + " FROM " + this);
       ArrayList<MetaSentence> a = new ArrayList<>();
       a.add(and);
       return new MetaInference(this, a, inferenceNum, true, metaInferences.get(0).getSymbol());
     }
 
-    ArrayList<MetaSentence> inferences = new ArrayList<>();
-    args.forEach(a -> inferences.add(((MetaSentence) a).toplevelCopy(vars)));
-    return new MetaInference(this, inferences, inferenceNum, false, symbol);
+    return null;
   }
 
   @Override

@@ -189,7 +189,7 @@ public class SemanticProver implements Runnable {
             });
   }
 
-  protected Stream<Pair> infer(Inference i) {
+  public Stream<Pair> infer(Inference i) {
     if (i == null)
       return Stream.empty();
     if (i instanceof Decomposition) {
@@ -241,7 +241,7 @@ public class SemanticProver implements Runnable {
       if (!decomposeAll && isInvalid())
         break;
 
-      System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size() + "\t\tBranch Queue Size:\t" + branchQueue.size());
+      //System.out.println("# of Inferences:\t" + inferenceList.size() + "\t\t# of Open Branches:\t" + openBranches.size() + "\t\tBranch Queue Size:\t" + branchQueue.size());
       //printInferences();
     }
 
@@ -254,7 +254,7 @@ public class SemanticProver implements Runnable {
    *
    * @return true if all open branches are fully decomposed
    */
-  protected boolean reasoningCompleted() {
+  public boolean reasoningCompleted() {
     return openBranches.isEmpty() || (branchQueue.isEmpty() && openBranches.parallelStream().allMatch(TruthAssignment::decomposedAll));
   }
 
@@ -338,7 +338,7 @@ public class SemanticProver implements Runnable {
    * Branch the Sentence on the top of the branchQueue
    * and update the openBranches Set to contain those children.
    */
-  protected void addBranches() {
+  public void addBranches() {
     if (addedBranches) {
       Collections.sort(branchQueue, branchComparator);
       addedBranches = false;
@@ -351,7 +351,8 @@ public class SemanticProver implements Runnable {
       return;
     inferenceList.add(b);
 
-    b.getParent().getLeaves().filter(openBranches::contains).flatMap(b::infer).count();
+    b.getParent().getLeaves().filter(openBranches::contains).flatMap(b::infer).forEach(p -> {
+    });
     b.getInferredOver().forEach(leaf -> {
       openBranches.addAll(leaf.getChildren());
       if (!leaf.getChildren().isEmpty())
@@ -359,7 +360,7 @@ public class SemanticProver implements Runnable {
     });
   }
 
-  protected void closeBranches() {
+  public void closeBranches() {
     openBranches = openBranches.parallelStream().filter(TruthAssignment::areParentsConsistent).collect(Collectors.toList());
   }
 
@@ -371,6 +372,14 @@ public class SemanticProver implements Runnable {
 
   protected boolean isInvalid() {
     return branchQueue.isEmpty() && openBranches.parallelStream().anyMatch(TruthAssignment::isSatisfied);
+  }
+
+  public int getInferenceCount() {
+    return inferenceCount;
+  }
+
+  public void incrementInferenceCount() {
+    ++inferenceCount;
   }
 
   public ArrayList<Branch> getBranchQueue() {

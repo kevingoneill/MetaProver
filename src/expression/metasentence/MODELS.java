@@ -83,22 +83,16 @@ public class MODELS extends MetaSentence {
       if (i.getOrigin().equals(getSentence())) {
         if (i instanceof Decomposition) {
           Decomposition d = (Decomposition) i;
-          //d.infer(t.getTruthAssignment());
-          //System.out.println("INFERRING " + d.getAdditions());
-
           ArrayList<MetaSentence> a = new ArrayList<>();
           d.getAdditions().keySet().forEach(s ->
                   a.add(new MODELS(t, s, t.models(s), inferenceNum, isTopLevel)));
 
-          System.out.println("INFERRING: " + a);
           return new MetaInference(this, a, inferenceNum, true, d.getOrigin().getSymbol());
         } else if (i instanceof Branch) {
           Branch b = (Branch) i;
-          t.getTruthAssignment().print();
           ArrayList<MetaSentence> a = new ArrayList<>();
-          //System.out.println(b.getBranches());
+
           b.getBranches().forEach(c -> {
-            //c.print();
             if (c.keySet().size() == 1)
               c.keySet().forEach(s -> a.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
             else if (!c.keySet().isEmpty()) {

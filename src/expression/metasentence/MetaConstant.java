@@ -25,11 +25,7 @@ public class MetaConstant extends MetaSentence {
     return value;
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return null;
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+  public MetaInference reason(Proof p, int inferenceNum) {
     return null;
   }
 

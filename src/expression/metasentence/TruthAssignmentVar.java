@@ -52,7 +52,6 @@ public class TruthAssignmentVar extends MetaSentence {
     d.setTrue(s);
     d.infer(truthAssignment);
     addInference(d);
-    //System.out.println(getName() + "\n" + getInferences());
     ++currInference;
     reduce();
   }
@@ -90,11 +89,7 @@ public class TruthAssignmentVar extends MetaSentence {
     return truthAssignment.models(s);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return null;
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+  public MetaInference reason(Proof p, int inferenceNum) {
     return null;
   }
 
@@ -107,9 +102,6 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public Inference getNextInference() {
-
-    System.out.println(getName() + " " + getInferences());
-
     if (currInference < inferences.size())
       return inferences.get(currInference++);
 
@@ -131,6 +123,8 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o instanceof TruthAssignmentVar) {
       TruthAssignment t = ((TruthAssignmentVar) o).truthAssignment;
 

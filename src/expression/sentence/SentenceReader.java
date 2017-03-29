@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 public class SentenceReader extends AbstractSentenceReader {
 
   public LinkedList<String> tokenize(String s) {
-    String[] arr = s.split("(?<=[(])|(?=[)])|(?=[)])|(?>=[(])|\\s");
+    String[] arr = s.split("(?<=[(])|(?=[)])|(?>=[(])|\\s");
     LinkedList<String> l = new LinkedList<>(Arrays.asList(arr));
     l = l.stream().map(String::trim).collect(Collectors.toCollection(LinkedList::new));
     l.removeIf(String::isEmpty);
@@ -143,6 +143,7 @@ public class SentenceReader extends AbstractSentenceReader {
     if (Sentence.instances.containsKey(s))
       return Sentence.instances.get(s);
 
+
     Predicate p = new Predicate(exprName, list);
     Sentence.instances.put(p.toFullSExpression(), p);
     return p;
@@ -156,6 +157,7 @@ public class SentenceReader extends AbstractSentenceReader {
       list.add(parseTerm(stack, quantifiedVars));
     }
     stack.pop();
+
     List<Sort> sorts = Function.getDeclaration(exprName);
     if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Function: " + exprName + " has not been declared.");
@@ -179,6 +181,13 @@ public class SentenceReader extends AbstractSentenceReader {
 
   protected Sentence parseTerm(LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     String exprName = stack.peek();
+    if (exprName.equals("(")) {
+      // Parse the term as a function of other terms
+      stack.pop();
+      exprName = stack.pop();
+      return parseFunction(exprName, stack, quantifiedVars);
+    }
+
     if (quantifiedVars.containsKey(exprName)) {
       Variable v = quantifiedVars.get(stack.pop());
       return v;
@@ -200,7 +209,10 @@ public class SentenceReader extends AbstractSentenceReader {
   public Sentence parseSExpression(String exprName, LinkedList<String> stack, Map<String, Variable> quantifiedVars) {
     ArrayList<Sentence> list = new ArrayList<>();
     while (stack.peek() != null && !stack.peek().equals(")")) {
-      list.add(parse(stack, quantifiedVars));
+      if (exprName.equals(Identity.SYMBOL))
+        list.add(parseTerm(stack, quantifiedVars));
+      else
+        list.add(parse(stack, quantifiedVars));
     }
     if (stack.peek() == null)
       throw new AbstractSentenceReader.SentenceParseException("Sentence: " + exprName + " has no closing parentheses.");
@@ -221,42 +233,50 @@ public class SentenceReader extends AbstractSentenceReader {
       case "not": {
         if (args.size() != 1)
           throw new AbstractSentenceReader.SentenceParseException("Not Sentence must have exactly one argument.\n" + args);
-        return new Not(args.get(0));
+        s = new Not(args.get(0));
+        break;
       }
       case "and": {
         if (args.size() < 1)
           throw new AbstractSentenceReader.SentenceParseException("And Sentence must have at least one argument.\n" + args);
-        return new And(args);
+        s = new And(args);
+        break;
       }
       case "or": {
         if (args.size() < 1)
           throw new AbstractSentenceReader.SentenceParseException("Or Sentence must have at least one argument.\n" + args);
-        return new Or(args);
+        s = new Or(args);
+        break;
       }
       case "implies": {
         if (args.size() != 2)
           throw new AbstractSentenceReader.SentenceParseException("Implies Sentence must have exactly two arguments.\n" + args);
-        return new Implies(args.get(0), args.get(1));
+        s = new Implies(args.get(0), args.get(1));
+        break;
       }
       case "iff": {
         if (args.size() != 2)
           throw new AbstractSentenceReader.SentenceParseException("Iff Sentence must have exactly two arguments.\n" + args);
-        return new Iff(args.get(0), args.get(1));
+        s = new Iff(args.get(0), args.get(1));
+        break;
       }
       case "=": {
         if (args.size() != 2)
-          throw new SentenceParseException("Equals Sentence must have exactly two arguments.\n" + args);
-        return new Equals(args.get(0), args.get(1));
+          throw new SentenceParseException("Identity Sentence must have exactly two arguments.\n" + args);
+        s = new Identity(args.get(0), args.get(1));
+        break;
       }
       case "forAll": {
         if (args.size() != 2)
           throw new AbstractSentenceReader.SentenceParseException("ForAll Sentence must have exactly two arguments.\n" + args);
-        return new ForAll((Variable) args.get(0), args.get(1));
+        s = new ForAll((Variable) args.get(0), args.get(1));
+        break;
       }
       case "exists": {
         if (args.size() != 2)
           throw new AbstractSentenceReader.SentenceParseException("Exists Sentence must have exactly two arguments.\n" + args);
-        return new Exists((Variable) args.get(0), args.get(1));
+        s = new Exists((Variable) args.get(0), args.get(1));
+        break;
       }
       default: {
         List<Sort> l = Function.getDeclaration(name);
@@ -265,18 +285,24 @@ public class SentenceReader extends AbstractSentenceReader {
         Sort sort = l.remove(0);
         if (l.size() == 1 && args.isEmpty()) {
           if (sort == Sort.BOOLEAN)
-            return new Predicate(name, args);
-          return new Function(name, sort, args);
+            s = new Predicate(name, args);
+          else
+            s = new Function(name, sort, args);
+        } else {
+          if (l.size() == args.size() && IntStream.range(0, args.size()).allMatch(i -> args.get(i).getSort().isSubSort(l.get(i)))) {
+            if (sort == Sort.BOOLEAN)
+              s = new Predicate(name, args);
+            else
+              s = new Function(name, sort, args);
+            break;
+          }
+          System.out.println(name + " " + args);
+          throw new SentenceParseException("Cannot parse Sentence named " + name + ": no matching declaration exists.\n");
         }
-
-        if (l.size() == args.size() && IntStream.range(0, l.size()).allMatch(i -> args.get(i).getSort().isSubSort(l.get(i)))) {
-          if (sort == Sort.BOOLEAN)
-            return new Predicate(name, args);
-          return new Function(name, sort, args);
-        }
-        System.out.println(name + " " + args);
-        throw new SentenceParseException("Cannot parse Sentence named " + name + ": no matching declaration exists.\n");
       }
     }
+
+    Sentence.instances.putIfAbsent(s.toFullSExpression(), s);
+    return s;
   }
 }

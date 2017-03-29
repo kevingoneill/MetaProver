@@ -45,7 +45,7 @@ public class MATRProver extends FirstOrderProver {
   /**
    * Create inferences for every closed branch
    */
-  protected void closeBranches() {
+  public void closeBranches() {
     openBranches = openBranches.parallelStream().map(h -> {
       if (h.areParentsConsistent())
         return h;

@@ -123,6 +123,7 @@ public class JGraphXPanel extends JPanel {
       graph.insertEdge(p, null, "", v1, v3);
       */
 
+      //*
       HashSet<String> declarations = new HashSet<>(),
               premises = new HashSet<>();
       declarations.add("Boolean A");
@@ -138,6 +139,7 @@ public class JGraphXPanel extends JPanel {
       SemanticProver prover = new SemanticProver(premiseSet, Sentence.makeSentenceStrict("(not A)"), false);
       TruthAssignmentPanel.prover = prover;
       prover.run();
+      //*/
 
       layout = new mxCompactTreeLayout(graph, false, false);
       layout.setEdgeRouting(false);

@@ -22,9 +22,11 @@ public abstract class MetaSentence extends Expression {
     vars = v;
   }
 
-  public abstract MetaInference reasonForwards(Proof p, int inferenceNum);
+  public abstract MetaInference reason(Proof p, int inferenceNum);
 
-  public abstract MetaInference reasonBackwards(Proof p, int inferenceNum);
+  public MetaInference reasonContained(Proof p, int inferenceNum) {
+    return reason(p, inferenceNum);
+  }
 
   public int hashCode() {
     return toString().hashCode();
