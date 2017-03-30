@@ -1,16 +1,11 @@
 (declarations
-    (declare-sort Number Object)
-    (Number 0)
-    (Number s Number)
-    (Number + Number Number)
+    (Boolean A Object)
+    (Boolean B Object)
 )
 
 (premises
     ; this is a comment
-    (forAll (Number n) (not (= (s n) 0)))
-    (forAll (Number x) (forAll (Number y) (implies (= (s x) (s y)) (= x y))))
-    (forAll (Number n) (= (+ n 0) 0))
-    (forAll (Number x) (forAll (Number y) (= (+ x (s y)) (s (+ x y)))))
+
 )
 
-(goal (= (+ (s 0) 0) (s 0)))
+(goal (not (forAll x (or (A x) (B x)))))

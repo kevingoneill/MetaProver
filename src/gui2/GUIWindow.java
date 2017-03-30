@@ -70,6 +70,21 @@ public class GUIWindow extends JFrame {
     if (title == null)
       throw new RuntimeException("Invalid proof mode");
 
+    // Prompt the user for auto mode/proof assistant mode
+    if (panel.getMode() == NewProofPanel.PROPOSITIONAL_MODE
+            || panel.getMode() == NewProofPanel.FOL_MODE) {
+      int n = JOptionPane.showOptionDialog(this, "Please select the proof mode: ",
+              "Proof Mode", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new Object[]{"Proof Assistant", "Auto-Generate Proof"},
+              "Proof Assistant");
+      System.out.println(n);
+
+      if (n == 1)
+        graphPanel.setAutoMode();
+      else
+        graphPanel.setProofAssistantMode();
+
+    }
+
     JDialog dialog = new JDialog(this, title, true);
     dialog.getContentPane().add(panel);
     dialog.setSize(1000, 750);
@@ -85,8 +100,12 @@ public class GUIWindow extends JFrame {
   public void setProver(SemanticProver r) {
     this.prover = r;
     TruthAssignmentPanel.prover = r;
-    prover.run();
+    if (graphPanel.isAutoMode())
+      prover.run();
+    graphPanel.removeAll();
     graphPanel.makeTree(r.getTruthAssignment());
+    if (graphPanel.isAutoMode())
+      graphPanel.updateClosedBranches();
   }
 
 

@@ -60,7 +60,6 @@ public class ForAll extends Sentence {
     if (v.isModelled()) {
       List<Sentence> a = new ArrayList<>(v.getUninstantiatedConstants());
       if (a.isEmpty()) {
-        System.out.println("2");
         return null;
       }
       UniversalInstantiation i = new UniversalInstantiation(h, this, inferenceNum, justificationNum, a, getVariable());

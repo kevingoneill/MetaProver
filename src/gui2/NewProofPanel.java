@@ -226,9 +226,10 @@ public class NewProofPanel extends JPanel {
         }
       }
 
-      window.setProver(new SemanticProver(premises, goal, false));
+
       Component c = SwingUtilities.getRoot(this);
       c.dispatchEvent(new WindowEvent((Window) c, WindowEvent.WINDOW_CLOSING));
+      window.setProver(new SemanticProver(premises, goal, false));
     });
 
     goalPanel.add(new JLabel("Enter Goal Here: "));

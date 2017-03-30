@@ -1,9 +1,11 @@
 package gui2;
 
+import expression.sentence.ForAll;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
+import logicalreasoner.inference.UniversalInstantiation;
 import logicalreasoner.prover.SemanticProver;
 import logicalreasoner.truthassignment.TruthAssignment;
 import logicalreasoner.truthassignment.TruthValue;
@@ -232,7 +234,7 @@ public class NodePanel extends JPanel {
     return new Object[]{
             inferenceNum > 0 ? Integer.toString(inferenceNum) : "P" + (-1 * inferenceNum),
             v.getSentence(),
-            v.isModelled() ? 'T' : 'F',
+            v.containsTrue() && v.containsFalse() ? "T/F" : v.containsTrue() ? "T" : "F",
             justificationNum > 0 ? justificationNum : "P" + (-1 * justificationNum),
             (v.isDecomposed() && prover.getBranchQueue().stream().noneMatch(b -> b.getOrigin() == v.getSentence())) ? '✓' : '✗'};
   }
@@ -287,14 +289,14 @@ public class NodePanel extends JPanel {
   }
 
   public void setClosed() {
-    if (!(truthAssignment.isConsistent() && truthAssignment.areParentsConsistent()))
+    if (isClosed())
       this.closed.setText("✗");
     else
       this.closed.setText("o");
   }
 
   public boolean isClosed() {
-    return closed.getText().equals("✗");
+    return !truthAssignment.isConsistent() || !truthAssignment.areParentsConsistent();
   }
 
   public boolean isFinished() {
@@ -391,7 +393,10 @@ public class NodePanel extends JPanel {
         int justificationNum = Integer.parseInt(justification);
 
         if (!truthAssignment.isDecomposed(s)) {
-          jTable.getModel().setValueAt('✓', row, 4);
+          if (s instanceof ForAll && truthAssignment.models(s))
+            jTable.getModel().setValueAt(truthAssignment.getTruthValue(s).getInstantiatedConstants(), row, 4);
+          else
+            jTable.getModel().setValueAt('✓', row, 4);
           handleInference(s.reason(truthAssignment, prover.getInferenceCount(), justificationNum));
         }
       }
@@ -401,11 +406,10 @@ public class NodePanel extends JPanel {
     private void handleInference(Inference i) {
       prover.incrementInferenceCount();
       DefaultTableModel model = (DefaultTableModel) jTable.getModel();
-      if (i instanceof Decomposition) {
+      if (i instanceof Decomposition || i instanceof UniversalInstantiation) {
         // for decompositions, add the rows and resize the NodePanel
-        Decomposition d = (Decomposition) i;
         int oldHeight = getHeight();
-        prover.infer(d).forEach(p -> model.addRow(makeRow(i.getInferenceNum(),
+        prover.infer(i).peek(pair -> System.out.println(pair.sentence)).forEach(p -> model.addRow(makeRow(i.getInferenceNum(),
                 i.getJustificationNum(), truthAssignment.getTruthValue(p.sentence))));
         pack();
         children.forEach(c -> c.moveBranch(0, getHeight() - oldHeight));
@@ -418,11 +422,6 @@ public class NodePanel extends JPanel {
 
         b.getInferredOver().forEach(t -> {
           NodePanel n = instances.get(t.getUID());
-          /*
-          double midX = n.x + n.getWidth()/2.0,
-                  bufferHalf = TreeLayout.BUFFER/2.0;
-          int numChildren = n.getNumChildren();
-          */
           for (TruthAssignment c : t.getChildren()) {
             NodePanel child = graphPanel.makeTree(c, n.depth + 1);
             n.addChild(child);
@@ -436,12 +435,14 @@ public class NodePanel extends JPanel {
           }
         });
 
-        new TreeLayout(graphPanel.getRoot()).run();
+
       }
 
+      new TreeLayout(graphPanel.getRoot()).run();
       prover.closeBranches();
       graphPanel.updateClosedBranches();
       graphPanel.repaint();
+      //graphPanel.getRoot().truthAssignment.print();
     }
   }
 }

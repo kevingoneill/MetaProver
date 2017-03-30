@@ -98,8 +98,8 @@ public class TruthAssignment implements Serializable {
    */
   public TruthAssignment(TruthAssignment ta, TruthAssignment p) {
     UID = truthAssignmentCount++;
-    this.map = new ConcurrentHashMap<>();
-    this.inheritedMappings = new ConcurrentHashMap<>(ta.inheritedMappings);
+    this.map = new HashMap<>();
+    this.inheritedMappings = new HashMap<>(ta.inheritedMappings);
     suppositions = ta.suppositions;
     this.parent = p;
     children = new ArrayList<>(ta.children);
@@ -107,6 +107,10 @@ public class TruthAssignment implements Serializable {
     constants = new HashSet<>(ta.constants);
     parent.children.add(this);
     parent.leaves.add(this);
+
+    addConstants(p.constants);
+    inheritedMappings.putAll(p.inheritedMappings);
+    p.map.keySet().forEach(s -> inheritedMappings.put(s, p));
     ta.map.forEach(this::set);
   }
 
@@ -432,23 +436,7 @@ public class TruthAssignment implements Serializable {
    * @param s the Sentence to be set to true
    */
   public void setTrue(Sentence s, int inferenceNum) {
-    if (!hasMapping(s, true)) {
-      TruthValue t = map.get(s);
-      if (t != null) {
-        t.setTrue(inferenceNum);
-        addConstants(s.getConstants());
-      } else {
-        t = new TruthValue(s);
-        t.setTrue(inferenceNum);
-        map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
-      }
-      if (s.isAtomic())
-        setDecomposed(s);
-
-      if (s instanceof ForAll)
-        map.get(s).addInstantiations(getConstants());
-    }
+    set(s, true, inferenceNum);
   }
 
   /**
@@ -457,21 +445,7 @@ public class TruthAssignment implements Serializable {
    * @param s the Sentence to be set to false
    */
   public void setFalse(Sentence s, int inferenceNum) {
-    if (!hasMapping(s, false)) {
-      TruthValue t = map.get(s);
-      if (t != null) {
-        t.setFalse(inferenceNum);
-        addConstants(s.getConstants());
-      } else {
-        t = new TruthValue(s);
-        t.setFalse(inferenceNum);
-        map.put(s, t);
-        addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
-      }
-
-      if (s.isAtomic())
-        setDecomposed(s);
-    }
+    set(s, false, inferenceNum);
   }
 
   /**
@@ -501,7 +475,9 @@ public class TruthAssignment implements Serializable {
   }
 
   public void set(Sentence s, TruthValue v) {
-    if (!map.containsKey(s) && v.getSentence() == s) {
+    if (!((!v.containsTrue() || hasMapping(s, true))
+            && (!v.containsFalse() || hasMapping(s, false)))
+            && v.getSentence() == s) {
       map.put(s, new TruthValue(v));
       addMappingsAndConstants(Collections.singletonList(Pair.makePair(s, this)), s.getConstants());
 
@@ -815,9 +791,6 @@ public class TruthAssignment implements Serializable {
     return h.parallelStream().flatMap(c -> {
       TruthAssignment child = new TruthAssignment(c, this);
       leaves.add(child);
-      child.addConstants(constants);
-      child.inheritedMappings.putAll(inheritedMappings);
-      map.keySet().forEach(s -> child.inheritedMappings.put(s, this));
       child.refreshInstantiatedConstants();
 
       if (parent != null)

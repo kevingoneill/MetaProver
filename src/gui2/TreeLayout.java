@@ -2,7 +2,6 @@ package gui2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.OptionalDouble;
 
 /**
  * Created by kevin on 3/25/17.
@@ -106,9 +105,15 @@ public class TreeLayout {
       level = levels.get(i);
       for (int j = 0; j < level.size(); ++j) {
         NodePanel node = level.get(j);
-        OptionalDouble o = node.getChildren().stream().mapToInt(NodePanel::getX).average();
-        if (o.isPresent())
-          node.setX((int) o.getAsDouble());
+
+        // average children values
+        if (node.getNumChildren() > 0) {
+          NodePanel rightChild = node.getChildren().get(node.getNumChildren() - 1);
+          int leftChildX = node.getChildren().get(0).getX(),
+                  rightChildX = rightChild.getX() + rightChild.getWidth();
+          node.setX((leftChildX + rightChildX - node.getWidth()) / 2);
+        } else
+          node.setX(BUFFER);
 
         // if this branch is too far left, recursively move the branch right
         if (j > 0) {

@@ -2,6 +2,7 @@ package gui2;
 
 import expression.sentence.DeclarationParser;
 import expression.sentence.Sentence;
+import logicalreasoner.prover.FirstOrderProver;
 import logicalreasoner.prover.SemanticProver;
 import logicalreasoner.truthassignment.TruthAssignment;
 
@@ -40,17 +41,21 @@ public class GraphPanel extends JPanel {
     // Create a test case
     HashSet<String> declarations = new HashSet<>(),
             premises = new HashSet<>();
-    declarations.add("Boolean A");
-    declarations.add("Boolean B");
-    declarations.add("Boolean C");
-    premises.add("(implies A (and B C))");
-    premises.add("(iff C B)");
-    premises.add("(not C)");
+    declarations.add("Boolean A Object");
+    declarations.add("Boolean B Object");
+    declarations.add("Boolean C Object Object");
+    declarations.add("Boolean H Object");
+    declarations.add("Boolean F Object");
+
+    premises.add("(forAll x (forAll y (implies (and (A x) (B y)) (C x y))))");
+    premises.add("(exists y (and (F y) (forAll z (implies (H z) (C y z)))))");
+    premises.add("(forAll x (forAll y (forAll z (implies (and (C x y) (C y z)) (C x z)))))");
+    premises.add("(forAll x (implies (F x) (B x)))");
 
     Set<Sentence> premiseSet = new HashSet<>();
     declarations.forEach(DeclarationParser::parseDeclaration);
     premises.forEach(premise -> premiseSet.add(Sentence.makeSentence(premise)));
-    SemanticProver prover = new SemanticProver(premiseSet, Sentence.makeSentenceStrict("(not A)"), false);
+    SemanticProver prover = new FirstOrderProver(premiseSet, Sentence.makeSentenceStrict("(forAll z (forAll y (implies (and (A z) (H y)) (C z y))))"), false);
     NodePanel.prover = prover;
     //prover.run();
 
@@ -59,6 +64,7 @@ public class GraphPanel extends JPanel {
   }
 
   public void setAutoMode() {
+    System.out.println("Setting auto-mode");
     mode = AUTO_MODE;
   }
 
@@ -190,6 +196,11 @@ public class GraphPanel extends JPanel {
     if (changed)
       setPreferredSize(new Dimension(maxX - minX, maxY - minY));
     validate();
+  }
+
+  public void removeAll() {
+    super.removeAll();
+    edges.clear();
   }
 
 }

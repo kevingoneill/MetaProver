@@ -42,7 +42,7 @@ public class UniversalInstantiation extends Inference {
     return l.stream();
   }
 
-  public Stream<Pair> inferHelper(TruthAssignment h, ForAll f, Sentence instance) {
+  private Stream<Pair> inferHelper(TruthAssignment h, ForAll f, Sentence instance) {
     inferredOver.add(h);
     TruthAssignment truthAssignment = new TruthAssignment();
     Sentence s = f.instantiate(instance, var);
