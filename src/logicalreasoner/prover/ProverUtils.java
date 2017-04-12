@@ -26,7 +26,7 @@ public class ProverUtils {
   public static boolean isPropositionallyValid(Set<Sentence> premises, Sentence conclusion) {
     if (!premises.stream().anyMatch(Sentence::isPropositional) || !conclusion.isPropositional())
       throw new RuntimeException("Cannot run propositional proof over a quantified statement.");
-    SemanticProver prover = new SemanticProver(premises, conclusion, false);
+    Prover prover = new Prover(premises, conclusion, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -56,7 +56,7 @@ public class ProverUtils {
   public static boolean isPropositionallyConsistent(Set<Sentence> sentences) {
     if (!sentences.stream().allMatch(Sentence::isPropositional))
       throw new RuntimeException("Cannot run propositional proof over a quantified statement.");
-    SemanticProver prover = new SemanticProver(sentences, false);
+    Prover prover = new Prover(sentences, false);
     prover.run();
     return prover.isConsistent();
   }
@@ -81,7 +81,7 @@ public class ProverUtils {
   public static boolean isPropositionalTautology(Sentence sentence) {
     if (!sentence.isPropositional())
       throw new RuntimeException("Cannot run propositional proof over a quantified statement.");
-    SemanticProver prover = new SemanticProver(new HashSet<>(), sentence, false);
+    Prover prover = new Prover(new HashSet<>(), sentence, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -97,7 +97,7 @@ public class ProverUtils {
       throw new RuntimeException("Cannot run propositional proof over a quantified statement.");
     HashSet<Sentence> s = new HashSet<>();
     s.add(sentence);
-    SemanticProver prover = new SemanticProver(s, Collections.emptySet(), false);
+    Prover prover = new Prover(s, Collections.emptySet(), false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -160,7 +160,7 @@ public class ProverUtils {
     HashSet<Sentence> s = new HashSet<>();
     s.add(s1);
     s.add(s2);
-    SemanticProver prover = new SemanticProver(Collections.emptySet(), s, false);
+    Prover prover = new Prover(Collections.emptySet(), s, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -174,7 +174,7 @@ public class ProverUtils {
    * @return true, if the argument is valid, false otherwise
    */
   public static boolean isFOLValid(Set<Sentence> premises, Sentence conclusion) {
-    SemanticProver prover = new FirstOrderProver(premises, conclusion, false);
+    Prover prover = new FirstOrderProver(premises, conclusion, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -202,7 +202,7 @@ public class ProverUtils {
    * @return true if the sentences are consistent, false otherwise
    */
   public static boolean isFOLConsistent(Set<Sentence> sentences) {
-    SemanticProver prover = new FirstOrderProver(sentences, false);
+    Prover prover = new FirstOrderProver(sentences, false);
     prover.run();
     return prover.isConsistent();
   }
@@ -225,7 +225,7 @@ public class ProverUtils {
    * @return true if sentence is a tautology, false otherwise
    */
   public static boolean isFOLTautology(Sentence sentence) {
-    SemanticProver prover = new FirstOrderProver(new HashSet<>(), sentence, false);
+    Prover prover = new FirstOrderProver(new HashSet<>(), sentence, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -239,7 +239,7 @@ public class ProverUtils {
   public static boolean isFOLContradiction(Sentence sentence) {
     HashSet<Sentence> s = new HashSet<>();
     s.add(sentence);
-    SemanticProver prover = new FirstOrderProver(s, Collections.emptySet(), false);
+    Prover prover = new FirstOrderProver(s, Collections.emptySet(), false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -299,7 +299,7 @@ public class ProverUtils {
     HashSet<Sentence> s = new HashSet<>();
     s.add(s1);
     s.add(s2);
-    SemanticProver prover = new FirstOrderProver(Collections.emptySet(), s, false);
+    Prover prover = new FirstOrderProver(Collections.emptySet(), s, false);
     prover.run();
     return !prover.isConsistent();
   }

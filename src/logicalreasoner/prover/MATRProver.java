@@ -13,20 +13,20 @@ import java.util.stream.Stream;
  */
 public class MATRProver extends FirstOrderProver {
 
-  public MATRProver(Set<Sentence> premises, Sentence interest) {
-    super(premises, interest, false);
+  public MATRProver(Set<Sentence> premises, Sentence goal) {
+    super(premises, goal, false);
   }
 
-  public MATRProver(Set<Sentence> premises, Sentence interest, int runTime) {
-    super(premises, interest, false, runTime);
+  public MATRProver(Set<Sentence> premises, Sentence goal, int runTime) {
+    super(premises, goal, false, runTime);
   }
 
-  public MATRProver(Set<Sentence> premises, Sentence interest, boolean print) {
-    super(premises, interest, print);
+  public MATRProver(Set<Sentence> premises, Sentence goal, boolean print) {
+    super(premises, goal, print);
   }
 
-  public MATRProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
-    super(premises, interest, print, runTime);
+  public MATRProver(Set<Sentence> premises, Sentence goal, boolean print, int runTime) {
+    super(premises, goal, print, runTime);
   }
 
   @Override

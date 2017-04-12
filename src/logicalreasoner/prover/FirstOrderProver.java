@@ -19,20 +19,20 @@ import java.util.stream.Stream;
 
 /**
  * The FirstOrderProver class provides the same functionality of
- * its SemanticProver superclass, but extends to implement
+ * its Prover superclass, but extends to implement
  * reasoning over first order logic.
  */
-public class FirstOrderProver extends SemanticProver {
+public class FirstOrderProver extends Prover {
 
   /**
-   * Initialize the reasoner with the premises and the negation of all interests
+   * Initialize the reasoner with the premises and the negation of all goals
    *
    * @param premises the prior knowledge of the prover
-   * @param interest the interest of the prover (to be negated)
+   * @param goal the goal of the prover (to be negated)
    * @param print    Print log output if true
    */
-  public FirstOrderProver(Set<Sentence> premises, Sentence interest, boolean print) {
-    super(premises, interest, print);
+  public FirstOrderProver(Set<Sentence> premises, Sentence goal, boolean print) {
+    super(premises, goal, print);
   }
 
   public FirstOrderProver(TruthAssignment truthAssignment) {
@@ -40,23 +40,23 @@ public class FirstOrderProver extends SemanticProver {
   }
 
   /**
-   * Initialize the reasoner with the premises and the negation of all interests
+   * Initialize the reasoner with the premises and the negation of all goals
    *
    * @param premises the prior knowledge of the prover
-   * @param interest the interest of the prover (to be negated)
+   * @param goal the goal of the prover (to be negated)
    * @param print    Print log output if true
    * @param runTime  The maximum runTime which this prover should run on
    */
-  public FirstOrderProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
-    super(premises, interest, print, runTime);
+  public FirstOrderProver(Set<Sentence> premises, Sentence goal, boolean print, int runTime) {
+    super(premises, goal, print, runTime);
   }
 
   public FirstOrderProver(Set<Sentence> sentences, boolean b) {
     this(sentences, Collections.emptySet(), b);
   }
 
-  public FirstOrderProver(Set<Sentence> premises, Set<Sentence> interests, boolean print) {
-    super(premises, interests, print);
+  public FirstOrderProver(Set<Sentence> premises, Set<Sentence> goals, boolean print) {
+    super(premises, goals, print);
   }
 
   private PriorityQueue<Pair> makeQuantifierQueue() {

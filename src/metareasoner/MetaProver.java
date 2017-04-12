@@ -20,12 +20,12 @@ public class MetaProver implements Runnable {
 
   private Proof proof;
   private ArrayList<MetaSentence> premises;
-  private MetaSentence interest;
+  private MetaSentence goal;
   int inferenceCount;
 
   public MetaProver(ArrayList<MetaSentence> p, MetaSentence i) {
     premises = p;
-    interest = i;
+    goal = i;
     proof = new Proof(p, i);
     inferenceCount = 1;
   }
@@ -53,8 +53,8 @@ public class MetaProver implements Runnable {
     System.out.println("Inferences: ");
     proof.printInferences();
 
-    System.out.println("Interests: ");
-    proof.printInterests();
+    System.out.println("goals: ");
+    proof.printgoals();
 
 
     while (!reasoningCompleted()) {
@@ -66,8 +66,8 @@ public class MetaProver implements Runnable {
       /*
       System.out.println("\nInferences: ");
       proof.printInferences();
-      System.out.println("\nInterests: ");
-      proof.printInterests();
+      System.out.println("\ngoals: ");
+      proof.printgoals();
       System.out.println("\n\n");
       */
     }

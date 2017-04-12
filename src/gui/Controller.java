@@ -6,7 +6,7 @@ import expression.metasentence.MetaSentenceReader;
 import expression.metasentence.TruthAssignmentVar;
 import expression.sentence.Sentence;
 import gui.truthtreevisualization.TruthTree;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import metareasoner.MetaProver;
 
 import java.io.ByteArrayOutputStream;
@@ -69,7 +69,7 @@ public class Controller {
       }
     };
 
-    SemanticProver prover = new SemanticProver(p, Sentence.makeSentence(goal), true);
+    Prover prover = new Prover(p, Sentence.makeSentence(goal), true);
     prover.run();
 
     String text = baos.toString();

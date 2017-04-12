@@ -8,14 +8,14 @@ import java.util.Set;
 
 /**
  * FirstOrderMain allows you to run the prover on line-separated
- * files of premises and an interest file
+ * files of premises and an goal file
  */
 public class FirstOrderProverMain {
   /**
-   * Run the prover given premises and interests
+   * Run the prover given premises and goals
    * <p>
    * args[1] - premises txt file (one premise per line)
-   * ars[2] - interests txt file (one interest per line)
+   * ars[2] - goals txt file (one goal per line)
    *
    * @param args input files for reasoning
    */
@@ -23,7 +23,7 @@ public class FirstOrderProverMain {
     long startTime = System.nanoTime();
 
     if (args.length != 1) {
-      System.out.println(SemanticProverMain.usage());
+      System.out.println(ProverMain.usage());
       return;
     }
 
@@ -31,14 +31,14 @@ public class FirstOrderProverMain {
     Sentence goal;
 
     try {
-      goal = SemanticProverMain.readInputFile(args[0], premises);
+      goal = ProverMain.readInputFile(args[0], premises);
     } catch (IOException ioe) {
       System.out.println("File not found: " + args[0] + " \n");
       ioe.printStackTrace();
       return;
     }
 
-    SemanticProver prover = new FirstOrderProver(premises, goal, true);
+    Prover prover = new FirstOrderProver(premises, goal, true);
     prover.run();
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }

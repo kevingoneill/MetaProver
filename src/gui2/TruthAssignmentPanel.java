@@ -3,7 +3,7 @@ package gui2;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import javax.swing.*;
@@ -22,7 +22,7 @@ import java.util.Comparator;
  */
 public class TruthAssignmentPanel extends JPanel {
 
-  public static SemanticProver prover;
+  public static Prover prover;
   public static int COLUMNS = 5;
   public static String[] HEADERS = {"#", "Sentence", "", "Justification", ""};
 

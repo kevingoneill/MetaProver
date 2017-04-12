@@ -16,13 +16,13 @@ import java.util.Set;
  * d problems come from (all valid), second side
  * -Note, problem 20d is NOT valid
  */
-public class SemanticProverTest {
-  static void runProver(Set<String> declarations, Set<String> premises, String interest, boolean validArgument) {
+public class ProverTest {
+  static void runProver(Set<String> declarations, Set<String> premises, String goal, boolean validArgument) {
     Set<Sentence> p = new HashSet<>();
     declarations.forEach(DeclarationParser::parseDeclaration);
     premises.forEach(premise -> p.add(Sentence.makeSentence(premise)));
 
-    SemanticProver prover = new SemanticProver(p, Sentence.makeSentenceStrict(interest), true, 1);
+    Prover prover = new Prover(p, Sentence.makeSentenceStrict(goal), true, 1);
     prover.run();
     if (validArgument)
       Assert.assertFalse("Prover determined a valid argument was invalid", prover.isConsistent());

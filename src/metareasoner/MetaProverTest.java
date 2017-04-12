@@ -13,14 +13,14 @@ import java.util.ArrayList;
  * of the MetaProver class
  */
 public class MetaProverTest {
-  private static void runProver(ArrayList<String> premises, String interest) {
+  private static void runProver(ArrayList<String> premises, String goal) {
     ArrayList<String> declarations = new ArrayList<>();
     declarations.add("Boolean φ");
     declarations.add("Boolean ψ");
-    runProver(declarations, premises, interest);
+    runProver(declarations, premises, goal);
   }
 
-  private static void runProver(ArrayList<String> declarations, ArrayList<String> premises, String interest) {
+  private static void runProver(ArrayList<String> declarations, ArrayList<String> premises, String goal) {
     declarations.forEach(DeclarationParser::parseDeclaration);
 
     ArrayList<MetaSentence> p = new ArrayList<MetaSentence>() {{
@@ -33,7 +33,7 @@ public class MetaProverTest {
       });
     }};
 
-    MetaSentence i = (MetaSentence) MetaSentenceReader.parse(interest);
+    MetaSentence i = (MetaSentence) MetaSentenceReader.parse(goal);
 
     MetaProver prover = new MetaProver(p, i);
     prover.run();

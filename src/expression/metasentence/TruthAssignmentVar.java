@@ -4,7 +4,7 @@ import expression.sentence.Proposition;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
@@ -134,7 +134,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   private void reduce() {
-    SemanticProver.decompose(truthAssignment, inferences);
+    Prover.decompose(truthAssignment, inferences);
   }
 
   @Override

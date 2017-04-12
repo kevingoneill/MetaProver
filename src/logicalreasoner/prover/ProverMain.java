@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * This is the main driver class for running the Semantic Logical Reasoner
  */
-public class SemanticProverMain {
+public class ProverMain {
 
   /**
    * Run the prover given premises and goal provided
@@ -53,13 +53,13 @@ public class SemanticProverMain {
       return;
     }
 
-    SemanticProver prover = new SemanticProver(premises, goal, true);
+    Prover prover = new Prover(premises, goal, true);
     prover.run();
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }
 
   public static String usage() {
-    return "usage: java SemanticProverMain <inputFile>\n";
+    return "usage: java ProverMain <inputFile>\n";
   }
 
   public static Sentence readInputFile(String fileName, Set<Sentence> premises) throws FileNotFoundException {

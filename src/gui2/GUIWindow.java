@@ -1,6 +1,6 @@
 package gui2;
 
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -15,7 +15,7 @@ public class GUIWindow extends JFrame {
   private GraphPanel graphPanel;
 
   public GUIWindow() {
-    super("SemanticProver");
+    super("Prover");
     setVisible(true);
     setSize(1000, 750);
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -95,9 +95,9 @@ public class GUIWindow extends JFrame {
   /**
    * Set the prover of this window
    *
-   * @param r the SemanticProver or MetaProver to run
+   * @param r the Prover or MetaProver to run
    */
-  public void setProver(SemanticProver r) {
+  public void setProver(Prover r) {
     this.prover = r;
     TruthAssignmentPanel.prover = r;
     if (graphPanel.isAutoMode())

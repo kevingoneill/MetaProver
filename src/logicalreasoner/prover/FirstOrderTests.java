@@ -16,12 +16,12 @@ import java.util.*;
  * test suite
  */
 public class FirstOrderTests {
-  public static void runProver(List<String> declarations, Set<String> premises, String interest, boolean validArgument) {
+  public static void runProver(List<String> declarations, Set<String> premises, String goal, boolean validArgument) {
     declarations.forEach(DeclarationParser::parseDeclaration);
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
-    SemanticProver prover = new FirstOrderProver(p, Collections.singleton(Sentence.makeSentence(interest)), true);
+    Prover prover = new FirstOrderProver(p, Collections.singleton(Sentence.makeSentence(goal)), true);
     prover.run();
     if (!prover.finishedProof())
       throw new RuntimeException("Prover could not finish proof in the given amount of time.");

@@ -12,7 +12,7 @@ import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import expression.sentence.DeclarationParser;
 import expression.sentence.Sentence;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import javax.swing.*;
@@ -136,7 +136,7 @@ public class JGraphXPanel extends JPanel {
       Set<Sentence> premiseSet = new HashSet<>();
       declarations.forEach(DeclarationParser::parseDeclaration);
       premises.forEach(premise -> premiseSet.add(Sentence.makeSentence(premise)));
-      SemanticProver prover = new SemanticProver(premiseSet, Sentence.makeSentenceStrict("(not A)"), false);
+      Prover prover = new Prover(premiseSet, Sentence.makeSentenceStrict("(not A)"), false);
       TruthAssignmentPanel.prover = prover;
       prover.run();
       //*/

@@ -15,17 +15,17 @@ import java.util.stream.Collectors;
 public class Proof {
 
   private ArrayList<MetaSentence> premises;
-  private MetaSentence ultimateInterest;
+  private MetaSentence ultimateGoal;
   private ArrayList<Step> forwardsInferences, backwardsInferences;
   private HashMap<String, TruthAssignmentVar> truthAssignments;
 
-  public Proof(ArrayList<MetaSentence> inferences, MetaSentence interest) {
+  public Proof(ArrayList<MetaSentence> inferences, MetaSentence goal) {
     forwardsInferences = new ArrayList<>();
     backwardsInferences = new ArrayList<>();
     inferences.forEach(i -> forwardsInferences.add(new Step(i, null, null, true)));
-    backwardsInferences.add(new Step(interest, null, null, false));
+    backwardsInferences.add(new Step(goal, null, null, false));
     premises = inferences;
-    ultimateInterest = interest;
+    ultimateGoal = goal;
     truthAssignments = new HashMap<>();
   }
 
@@ -55,7 +55,7 @@ public class Proof {
     forwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
-  public void printInterests() {
+  public void printgoals() {
     backwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
@@ -118,7 +118,7 @@ public class Proof {
   }
 
   public boolean isComplete() {
-    Step s = find(backwardsInferences, ultimateInterest);
+    Step s = find(backwardsInferences, ultimateGoal);
     return s.getLeaves().stream().allMatch(l ->
             forwardsInferences.stream().anyMatch(f ->
                     f.getMetaSentence().equals(l.getMetaSentence())));
@@ -211,7 +211,7 @@ public class Proof {
   }
 
   public ArrayList<Step> generateProof() {
-    return getProofBackwards(find(backwardsInferences, ultimateInterest));
+    return getProofBackwards(find(backwardsInferences, ultimateGoal));
   }
 
   private ArrayList<Step> getProofBackwards(Step s) {

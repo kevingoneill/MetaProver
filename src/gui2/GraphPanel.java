@@ -3,7 +3,7 @@ package gui2;
 import expression.sentence.DeclarationParser;
 import expression.sentence.Sentence;
 import logicalreasoner.prover.FirstOrderProver;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import javax.swing.*;
@@ -55,7 +55,7 @@ public class GraphPanel extends JPanel {
     Set<Sentence> premiseSet = new HashSet<>();
     declarations.forEach(DeclarationParser::parseDeclaration);
     premises.forEach(premise -> premiseSet.add(Sentence.makeSentence(premise)));
-    SemanticProver prover = new FirstOrderProver(premiseSet, Sentence.makeSentenceStrict("(forAll z (forAll y (implies (and (A z) (H y)) (C z y))))"), false);
+    Prover prover = new FirstOrderProver(premiseSet, Sentence.makeSentenceStrict("(forAll z (forAll y (implies (and (A z) (H y)) (C z y))))"), false);
     NodePanel.prover = prover;
     //prover.run();
 

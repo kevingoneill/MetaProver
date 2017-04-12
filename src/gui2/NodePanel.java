@@ -6,7 +6,7 @@ import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 import logicalreasoner.truthassignment.TruthValue;
 
@@ -32,7 +32,7 @@ import static gui2.TreeLayout.BUFFER;
 public class NodePanel extends JPanel {
 
   private static HashMap<Integer, NodePanel> instances = new HashMap<>();
-  public static SemanticProver prover;
+  public static Prover prover;
   public static int COLUMNS = 5;
   public static String[] HEADERS = {"#", "Sentence", "", "Justification", ""};
   private final JLabel nameLabel;

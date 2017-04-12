@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The SemanticProver class represents a logical reasoner
+ * The Prover class represents a logical reasoner
  * which determines the validity of arguments by
  * generating a TruthAssignment Tree (like a Truth Tree,
  * except that mappings from Sentences to their values are
  * stored in each node, not only the Sentences themselves).
  */
-public class SemanticProver implements Runnable {
+public class Prover implements Runnable {
 
   public static void decompose(TruthAssignment t, List<Inference> inferences) {
-    SemanticProver prover = new SemanticProver(t);
+    Prover prover = new Prover(t);
     prover.run();
     inferences.addAll(prover.inferenceList);
   }
@@ -31,7 +31,7 @@ public class SemanticProver implements Runnable {
           startTime = null,
           endTime = null;
 
-  protected Set<Sentence> premises, interests;
+  protected Set<Sentence> premises, goals;
 
   //Stores the initial/root TruthAssignment
   protected TruthAssignment masterFunction;
@@ -86,13 +86,13 @@ public class SemanticProver implements Runnable {
   };
 
   /**
-   * Initialize the reasoner with the premises and the negation of all interests
+   * Initialize the reasoner with the premises and the negation of all goals
    *
    * @param premises the prior knowledge of the prover
-   * @param interests the interests of the prover (to be negated)
+   * @param goals the goals of the prover (to be negated)
    * @param print    Print log output if true
    */
-  public SemanticProver(Set<Sentence> premises, Set<Sentence> interests, boolean print) {
+  public Prover(Set<Sentence> premises, Set<Sentence> goals, boolean print) {
     this.premises = new HashSet<>(premises);
 
     inferenceList = new ArrayList<>();
@@ -109,13 +109,13 @@ public class SemanticProver implements Runnable {
       inferenceList.add(p);
     }
 
-    if (interests.contains(null))
-      interests.removeIf(Objects::isNull);
-    interests.forEach(c::setFalse);
+    if (goals.contains(null))
+      goals.removeIf(Objects::isNull);
+    goals.forEach(c::setFalse);
     c.infer(masterFunction);
     inferenceList.add(c);
-    interests.forEach(masterFunction::addSupposition);
-    this.interests = new HashSet<>(interests);
+    goals.forEach(masterFunction::addSupposition);
+    this.goals = new HashSet<>(goals);
 
     openBranches = new CopyOnWriteArrayList<>();
     openBranches.add(masterFunction);
@@ -128,17 +128,17 @@ public class SemanticProver implements Runnable {
   }
 
   /**
-   * Initialize the reasoner with the premises and the negation of all interests
+   * Initialize the reasoner with the premises and the negation of all goals
    *
    * @param premises the prior knowledge of the prover
-   * @param interest the interest of the prover (to be negated)
+   * @param goal the goal of the prover (to be negated)
    * @param print    Print log output if true
    */
-  public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print) {
-    this(premises, Collections.singleton(interest), print);
+  public Prover(Set<Sentence> premises, Sentence goal, boolean print) {
+    this(premises, Collections.singleton(goal), print);
   }
 
-  public SemanticProver(Set<Sentence> premises, boolean print) {
+  public Prover(Set<Sentence> premises, boolean print) {
     this(premises, Collections.emptySet(), print);
   }
 
@@ -146,9 +146,9 @@ public class SemanticProver implements Runnable {
     return new ArrayList<>(inferenceList);
   }
 
-  public SemanticProver(TruthAssignment truthAssignment) {
+  public Prover(TruthAssignment truthAssignment) {
     premises = truthAssignment.keySet().stream().filter(truthAssignment::models).collect(Collectors.toSet());
-    interests = truthAssignment.keySet().stream().filter(s -> !truthAssignment.models(s)).collect(Collectors.toSet());
+    goals = truthAssignment.keySet().stream().filter(s -> !truthAssignment.models(s)).collect(Collectors.toSet());
 
     masterFunction = truthAssignment;
     inferenceList = new CopyOnWriteArrayList<>();
@@ -164,8 +164,8 @@ public class SemanticProver implements Runnable {
     decomposeAll = true;
   }
 
-  public SemanticProver(Set<Sentence> premises, Sentence interest, boolean print, int runTime) {
-    this(premises, interest, print);
+  public Prover(Set<Sentence> premises, Sentence goal, boolean print, int runTime) {
+    this(premises, goal, print);
     maxRuntime = (long) runTime * 1000;
     finishedProof = false;
   }
@@ -289,7 +289,7 @@ public class SemanticProver implements Runnable {
   protected void printArgument() {
     if (print) {
       System.out.println("Premises: " + premises);
-      System.out.println("Interests: " + interests);
+      System.out.println("goals: " + goals);
     }
   }
 

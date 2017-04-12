@@ -2,7 +2,7 @@ package gui2;
 
 import expression.Sort;
 import expression.sentence.*;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 
 import javax.swing.*;
 import java.awt.*;
@@ -229,7 +229,7 @@ public class NewProofPanel extends JPanel {
 
       Component c = SwingUtilities.getRoot(this);
       c.dispatchEvent(new WindowEvent((Window) c, WindowEvent.WINDOW_CLOSING));
-      window.setProver(new SemanticProver(premises, goal, false));
+      window.setProver(new Prover(premises, goal, false));
     });
 
     goalPanel.add(new JLabel("Enter Goal Here: "));
