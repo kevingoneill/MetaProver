@@ -447,7 +447,7 @@ public class OSCARTests {
 
   //@Test
   public void prob72c() {
-    //try { Thread.sleep(10000); } catch (InterruptedException ie) {}
+    try { Thread.sleep(10000); } catch (InterruptedException ie) {}
     List<String> declarations = new ArrayList<>();
     declarations.add("Boolean P Object");
     declarations.add("Boolean Q Object");
@@ -657,7 +657,7 @@ public class OSCARTests {
     runProver(declarations, new HashSet<>(), "(exists u (exists v1 (implies (P u v1) (forAll x (forAll y (P x y))))))", true);
   }
 
-  @Test
+  //@Test
   public void prob88c() throws InterruptedException {
     //Thread.sleep(10000);
     List<String> declarations = new ArrayList<>();
@@ -816,7 +816,7 @@ public class OSCARTests {
     runProver(declarations, premises, "(exists x (exists y (and (A x) (A y) (exists z (and (E x y) (G z) (E y z))))))", true);
   }
 
-  @Test
+  //@Test
   public void schubertSteamrollerSorts() throws InterruptedException {
     //Thread.sleep(10000);
     List<String> declarations = new ArrayList<>();

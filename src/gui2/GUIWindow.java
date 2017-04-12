@@ -99,7 +99,7 @@ public class GUIWindow extends JFrame {
    */
   public void setProver(Prover r) {
     this.prover = r;
-    TruthAssignmentPanel.prover = r;
+
     if (graphPanel.isAutoMode())
       prover.run();
     graphPanel.removeAll();
