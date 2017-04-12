@@ -16,18 +16,14 @@ public class NOT extends MetaSentence {
     super(new ArrayList<>(Collections.singletonList(s)), "NOT", "NOT", vars);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return null;
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+  public MetaInference reason(Proof p, int inferenceNum) {
     return null;
   }
 
   public String toString() {
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
 
     if (!vars.isEmpty())
       builder.append(" ");
@@ -38,17 +34,24 @@ public class NOT extends MetaSentence {
   }
 
 
-  public String toSymbol() {
+  public String toSExpression() {
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
 
     if (!vars.isEmpty())
       builder.append(" ");
 
-    builder.append(symbol).append("[").append(args.get(0).toSymbol()).append("]");
+    builder.append(symbol).append("[").append(args.get(0).toSExpression()).append("]");
 
     return builder.toString();
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    HashSet<TruthAssignmentVar> allVars = new HashSet<>(vars);
+    allVars.addAll(this.vars);
+    return new NOT((MetaSentence) args.get(0), allVars);
   }
 
 }

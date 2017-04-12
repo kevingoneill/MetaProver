@@ -1,0 +1,11 @@
+(declarations
+    (Boolean A Object)
+    (Boolean B Object)
+)
+
+(premises
+    ; this is a comment
+
+)
+
+(goal (not (forAll x (or (A x) (B x)))))

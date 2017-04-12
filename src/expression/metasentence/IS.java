@@ -34,6 +34,11 @@ public class IS extends MetaSentence {
     return reason(p, inferenceNum);
   }
 
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
+  }
+
   public MetaInference reason(Proof p, int inferenceNum) {
     ArrayList<MetaSentence> a = new ArrayList<>();
     TruthAssignmentVar t = new TruthAssignmentVar(new TruthAssignment());
@@ -57,6 +62,6 @@ public class IS extends MetaSentence {
       a.add(m);
     }
 
-    return new MetaInference(this, a, inferenceNum, false, getConstant().toSymbol());
+    return new MetaInference(this, a, inferenceNum, false, getConstant().toSExpression());
   }
 }

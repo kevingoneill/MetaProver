@@ -9,6 +9,7 @@ import metareasoner.proof.Proof;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -19,19 +20,19 @@ public class MetaProver implements Runnable {
 
   private Proof proof;
   private ArrayList<MetaSentence> premises;
-  private MetaSentence interest;
+  private MetaSentence goal;
   int inferenceCount;
 
   public MetaProver(ArrayList<MetaSentence> p, MetaSentence i) {
     premises = p;
-    interest = i;
+    goal = i;
     proof = new Proof(p, i);
     inferenceCount = 1;
   }
 
   public boolean reasonForwards(Proof p) {
     List<MetaInference> inferences = p.getNewForwardSentences().stream()
-            .map(s -> s.reasonForwards(p, inferenceCount++)).filter(i -> i != null)
+            .map(s -> s.reason(p, inferenceCount++)).filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     inferences.forEach(i -> i.infer(p, true));
@@ -41,7 +42,7 @@ public class MetaProver implements Runnable {
 
   public boolean reasonBackwards(Proof p) {
     List<MetaInference> inferences = p.getNewBackwardSentences().stream()
-            .map(s -> s.reasonBackwards(p, inferenceCount++)).filter(i -> i != null)
+            .map(s -> s.reason(p, inferenceCount++)).filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     inferences.forEach(i -> i.infer(p, false));
@@ -52,19 +53,22 @@ public class MetaProver implements Runnable {
     System.out.println("Inferences: ");
     proof.printInferences();
 
-    System.out.println("Interests: ");
-    proof.printInterests();
+    System.out.println("goals: ");
+    proof.printgoals();
 
 
     while (!reasoningCompleted()) {
-      if (!reasonForwards(proof) && !reasonBackwards(proof))
+      boolean f = reasonForwards(proof),
+              b = reasonBackwards(proof);
+      if (!(f || b))
         break;
 
       /*
       System.out.println("\nInferences: ");
       proof.printInferences();
-      System.out.println("\nInterests: ");
-      proof.printInterests();
+      System.out.println("\ngoals: ");
+      proof.printgoals();
+      System.out.println("\n\n");
       */
     }
 

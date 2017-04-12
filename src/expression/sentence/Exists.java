@@ -6,22 +6,39 @@ import logicalreasoner.inference.ExistentialInstantiation;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 /**
- * Created by kevin on 5/27/16.
+ * Exists is a quantified Sentence, which states that there must be
+ * some constant, which when instantiated over its subsentence,
+ * is satisfied.
  */
 public class Exists extends Sentence {
+  public static String NAME = "exists", SYMBOL = "∃";
+
 
   public Exists(Variable v, Sentence s) {
-    super(new ArrayList<>(Arrays.asList(v, s)), "exists", "∃", Sort.BOOLEAN);
-    HASH_CODE = instantiate(new Variable("", Sort.OBJECT), getVariable()).hashCode();
+    super(Arrays.asList(v, s), NAME, SYMBOL, Sort.BOOLEAN);
+    HASH_CODE = hashString(v).hashCode();
   }
 
-  public String toSymbol() {
-    return symbol + getVariable().toSymbol() + getSentence().toSymbol();
+  public String toString() {
+    if (TOSTRING == null) {
+      if (getVariable().getSort() == Sort.OBJECT)
+        TOSTRING = symbol + getVariable() + getSentence();
+      else
+        TOSTRING = symbol + "(" + getVariable().getSort() + " " + getVariable() + ")" + getSentence();
+    }
+    return TOSTRING;
+  }
+
+  @Override
+  public String toSExpression() {
+    if (TOSEXPR == null)
+      TOSEXPR = "(" + name + " (" + getVariable().getSort().getName() + " " + getVariable().toSExpression() + ") " + getSentence().toSExpression() + ")";
+    return TOSEXPR;
   }
 
   public Sentence getSentence() {
@@ -33,36 +50,34 @@ public class Exists extends Sentence {
   }
 
   @Override
-  public Sentence makeCopy() {
-    return new Exists(getVariable(), getSentence().makeCopy());
-  }
-
-  @Override
   public Boolean eval(TruthAssignment h) {
     return null;
   }
 
   @Override
   public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (h.isMapped(this)) {
-      if (h.models(this)) {
-        Set<Sentence> s = h.getConstants();
-        /*
-        if (s.isEmpty()) {
-          Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-          d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
-          return d;
-        }
-        */
-        return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
-      } else {
-        Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
-        d.setTrue(new ForAll(getVariable(), new Not(getSentence())));
-        return d;
-      }
-    }
+    h.setDecomposed(this);
+    if (h.models(this)) {
+      //Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      //d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
 
-    return null;
+      return new ExistentialInstantiation(h, this, inferenceNum, justificationNum, Constant.getNewUniqueConstant(), getVariable());
+
+      /*
+       Set<Sentence> s = h.getConstants();
+       if (s.isEmpty()) {
+         Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+         d.setTrue(getSentence().instantiate(Constant.getNewUniqueConstant(), getVariable()));
+         return d;
+       }
+       return new BranchingExistentialInstantiation(h, this, inferenceNum, justificationNum, s);
+       */
+    } else {
+      Decomposition d = new Decomposition(h, this, inferenceNum, justificationNum);
+      d.setTrue(Sentence.makeSentence(ForAll.NAME, getVariable(),
+              Sentence.makeSentence(Not.NAME, Collections.singletonList(getSentence()))));
+      return d;
+    }
   }
 
   @Override
@@ -80,15 +95,29 @@ public class Exists extends Sentence {
     if (v.equals(getVariable()))
       return getSentence().instantiate(c, v);
 
-    return new Exists(getVariable(), getSentence().instantiate(c, v));
+    return Sentence.makeSentence(name, getVariable(), getSentence().instantiate(c, v));
+  }
+
+  @Override
+  protected int expectedBranchCount(boolean truthValue, TruthAssignment h) {
+    //This will be instantiated at most once
+    if (truthValue)
+      return getSentence().expectedBranchCount(true, h);
+
+    // This will turn into a ForAll, leading to n times the expected branching statements
+    return getSentence().expectedBranchCount(false, h) * Math.max(1, h.getConstants(getVariable().getSort()).size());
   }
 
   public boolean equals(Object o) {
-    if (o instanceof Exists) {
-      Exists e = (Exists) o;
-      if (e.getVariable().equals(getVariable()))
-        return e.getSentence().equals(getSentence());
-      return e.instantiate(getVariable(), e.getVariable()).equals(getSentence());
+    if (this == o)
+      return true;
+    if (hashCode() == o.hashCode() && o instanceof ForAll) {
+      ForAll f = (ForAll) o;
+      if (f.getVariable().equals(getVariable()))
+        return f.getSentence().equals(getSentence());
+      else if (f.getVariable().getSort() == getVariable().getSort())
+        return f.instantiate(getVariable(), f.getVariable()).equals(getSentence());
+      return false;
     }
     return false;
   }

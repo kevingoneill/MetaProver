@@ -4,7 +4,7 @@ import expression.sentence.Proposition;
 import expression.sentence.Sentence;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TruthAssignmentVar is a wrapper class for TruthAssignment which
@@ -30,7 +31,11 @@ public class TruthAssignmentVar extends MetaSentence {
     truthAssignment = t;
     inferences = new ArrayList<>();
     parent = v;
-    reduce();
+
+    if (v == null)
+      reduce();
+    else
+      inferences.addAll(v.inferences.stream().filter(i -> i.getParent() == truthAssignment).collect(Collectors.toList()));
   }
 
   public TruthAssignmentVar(TruthAssignment t) {
@@ -47,7 +52,6 @@ public class TruthAssignmentVar extends MetaSentence {
     d.setTrue(s);
     d.infer(truthAssignment);
     addInference(d);
-    //System.out.println(getName() + "\n" + getInferences());
     ++currInference;
     reduce();
   }
@@ -69,7 +73,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public TruthAssignmentVar addChild(TruthAssignment h) {
-    truthAssignment.addChildren(Collections.singletonList(h));
+    truthAssignment.addChildren(Collections.singletonList(h)).count();
     return new TruthAssignmentVar(truthAssignment.getChildren().get(truthAssignment.getChildren().size() - 1), this);
   }
 
@@ -85,11 +89,7 @@ public class TruthAssignmentVar extends MetaSentence {
     return truthAssignment.models(s);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return null;
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
+  public MetaInference reason(Proof p, int inferenceNum) {
     return null;
   }
 
@@ -102,9 +102,9 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public Inference getNextInference() {
-    //System.out.println(getName() + " " + getInferences());
     if (currInference < inferences.size())
       return inferences.get(currInference++);
+
     return null;
   }
 
@@ -114,7 +114,7 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   @Override
-  public String toSymbol() {
+  public String toSExpression() {
     return name;
   }
 
@@ -123,6 +123,8 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   public boolean equals(Object o) {
+    if (this == o)
+      return true;
     if (o instanceof TruthAssignmentVar) {
       TruthAssignment t = ((TruthAssignmentVar) o).truthAssignment;
 
@@ -132,6 +134,11 @@ public class TruthAssignmentVar extends MetaSentence {
   }
 
   private void reduce() {
-    SemanticProver.decompose(truthAssignment, inferences);
+    Prover.decompose(truthAssignment, inferences);
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
   }
 }

@@ -20,8 +20,13 @@ public class CONTRARY extends MetaSentence {
     super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRARY", "contrary", new HashSet<>());
   }
 
-  public String toSymbol() {
-    return "[" + args.get(0).toSymbol() + " and " + args.get(1).toSymbol() + " are " + symbol + "]";
+  public String toSExpression() {
+    return "[" + args.get(0).toSExpression() + " and " + args.get(1).toSExpression() + " are " + symbol + "]";
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
   }
 
   public MetaInference reasonForwards(Proof p, int inferenceNum) {

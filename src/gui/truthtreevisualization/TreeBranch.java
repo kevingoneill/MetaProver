@@ -45,11 +45,11 @@ public class TreeBranch extends JPanel {
 		  if (i.getOrigin() == null) {
 			  ((Decomposition)i).getAdditions().keySet().forEach(sen -> {
 				  // should only be one sentance	
-				 inferences.put(i, sen.toSymbol()); 
-			  });
+          inferences.put(i, sen.toSExpression());
+        });
 		  } else {
-			  inferences.put(i, i.getOrigin().toSymbol());
-		  }
+        inferences.put(i, i.getOrigin().toSExpression());
+      }
 		  
 	  });
 	  children.forEach(c -> c.setInferences(infers));

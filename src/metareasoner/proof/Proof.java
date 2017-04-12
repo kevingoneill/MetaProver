@@ -15,17 +15,17 @@ import java.util.stream.Collectors;
 public class Proof {
 
   private ArrayList<MetaSentence> premises;
-  private MetaSentence ultimateInterest;
+  private MetaSentence ultimateGoal;
   private ArrayList<Step> forwardsInferences, backwardsInferences;
   private HashMap<String, TruthAssignmentVar> truthAssignments;
 
-  public Proof(ArrayList<MetaSentence> inferences, MetaSentence interest) {
+  public Proof(ArrayList<MetaSentence> inferences, MetaSentence goal) {
     forwardsInferences = new ArrayList<>();
     backwardsInferences = new ArrayList<>();
     inferences.forEach(i -> forwardsInferences.add(new Step(i, null, null, true)));
-    backwardsInferences.add(new Step(interest, null, null, false));
+    backwardsInferences.add(new Step(goal, null, null, false));
     premises = inferences;
-    ultimateInterest = interest;
+    ultimateGoal = goal;
     truthAssignments = new HashMap<>();
   }
 
@@ -52,11 +52,11 @@ public class Proof {
   }
 
   public void printInferences() {
-    forwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSymbol() + "\t" + i.getJustification()));
+    forwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
-  public void printInterests() {
-    backwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSymbol() + "\t" + i.getJustification()));
+  public void printgoals() {
+    backwardsInferences.forEach(i -> System.out.println(i.getMetaSentence().toSExpression() + "\t" + i.getJustification()));
   }
 
   public void addForwardsInference(MetaSentence s, MetaInference i) {
@@ -118,7 +118,7 @@ public class Proof {
   }
 
   public boolean isComplete() {
-    Step s = find(backwardsInferences, ultimateInterest);
+    Step s = find(backwardsInferences, ultimateGoal);
     return s.getLeaves().stream().allMatch(l ->
             forwardsInferences.stream().anyMatch(f ->
                     f.getMetaSentence().equals(l.getMetaSentence())));
@@ -171,11 +171,16 @@ public class Proof {
     }
 
     ArrayList<Step> proof = generateProof();
+
+    // Get the maximum metasentence length
+    Integer max = proof.stream().mapToInt(s -> s.getMetaSentence().toSExpression().length()).max().orElse(10) + 10;
+
     for (int i = 0; i < proof.size(); ++i) {
       Step s = proof.get(i);
       MetaInference justification = s.getJustification();
 
-      System.out.print(i + ".  " + s.getMetaSentence().toSymbol() + "\t\t\t" + s.getReason() + " ");
+      //System.out.print(i + ".  " + s.getMetaSentence().toSExpression() + "\t\t\t" + s.getReason() + " ");
+      System.out.printf("%2d. %-" + max + "s %s ", i, s.getMetaSentence().toSExpression(), s.getReason());
 
       if (s.isForwards() && justification != null)
         System.out.println(indexOf(proof, s.getJustification().getOrigin()));
@@ -206,7 +211,7 @@ public class Proof {
   }
 
   public ArrayList<Step> generateProof() {
-    return getProofBackwards(find(backwardsInferences, ultimateInterest));
+    return getProofBackwards(find(backwardsInferences, ultimateGoal));
   }
 
   private ArrayList<Step> getProofBackwards(Step s) {

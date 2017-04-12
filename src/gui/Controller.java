@@ -5,9 +5,8 @@ import expression.metasentence.MetaSentence;
 import expression.metasentence.MetaSentenceReader;
 import expression.metasentence.TruthAssignmentVar;
 import expression.sentence.Sentence;
-import expression.sentence.SentenceReader;
 import gui.truthtreevisualization.TruthTree;
-import logicalreasoner.prover.SemanticProver;
+import logicalreasoner.prover.Prover;
 import metareasoner.MetaProver;
 
 import java.io.ByteArrayOutputStream;
@@ -66,11 +65,11 @@ public class Controller {
       private static final long serialVersionUID = 8376931001151027146L;
 
       {
-        premises.forEach(premise -> this.add(SentenceReader.parse(premise)));
+        premises.forEach(premise -> this.add(Sentence.makeSentence(premise)));
       }
     };
 
-    SemanticProver prover = new SemanticProver(p, SentenceReader.parse(goal), true);
+    Prover prover = new Prover(p, Sentence.makeSentence(goal), true);
     prover.run();
 
     String text = baos.toString();

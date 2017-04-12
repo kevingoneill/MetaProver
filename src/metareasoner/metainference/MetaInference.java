@@ -35,13 +35,9 @@ public class MetaInference {
 
   public void infer(Proof p, boolean isForwardsInference) {
     if (isForwardsInference)
-      inferences.forEach(i -> {
-        p.addForwardsInference(i, this);
-      });
+      inferences.forEach(i -> p.addForwardsInference(i, this));
     else
-      inferences.forEach(i -> {
-        p.addBackwardsInference(i, this);
-      });
+      inferences.forEach(i -> p.addBackwardsInference(i, this));
   }
 
   public ArrayList<MetaSentence> getInferences() {
@@ -61,8 +57,8 @@ public class MetaInference {
   }
 
   public String toString() {
-    return "Inference " + uid + " over origin: " + origin.toSymbol() + " inferences: { "
-            + inferences.stream().map(s -> s.toSymbol() + " ").collect(Collectors.joining()) + "}";
+    return "Inference " + uid + " over origin: " + origin.toSExpression() + " inferences: { "
+            + inferences.stream().map(s -> s.toSExpression() + " ").collect(Collectors.joining()) + "}";
   }
 
   public String getReason() {

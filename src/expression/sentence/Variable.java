@@ -13,15 +13,18 @@ import java.util.Set;
  * a subsort of another sort.
  */
 public class Variable extends Atom {
+  protected static Variable EMPTY_VAR = new Variable("_#EMPTY#VAR#_", Sort.OBJECT);
+
   public Variable(String name, Sort s) {
     super(name, s);
   }
 
   public String toString() {
     return name;
+    //return "(" + getSort() + " " + name + ")";
   }
 
-  public String toSymbol() {
+  public String toSExpression() {
     return name;
   }
 
@@ -31,14 +34,14 @@ public class Variable extends Atom {
   }
 
   @Override
-  public Sentence instantiate(Sentence c, Variable v) {
-    if (this.equals(v))
-      return c;
-    return this;
+  public boolean equals(Object o) {
+    return this == o || (o instanceof Variable && o.toString().equals(toString()) && ((Variable) o).getSort() == getSort());
   }
 
   @Override
-  public Sentence makeCopy() {
+  public Sentence instantiate(Sentence c, Variable v) {
+    if (this.equals(v))
+      return c;
     return this;
   }
 

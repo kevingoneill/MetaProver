@@ -1,28 +1,33 @@
 package expression.sentence;
 
-import logicalreasoner.inference.Inference;
+import expression.Sort;
 import logicalreasoner.truthassignment.TruthAssignment;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * The BooleanSentence represents logical tautology and contradiction
  */
-public class BooleanSentence extends Proposition {
+public class BooleanSentence extends Atom {
   public static final BooleanSentence TRUE = new BooleanSentence(true),
           FALSE = new BooleanSentence(false);
 
   private boolean value;
 
   private BooleanSentence(boolean b) {
-    super(b ? "⊤" : "⊥");
+    super(b ? "⊤" : "⊥", Sort.BOOLEAN);
     value = b;
   }
 
   @Override
-  public Sentence makeCopy() {
-    return this;
+  public String toSExpression() {
+    return Boolean.toString(value);
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 
   public Boolean eval(TruthAssignment h) {
@@ -30,15 +35,8 @@ public class BooleanSentence extends Proposition {
   }
 
   @Override
-  public Inference reason(TruthAssignment h, int inferenceNum, int justificationNum) {
-    if (!h.isDecomposed(this))
-      h.setDecomposed(this);
-    return null;
-  }
-
-  @Override
   public Set<Sentence> getConstants() {
-    return new HashSet<>();
+    return Collections.emptySet();
   }
 
   @Override

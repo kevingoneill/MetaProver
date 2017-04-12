@@ -27,7 +27,7 @@ public class MODELS extends MetaSentence {
             "models", b == null ? "⊨?" : (b ? "⊨" : "⊭"),
             (printQuantifier ? new HashSet<>(Collections.singletonList(t)) : new HashSet<>()));
     isModelled = b;
-    if (b != null) {
+    if (b != null && !t.getTruthAssignment().keySet().contains(s)) {
       if (b)
         t.setTrue(s, inferenceNum);
       else
@@ -36,9 +36,21 @@ public class MODELS extends MetaSentence {
     isTopLevel = printQuantifier;
   }
 
-  public String toSymbol() {
-    return vars.stream().map(v -> "FORALL " + v.toSymbol()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
-            + args.get(0).toSymbol() + " " + symbol + " " + args.get(1).toSymbol();
+  public boolean equals(Object o) {
+    if (!super.equals(o))
+      return false;
+    MODELS m = (MODELS) o;
+    return m.isModelled == isModelled && m.args.get(1) == args.get(1);
+  }
+
+  public String toSExpression() {
+    return vars.stream().map(v -> "FORALL " + v.toSExpression()).collect(Collectors.joining()) + (vars.isEmpty() ? "" : " ")
+            + args.get(0).toSExpression() + " " + symbol + " " + args.get(1);
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
   }
 
   public Sentence getSentence() {
@@ -71,10 +83,6 @@ public class MODELS extends MetaSentence {
       if (i.getOrigin().equals(getSentence())) {
         if (i instanceof Decomposition) {
           Decomposition d = (Decomposition) i;
-          d.infer(t.getTruthAssignment());
-
-          //System.out.println("INFERRING " + d.getAdditions());
-
           ArrayList<MetaSentence> a = new ArrayList<>();
           d.getAdditions().keySet().forEach(s ->
                   a.add(new MODELS(t, s, t.models(s), inferenceNum, isTopLevel)));
@@ -82,13 +90,19 @@ public class MODELS extends MetaSentence {
           return new MetaInference(this, a, inferenceNum, true, d.getOrigin().getSymbol());
         } else if (i instanceof Branch) {
           Branch b = (Branch) i;
-
           ArrayList<MetaSentence> a = new ArrayList<>();
+
           b.getBranches().forEach(c -> {
-            t.getTruthAssignment().print();
             if (c.keySet().size() == 1)
               c.keySet().forEach(s -> a.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
+            else if (!c.keySet().isEmpty()) {
+              ArrayList<MetaSentence> conjuncts = new ArrayList<>();
+              c.keySet().forEach(s -> conjuncts.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
+              AND and = new AND(conjuncts, new HashSet<>());
+              a.add(and);
+            }
           });
+
           OR or = new OR(a, new HashSet<>(Collections.singleton(t)));
           a.clear();
           a.add(or);

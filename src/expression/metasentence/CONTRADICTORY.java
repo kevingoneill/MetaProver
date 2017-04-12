@@ -1,13 +1,12 @@
 package expression.metasentence;
 
+import expression.sentence.Iff;
 import expression.sentence.Sentence;
-import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 
 /**
@@ -20,8 +19,13 @@ public class CONTRADICTORY extends MetaSentence {
     super(new ArrayList<>(Arrays.asList(s1, s2)), "CONTRADICTORY", "contradictory", new HashSet<>());
   }
 
-  public String toSymbol() {
-    return "[" + args.get(0).toSymbol() + " and " + args.get(1).toSymbol() + " are " + symbol + "]";
+  public String toSExpression() {
+    return "[" + args.get(0) + " and " + args.get(1) + " are " + symbol + "]";
+  }
+
+  @Override
+  public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
+    return this;
   }
 
   public MetaInference reasonForwards(Proof p, int inferenceNum) {
@@ -33,14 +37,20 @@ public class CONTRADICTORY extends MetaSentence {
   }
 
   public MetaInference reason(Proof p, int inferenceNum) {
+    /*
     TruthAssignmentVar t1 = new TruthAssignmentVar(new TruthAssignment());
     MODELS m1 = new MODELS(t1, (Sentence) args.get(0), true, inferenceNum, false),
             m2 = new MODELS(t1, (Sentence) args.get(1), false, inferenceNum, false);
 
     MetaSentence s = new IFF(m1, m2, new HashSet<>(Collections.singletonList(t1)));
-
+    */
+    MetaSentence s = new IS(new Iff((Sentence) args.get(0), (Sentence) args.get(1)), MetaConstant.CONTRADICTION);
+    //MetaSentence s2 = new IS(new And(new Not((Sentence) args.get(0)), new Not((Sentence) args.get(1))), MetaConstant.CONTRADICTION);
     ArrayList<MetaSentence> a = new ArrayList<>();
     a.add(s);
+    //a.add(s2);
+    //MetaSentence and = new AND(a, vars);
+    //a.clear();
     return new MetaInference(this, a, inferenceNum, false, symbol);
   }
 }

@@ -72,7 +72,7 @@ public interface MetaSentenceReader {
     } else if (stack.peek().equals("(")) {
       stack.pop();
       String exprName = stack.pop();
-      return SentenceReader.parseProposition(exprName, stack, new HashMap<>());
+      return new SentenceReader().parseSExpression(exprName, stack, new HashMap<>());
     } else if (stack.peek().equalsIgnoreCase("TAUTOLOGY")) {
       stack.pop();
       return MetaConstant.TAUTOLOGY;
@@ -83,7 +83,7 @@ public interface MetaSentenceReader {
       stack.pop();
       return MetaConstant.CONTINGENCY;
     } else {
-      return SentenceReader.parse(stack.pop());
+      return new SentenceReader().parse(stack.pop());
     }
   }
 

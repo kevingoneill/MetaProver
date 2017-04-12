@@ -1,6 +1,7 @@
 package expression.metasentence;
 
 import expression.Expression;
+import expression.sentence.Sentence;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
@@ -21,9 +22,11 @@ public abstract class MetaSentence extends Expression {
     vars = v;
   }
 
-  public abstract MetaInference reasonForwards(Proof p, int inferenceNum);
+  public abstract MetaInference reason(Proof p, int inferenceNum);
 
-  public abstract MetaInference reasonBackwards(Proof p, int inferenceNum);
+  public MetaInference reasonContained(Proof p, int inferenceNum) {
+    return reason(p, inferenceNum);
+  }
 
   public int hashCode() {
     return toString().hashCode();
@@ -50,9 +53,10 @@ public abstract class MetaSentence extends Expression {
   }
 
   public String toString() {
+    /*
     StringBuilder builder = new StringBuilder();
 
-    vars.forEach(v -> builder.append("∀").append(v.toSymbol()));
+    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
     if (!vars.isEmpty())
       builder.append(" ");
 
@@ -60,25 +64,35 @@ public abstract class MetaSentence extends Expression {
     args.forEach(arg -> builder.append(" ").append(arg));
     builder.append("]");
     return builder.toString();
+    */
+    return toSExpression();
   }
 
-  public String toSymbol() {
+  public String toSExpression() {
     if (!args.isEmpty()) {
       StringBuilder builder = new StringBuilder();
 
-      vars.forEach(v -> builder.append("FORALL ").append(v.toSymbol()));
+      vars.forEach(v -> builder.append("FORALL ").append(v.toSExpression()));
       if (!vars.isEmpty())
         builder.append(" ");
 
       builder.append("[");
       for (int i = 0; i < args.size() - 1; ++i) {
-        builder.append(args.get(i).toSymbol()).append(" ").append(symbol).append(" ");
+        if (args.get(i) instanceof Sentence)
+          builder.append(args.get(i)).append(" ").append(symbol).append(" ");
+        else
+          builder.append(args.get(i).toSExpression()).append(" ").append(symbol).append(" ");
       }
 
-      builder.append(args.get(args.size() - 1).toSymbol()).append("]");
+      if (args.get(args.size() - 1) instanceof Sentence)
+        builder.append(args.get(args.size() - 1)).append("]");
+      else
+        builder.append(args.get(args.size() - 1).toSExpression()).append("]");
 
       return builder.toString();
     }
     return symbol;
   }
+
+  public abstract MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars);
 }
