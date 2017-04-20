@@ -28,8 +28,7 @@ public class Prover implements Runnable {
   }
 
   Long maxRuntime = null,
-          startTime = null,
-          endTime = null;
+          startTime = null;
 
   protected Set<Sentence> premises, goals;
 

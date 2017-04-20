@@ -63,13 +63,15 @@ public class ProverMain {
   }
 
   public static Sentence readInputFile(String fileName, Set<Sentence> premises) throws FileNotFoundException {
+    return readInputFile(new File(fileName), premises);
+  }
+
+  public static Sentence readInputFile(File inputFile, Set<Sentence> premises) throws FileNotFoundException {
     Sentence goal;
-    Scanner scanner = new Scanner(new File(fileName)).useDelimiter("\\Z");
+    Scanner scanner = new Scanner(inputFile).useDelimiter("\\Z");
     String file = scanner.next().replaceAll("[;].*?\\n", "");
     scanner.close();
-    boolean declarationsAdded = false,
-            premisesAdded = false,
-            goalsAdded = false;
+
     SentenceReader reader = new SentenceReader();
     LinkedList<String> stack = reader.tokenize(file);
 

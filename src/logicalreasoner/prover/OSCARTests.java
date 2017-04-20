@@ -13,7 +13,7 @@ import java.util.Set;
 public class OSCARTests {
 
   private static void runProver(List<String> d, Set<String> p, String s, boolean b) {
-    FirstOrderTests.runProver(d, p, s, b);
+    FOLTests.runProver(d, p, s, b);
   }
 
   @Test

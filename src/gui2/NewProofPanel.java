@@ -1,8 +1,9 @@
 package gui2;
 
 import expression.Sort;
+import expression.metasentence.MetaSentence;
+import expression.metasentence.MetaSentenceReader;
 import expression.sentence.*;
-import logicalreasoner.prover.Prover;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,7 +32,6 @@ public class NewProofPanel extends JPanel {
           addPremiseButton, removePremiseButton, runProofButton;
   private JList<String> declList, premiseList;
   private DefaultListModel<String> declListModel, premiseListModel;
-  private ButtonGroup reasoningMode;
 
   public NewProofPanel(GUIWindow window, int mode) {
     super();
@@ -150,14 +151,22 @@ public class NewProofPanel extends JPanel {
         return;
       }
       try {
-        Sentence s = new SentenceReader().parse(expr);
-        premiseListModel.addElement(expr);
-        premiseField.setText("");
-        premiseField.requestFocus();
-        premiseField.setCursor(Cursor.getDefaultCursor());
-      } catch (AbstractSentenceReader.SentenceParseException spe) {
+        Object s;
+        if (mode != META_MODE)
+          s = Sentence.makeSentence(expr);
+        else
+          s = MetaSentenceReader.parse(expr);
+        if (mode == PROPOSITIONAL_MODE && ((Sentence) s).getSubSentences().anyMatch(Sentence::isQuantifier)) {
+          JOptionPane.showMessageDialog(null, "ERROR: cannot use FOL statements in a \npropositional or meta-logical proof.");
+        } else {
+          premiseListModel.addElement(expr);
+          premiseField.setText("");
+          premiseField.requestFocus();
+          premiseField.setCursor(Cursor.getDefaultCursor());
+        }
+      } catch (Exception exception) {
         JOptionPane.showMessageDialog(null, "ERROR: failed to parse expression \""
-                + expr + "\":\n" + spe.getMessage());
+                + expr + "\":\n" + exception.getMessage());
       }
     });
 
@@ -203,33 +212,67 @@ public class NewProofPanel extends JPanel {
     runProofButton = new JButton("Run Proof");
     runProofButton.addActionListener((ActionEvent e) -> {
       String goalStr = goalField.getText();
-      Sentence goal;
+      Set<Sentence> premises = null;
+      Sentence goal = null;
+      ArrayList<MetaSentence> metaPremises = null;
+      MetaSentence metaGoal = null;
+
       try {
-        goal = new SentenceReader().parse(goalStr);
-      } catch (AbstractSentenceReader.SentenceParseException spe) {
+        if (mode == META_MODE) {
+          Object m = MetaSentenceReader.parse(goalStr);
+          if (!(m instanceof MetaSentence))
+            throw new RuntimeException("ERROR: the goal must be a meta-logical statement.");
+          metaGoal = (MetaSentence) m;
+        } else
+          goal = Sentence.makeSentence(goalStr);
+      } catch (Exception exception) {
         JOptionPane.showMessageDialog(null, "ERROR: failed to parse goal \""
-                + goalStr + "\":\n" + spe.getMessage());
+                + goalStr + "\":\n" + exception.getMessage());
+        return;
+      }
+
+      if (mode == PROPOSITIONAL_MODE && goal != null && goal.getSubSentences().anyMatch(Sentence::isQuantifier)) {
+        JOptionPane.showMessageDialog(null, "ERROR: cannot use FOL statements in a \npropositional or meta-logical proof.");
         return;
       }
 
       Object[] arr = premiseListModel.toArray();
-      Set<Sentence> premises = new HashSet<>();
-      for (int i = 0; i < arr.length; ++i) {
+
+      if (mode == META_MODE) {
+        metaPremises = new ArrayList<>();
+        MetaSentence s;
+        for (int i = 0; i < arr.length; ++i) {
+          try {
+            s = (MetaSentence) MetaSentenceReader.parse((String) arr[i]);
+            metaPremises.add(s);
+          } catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, "ERROR: failed to parse expression \""
+                    + arr[i] + "\":\n" + exception.getMessage());
+            return;
+          }
+        }
+      } else {
         Sentence s;
-        try {
-          s = new SentenceReader().parse((String) arr[i]);
-          premises.add(s);
-        } catch (AbstractSentenceReader.SentenceParseException spe) {
-          JOptionPane.showMessageDialog(null, "ERROR: failed to parse expression \""
-                  + arr[i] + "\":\n" + spe.getMessage());
-          return;
+        premises = new HashSet<>();
+        for (int i = 0; i < arr.length; ++i) {
+          try {
+            s = Sentence.makeSentence((String) arr[i]);
+            premises.add(s);
+          } catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, "ERROR: failed to parse expression \""
+                    + arr[i] + "\":\n" + exception.getMessage());
+            return;
+          }
         }
       }
 
-
       Component c = SwingUtilities.getRoot(this);
       c.dispatchEvent(new WindowEvent((Window) c, WindowEvent.WINDOW_CLOSING));
-      window.setProver(new Prover(premises, goal, false));
+
+      if (mode == META_MODE)
+        window.setProver(metaPremises, metaGoal);
+      else
+        window.setProver(premises, goal, mode);
     });
 
     goalPanel.add(new JLabel("Enter Goal Here: "));
@@ -244,7 +287,7 @@ public class NewProofPanel extends JPanel {
     for (int i = 0; i < premiseListModel.size(); ++i) {
       boolean parseException = false;
       try {
-        Sentence s = new SentenceReader().parse(premiseListModel.getElementAt(i));
+        Sentence s = Sentence.makeSentence(premiseListModel.getElementAt(i));
         System.out.println(s);
       } catch (AbstractSentenceReader.SentenceParseException e) {
         parseException = true;

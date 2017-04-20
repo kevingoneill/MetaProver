@@ -6,7 +6,6 @@ import logicalreasoner.inference.Branch;
 import logicalreasoner.inference.Decomposition;
 import logicalreasoner.inference.Inference;
 import logicalreasoner.inference.UniversalInstantiation;
-import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 import logicalreasoner.truthassignment.TruthValue;
 
@@ -19,11 +18,12 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static gui2.GraphPanel.prover;
 import static gui2.TreeLayout.BUFFER;
 
 /**
@@ -32,7 +32,6 @@ import static gui2.TreeLayout.BUFFER;
 public class NodePanel extends JPanel {
 
   private static HashMap<Integer, NodePanel> instances = new HashMap<>();
-  public static Prover prover;
   public static int COLUMNS = 5;
   public static String[] HEADERS = {"#", "Sentence", "", "Justification", ""};
   private final JLabel nameLabel;
@@ -153,6 +152,8 @@ public class NodePanel extends JPanel {
     return children.size();
   }
 
+  public TruthAssignment getTruthAssignment() { return truthAssignment; }
+
   public int getXRank() {
     return xRank;
   }
@@ -236,19 +237,39 @@ public class NodePanel extends JPanel {
             v.getSentence(),
             v.containsTrue() && v.containsFalse() ? "T/F" : v.containsTrue() ? "T" : "F",
             justificationNum > 0 ? justificationNum : "P" + (-1 * justificationNum),
-            (v.isDecomposed() && prover.getBranchQueue().stream().noneMatch(b -> b.getOrigin() == v.getSentence())) ? '✓' : '✗'};
+            (v.isDecomposed() && (prover == null || prover.getBranchQueue().stream().noneMatch(b -> b.getOrigin() == v.getSentence()))) ? '✓' : '✗'};
+  }
+
+  public Object[] makeRow(List<String> inferenceNum, List<String> justificationNum, TruthValue v) {
+    return new Object[]{
+            inferenceNum,
+            v.getSentence(),
+            v.containsTrue() && v.containsFalse() ? "T/F" : v.containsTrue() ? "T" : "F",
+            justificationNum,
+            (v.isDecomposed() && (prover == null || prover.getBranchQueue().stream().noneMatch(b -> b.getOrigin() == v.getSentence()))) ? '✓' : '✗'};
   }
 
   public Object[][] makeData() {
     ArrayList<Object[]> data = new ArrayList<>();
     truthAssignment.stream().forEach(v -> {
-      int inferenceNum = v.getInferenceNum(v.isModelled());
-      Inference inference = v.getJustification(inferenceNum);
-      data.add(makeRow(inferenceNum, inference.getJustificationNum(), v));
+      Integer inferenceNum = null;
+
+      if (!v.containsTrue() || !v.containsFalse()) {
+        inferenceNum = v.getInferenceNum(v.isModelled());
+        Inference inference = v.getJustification(inferenceNum);
+        data.add(makeRow(inferenceNum, inference.getJustificationNum(), v));
+      } else {
+        List<String> inferenceNums = v.getValues().values().stream()
+                .map(i -> Integer.toString(i)).collect(Collectors.toList());
+        List<String> justificationNums = inferenceNums.stream()
+                .map(i -> Integer.toString(v.getJustification(Integer.parseInt(i))
+                        .getJustificationNum())).collect(Collectors.toList());
+        data.add(makeRow(inferenceNums, justificationNums, v));
+      }
     });
 
     // Sort data by inference number
-    data.sort((e1, e2) -> compare((String) e1[0], (String) e2[0]));
+    data.sort((e1, e2) -> compare(e1[0], e2[0]));
 
     Object[][] arr = new Object[data.size()][HEADERS.length];
     for (int i = 0; i < data.size(); ++i)
@@ -257,7 +278,27 @@ public class NodePanel extends JPanel {
     return arr;
   }
 
-  private int compare(String s1, String s2) {
+  /**
+   * Compare two objects: o1 and o2 can be Strings, or ArrayList<String>s
+   * @param o1
+   * @param o2
+   * @return
+   */
+  private int compare(Object o1, Object o2) {
+    String s1 = null,
+            s2 = null;
+    if (o1 instanceof String)
+      s1 = (String) o1;
+    else if (o1 instanceof ArrayList)
+      s1 = (String) ((ArrayList)o1).get(0);
+    if (o2 instanceof String)
+      s2 = (String) o2;
+    else if (o2 instanceof ArrayList)
+      s2 = (String) ((ArrayList)o2).get(0);
+
+    if (s1 == null || s2 == null)
+      return 0;
+
     if (s1.startsWith("P") && s2.startsWith("P")) {
       return Comparator.<String>reverseOrder().compare(s1.substring(1), s2.substring(1));
     } else if (s1.startsWith("P")) {
@@ -300,7 +341,7 @@ public class NodePanel extends JPanel {
   }
 
   public boolean isFinished() {
-    return prover.reasoningCompleted();
+    return prover == null || prover.reasoningCompleted();
   }
 
   public String toString() {
@@ -387,10 +428,17 @@ public class NodePanel extends JPanel {
       if (me.getClickCount() == 2) {
         int row = jTable.rowAtPoint(me.getPoint());
         Sentence s = (Sentence) jTable.getModel().getValueAt(row, 1);
-        String justification = (String) jTable.getModel().getValueAt(row, 0);
-        if (justification.startsWith("P"))
-          justification = justification.replace("P", "-");
-        int justificationNum = Integer.parseInt(justification);
+        Object justification = jTable.getModel().getValueAt(row, 0);
+        String justificationString = null;
+        if (justification instanceof String)
+          justificationString = (String) justification;
+        else if (justification instanceof List)
+          justificationString = ((List) justification).get(0).toString();
+        if (justificationString == null)
+          return;
+        if (justificationString.startsWith("P"))
+          justificationString = justificationString.replace("P", "-");
+        int justificationNum = Integer.parseInt(justificationString);
 
         if (!truthAssignment.isDecomposed(s)) {
           if (s instanceof ForAll && truthAssignment.models(s))
@@ -406,11 +454,34 @@ public class NodePanel extends JPanel {
     private void handleInference(Inference i) {
       prover.incrementInferenceCount();
       DefaultTableModel model = (DefaultTableModel) jTable.getModel();
+
       if (i instanceof Decomposition || i instanceof UniversalInstantiation) {
         // for decompositions, add the rows and resize the NodePanel
         int oldHeight = getHeight();
-        prover.infer(i).peek(pair -> System.out.println(pair.sentence)).forEach(p -> model.addRow(makeRow(i.getInferenceNum(),
-                i.getJustificationNum(), truthAssignment.getTruthValue(p.sentence))));
+        prover.infer(i).forEach(p -> {
+          OptionalInt optInt = IntStream.range(0, model.getRowCount()).filter(row
+                  -> model.getValueAt(row, 1).equals(p.sentence)).findFirst();
+          if (!optInt.isPresent()) {
+            model.addRow(makeRow(i.getInferenceNum(),
+                    i.getJustificationNum(), truthAssignment.getTruthValue(p.sentence)));
+          } else {
+            int row = optInt.getAsInt();
+            if (!(model.getValueAt(row, 0) instanceof ArrayList)) {
+              ArrayList<String> inferenceNums = new ArrayList<>(),
+                      justificationNums = new ArrayList<>();
+
+              inferenceNums.add((String) model.getValueAt(row, 0));
+              justificationNums.add((String) model.getValueAt(row, 3));
+              model.setValueAt(inferenceNums, row, 0);
+              model.setValueAt(justificationNums, row, 3);
+              model.setValueAt(p.truthAssignment.getTruthValue(p.sentence).getValues()
+                      .keySet().stream().map(b -> b ? 'T' : 'F').collect(Collectors.toList()), row, 2);
+            }
+
+            ((ArrayList) model.getValueAt(row, 0)).add(Integer.toString(i.getInferenceNum()));
+            ((ArrayList) model.getValueAt(row, 3)).add(Integer.toString(i.getJustificationNum()));
+          }
+        });
         pack();
         children.forEach(c -> c.moveBranch(0, getHeight() - oldHeight));
         updateBounds();

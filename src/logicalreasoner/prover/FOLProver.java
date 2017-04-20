@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The FirstOrderProver class provides the same functionality of
+ * The FOLProver class provides the same functionality of
  * its Prover superclass, but extends to implement
  * reasoning over first order logic.
  */
-public class FirstOrderProver extends Prover {
+public class FOLProver extends Prover {
 
   /**
    * Initialize the reasoner with the premises and the negation of all goals
@@ -31,11 +31,11 @@ public class FirstOrderProver extends Prover {
    * @param goal the goal of the prover (to be negated)
    * @param print    Print log output if true
    */
-  public FirstOrderProver(Set<Sentence> premises, Sentence goal, boolean print) {
+  public FOLProver(Set<Sentence> premises, Sentence goal, boolean print) {
     super(premises, goal, print);
   }
 
-  public FirstOrderProver(TruthAssignment truthAssignment) {
+  public FOLProver(TruthAssignment truthAssignment) {
     super(truthAssignment);
   }
 
@@ -47,15 +47,15 @@ public class FirstOrderProver extends Prover {
    * @param print    Print log output if true
    * @param runTime  The maximum runTime which this prover should run on
    */
-  public FirstOrderProver(Set<Sentence> premises, Sentence goal, boolean print, int runTime) {
+  public FOLProver(Set<Sentence> premises, Sentence goal, boolean print, int runTime) {
     super(premises, goal, print, runTime);
   }
 
-  public FirstOrderProver(Set<Sentence> sentences, boolean b) {
+  public FOLProver(Set<Sentence> sentences, boolean b) {
     this(sentences, Collections.emptySet(), b);
   }
 
-  public FirstOrderProver(Set<Sentence> premises, Set<Sentence> goals, boolean print) {
+  public FOLProver(Set<Sentence> premises, Set<Sentence> goals, boolean print) {
     super(premises, goals, print);
   }
 

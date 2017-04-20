@@ -8,6 +8,7 @@ import metareasoner.proof.Proof;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * The MetaSentence represents a metalogical expression

@@ -1,10 +1,20 @@
 package gui2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
- * Created by kevin on 3/25/17.
+ * The TreeLayout class is responsible for arranging NodePanels
+ * on the GraphPanel, such that no nodes overlap, all children are
+ * evenly spaced, and every parent is centered between (and above)
+ * its children.
+ *
+ * The running time is approx. O(3N)-
+ *    - N for an inorder traversal, ranking nodes
+ *    - N to set Y values based on depth
+ *    - N to set X values based on inorder rank
+ * Possible extensions- do these computations in place for O(N)
  */
 public class TreeLayout {
 
@@ -13,7 +23,7 @@ public class TreeLayout {
   private NodePanel root;
   private ArrayList<NodePanel> inorderTraversal;    // a list of all NodePanels sorted by inorder rank
   private HashMap<Integer, ArrayList<NodePanel>> levels;  // a map of depths to all nodes of that
-  private int maxDepth;
+  private int minDepth, maxDepth, maxY;
 
   public TreeLayout(NodePanel root) {
     this.root = root;
@@ -21,11 +31,29 @@ public class TreeLayout {
     levels = new HashMap<>();
 
     maxDepth = 0;
+    minDepth = 0;
     addToLevel(root, 0);
   }
 
+  public TreeLayout(Collection<NodePanel> roots) {
+    maxY = 0;
+    maxDepth = -1;
+    inorderTraversal = new ArrayList<>();
+    levels = new HashMap<>();
+
+    for (NodePanel r : roots) {
+      this.root = r;
+      minDepth = maxDepth+1;
+      addToLevel(root, minDepth);
+      inorderTraversal(r, 0);
+    }
+
+    root = null;
+  }
+
   public void run() {
-    inorderTraversal(root, 0);
+    if (root != null)
+      inorderTraversal(root, 0);
     doLayout();
   }
 
@@ -44,7 +72,7 @@ public class TreeLayout {
     node.setXRank(visited++);
     inorderTraversal.add(node);  // add this node to the inorder traversal
     if (node != root)
-      addToLevel(node, node.getDepth());
+      addToLevel(node, node.getDepth() + minDepth);
 
     for (int i = midpoint; i < numChildren; ++i)
       visited = inorderTraversal(node.getChildren().get(i), visited);
@@ -76,19 +104,24 @@ public class TreeLayout {
    */
   private void doLayout() {
     // Set all of the y values on the way down
-    int levelY = BUFFER;
+    maxY = BUFFER;
     ArrayList<NodePanel> level;
     for (int i = 0; i <= maxDepth; ++i) {
       level = levels.get(i);
+
+      if (level == null) {
+        System.out.println(levels);
+        throw new RuntimeException("NULL LEVEL " + i + " in TA " + root.getTruthAssignment().getUID() + " maxdepth: " + maxDepth);
+      }
+
       int maxHeight = 0;
       for (NodePanel node : level) {
         node.setX(BUFFER);
-        node.setY(levelY);
+        node.setY(maxY);
         maxHeight = Math.max(maxHeight, node.getHeight());
-        //node.updateBounds();
       }
 
-      levelY += maxHeight + BUFFER;
+      maxY += maxHeight + BUFFER;
     }
 
     // Assign x values to the bottom level
@@ -122,6 +155,8 @@ public class TreeLayout {
             node.moveBranch(sibling.getX() + sibling.getWidth() + BUFFER - node.getX(), 0);
           }
         }
+
+        System.out.println(node.getX() + " " + node.getY());
       }
     }
 

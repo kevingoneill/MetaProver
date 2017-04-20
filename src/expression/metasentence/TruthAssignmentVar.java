@@ -48,7 +48,7 @@ public class TruthAssignmentVar extends MetaSentence {
 
   public void setTrue(Sentence s, int inferenceNum) {
     //truthAssignment.setTrue(s, inferenceNum);
-    Decomposition d = new Decomposition(truthAssignment, s, inferenceNum, -1);
+    Decomposition d = new Decomposition(truthAssignment, s, -1, -1);
     d.setTrue(s);
     d.infer(truthAssignment);
     addInference(d);
@@ -58,7 +58,7 @@ public class TruthAssignmentVar extends MetaSentence {
 
   public void setFalse(Sentence s, int inferenceNum) {
     //truthAssignment.setFalse(s, inferenceNum);
-    Decomposition d = new Decomposition(truthAssignment, s, inferenceNum, -1);
+    Decomposition d = new Decomposition(truthAssignment, s, -1, -1);
     d.setFalse(s);
     d.infer(truthAssignment);
     addInference(d);

@@ -15,13 +15,13 @@ import java.util.*;
  * problems marked 'c' come from OSCAR's Combined-problems
  * test suite
  */
-public class FirstOrderTests {
+public class FOLTests {
   public static void runProver(List<String> declarations, Set<String> premises, String goal, boolean validArgument) {
     declarations.forEach(DeclarationParser::parseDeclaration);
     Set<Sentence> p = new HashSet<>();
     premises.forEach(premise -> p.add(Sentence.makeSentenceStrict(premise)));
 
-    Prover prover = new FirstOrderProver(p, Collections.singleton(Sentence.makeSentence(goal)), true);
+    Prover prover = new FOLProver(p, Collections.singleton(Sentence.makeSentence(goal)), true);
     prover.run();
     if (!prover.finishedProof())
       throw new RuntimeException("Prover could not finish proof in the given amount of time.");

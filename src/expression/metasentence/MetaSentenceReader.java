@@ -115,7 +115,7 @@ public interface MetaSentenceReader {
           else
             throw new MetaSentenceParseException("All arguments to the AND MetaSentence must be MetaSentences");
         });
-        HashSet<TruthAssignmentVar> v = new HashSet();
+        HashSet<TruthAssignmentVar> v = new HashSet<>();
         metaArgs.forEach(a -> v.addAll(a.getVars()));
         return new AND(metaArgs, v);
       }
@@ -129,7 +129,7 @@ public interface MetaSentenceReader {
           else
             throw new MetaSentenceParseException("All arguments to the IFF MetaSentence must be MetaSentences");
         });
-        HashSet<TruthAssignmentVar> v = new HashSet();
+        HashSet<TruthAssignmentVar> v = new HashSet<>();
         metaArgs.forEach(a -> v.addAll(a.getVars()));
         return new IFF(metaArgs.get(0), metaArgs.get(1), v);
       }
@@ -211,7 +211,7 @@ public interface MetaSentenceReader {
         return new IS(s, c);
       }
       default:
-        return null;
+        throw new MetaSentenceParseException("Unknown meta-logical operator: " + name);
     }
   }
 

@@ -1,18 +1,13 @@
 package gui2;
 
-import expression.sentence.DeclarationParser;
-import expression.sentence.Sentence;
-import logicalreasoner.prover.FirstOrderProver;
 import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 /**
  * A GraphPanel is a custom JPanel for displaying TruthAssignment
@@ -20,6 +15,7 @@ import java.util.Set;
  * NodePanels, and edges are drawn as simple lines
  */
 public class GraphPanel extends JPanel {
+  public static Prover prover;
   public static int AUTO_MODE = 0,
           PROOF_ASSISTANT_MODE = 1;
 
@@ -28,7 +24,7 @@ public class GraphPanel extends JPanel {
   private int minX, maxX, minY, maxY;
   private int mode;
 
-  public GraphPanel() {
+  public GraphPanel(GUIWindow window) {
     super(null);
     setVisible(true);
     setBackground(Color.white);
@@ -36,37 +32,14 @@ public class GraphPanel extends JPanel {
     minY = 0;
     maxX = getPreferredSize().width;
     maxY = getPreferredSize().height;
-    mode = PROOF_ASSISTANT_MODE;
-
-    // Create a test case
-    HashSet<String> declarations = new HashSet<>(),
-            premises = new HashSet<>();
-    declarations.add("Boolean A Object");
-    declarations.add("Boolean B Object");
-    declarations.add("Boolean C Object Object");
-    declarations.add("Boolean H Object");
-    declarations.add("Boolean F Object");
-
-    premises.add("(forAll x (forAll y (implies (and (A x) (B y)) (C x y))))");
-    premises.add("(exists y (and (F y) (forAll z (implies (H z) (C y z)))))");
-    premises.add("(forAll x (forAll y (forAll z (implies (and (C x y) (C y z)) (C x z)))))");
-    premises.add("(forAll x (implies (F x) (B x)))");
-
-    Set<Sentence> premiseSet = new HashSet<>();
-    declarations.forEach(DeclarationParser::parseDeclaration);
-    premises.forEach(premise -> premiseSet.add(Sentence.makeSentence(premise)));
-    Prover prover = new FirstOrderProver(premiseSet, Sentence.makeSentenceStrict("(forAll z (forAll y (implies (and (A z) (H y)) (C z y))))"), false);
-    NodePanel.prover = prover;
-    //prover.run();
-
-    edges = new ArrayList<>();
-    root = makeTree(prover.getTruthAssignment());
-  }
-
-  public void setAutoMode() {
-    System.out.println("Setting auto-mode");
     mode = AUTO_MODE;
+
+    GraphPanel.prover = null;
+    edges = new ArrayList<>();
+    root = null;
   }
+
+  public void setAutoMode() { mode = AUTO_MODE; }
 
   public boolean isAutoMode() {
     return mode == AUTO_MODE;
@@ -87,6 +60,8 @@ public class GraphPanel extends JPanel {
   public NodePanel getRoot() {
     return root;
   }
+
+  public void setRoot(TruthAssignment truthAssignment) { root = makeTree(truthAssignment); }
 
   public NodePanel makeTree(TruthAssignment root) {
     NodePanel n = makeTree(root, 0);
@@ -111,6 +86,17 @@ public class GraphPanel extends JPanel {
 
     updateUI();
     return node;
+  }
+
+  public List<NodePanel> makeTrees(Collection<TruthAssignment> roots) {
+    //List<NodePanel> nodePanels = roots.stream().map(n -> makeTree(n, 0))
+    //        .collect(Collectors.toList());
+    List<NodePanel> nodePanels = new ArrayList<>();
+    for (TruthAssignment r : roots)
+      nodePanels.add(makeTree(r, 0));
+
+    new TreeLayout(nodePanels).run();
+    return nodePanels;
   }
 
   /**

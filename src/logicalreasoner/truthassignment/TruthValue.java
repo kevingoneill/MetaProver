@@ -68,6 +68,7 @@ public class TruthValue implements Serializable {
 
   public void putAll(TruthValue truthValue) {
     truthValue.vals.forEach(vals::putIfAbsent);
+    truthValue.justifications.forEach(justifications::putIfAbsent);
   }
 
   public boolean containsTrue() {

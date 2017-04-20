@@ -125,19 +125,23 @@ public class SentenceReader extends AbstractSentenceReader {
     if (!Function.functionDeclarations.containsKey(exprName))
       throw new SentenceParseException("Predicate " + exprName + " has not been declared.");
 
-    List<Sort> sorts = Function.getDeclaration(exprName);
+    List<Sort> originalSorts = Function.getDeclaration(exprName),
+      sorts = null;
+    if (originalSorts != null)
+      sorts = new ArrayList<>(originalSorts);
     if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Predicate " + exprName + " has not been declared.");
-
+    System.out.println(originalSorts);
     if (sorts.remove(0) != Sort.BOOLEAN)
       throw new SentenceParseException("Cannot create Predicate " + exprName + " returning a non-Boolean Sort.");
     if (sorts.size() != list.size())
       throw new SentenceParseException("Predicate " + exprName + " has arity " + sorts.size() + ", but given arity " + list.size() + ".");
-    IntStream.range(0, sorts.size()).forEach(i -> {
+
+    for (int i = 0; i < sorts.size(); ++i) {
       if (!list.get(i).getSort().isSubSort(sorts.get(i)))
         throw new SentenceParseException("Argument " + list.get(i).toSExpression() + " in predicate " + exprName
                 + " is of Sort " + list.get(i).getSort() + ", but argument of Sort " + sorts.get(i) + " is expected.");
-    });
+    }
 
     String s = fullSentenceString(exprName, list);
     if (Sentence.instances.containsKey(s))

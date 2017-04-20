@@ -5,6 +5,7 @@ import expression.metasentence.TruthAssignmentVar;
 import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -164,7 +165,7 @@ public class Proof {
     return stepsToTruthTrees;
   }
 
-  public void printProof() {
+  public void printProof(PrintStream stepStream, PrintStream justificationStream) {
     if (!isComplete()) {
       System.out.println("NO PROOF FOUND");
       return;
@@ -179,19 +180,23 @@ public class Proof {
       Step s = proof.get(i);
       MetaInference justification = s.getJustification();
 
-      //System.out.print(i + ".  " + s.getMetaSentence().toSExpression() + "\t\t\t" + s.getReason() + " ");
-      System.out.printf("%2d. %-" + max + "s %s ", i, s.getMetaSentence().toSExpression(), s.getReason());
+      if (stepStream == justificationStream)
+        System.out.printf("%2d. %-" + max + "s %s ", i, s.getMetaSentence().toSExpression(), s.getReason());
+      else {
+        stepStream.println(i + ".  " + s.getMetaSentence().toSExpression());
+        justificationStream.print(s.getReason() + " ");
+      }
 
       if (s.isForwards() && justification != null)
-        System.out.println(indexOf(proof, s.getJustification().getOrigin()));
+        justificationStream.println(indexOf(proof, s.getJustification().getOrigin()));
       else if (s.isForwards())
-        System.out.println();
+        justificationStream.println();
       else {
         if (s.getChildren().size() > 0) {
-          System.out.print(indexOf(proof, s.getChildren().get(0).getMetaSentence()));
+          justificationStream.print(indexOf(proof, s.getChildren().get(0).getMetaSentence()));
           for (int j = 1; j < s.getChildren().size(); ++j)
-            System.out.print(", " + indexOf(proof, s.getChildren().get(j).getMetaSentence()));
-          System.out.println();
+            justificationStream.print(", " + indexOf(proof, s.getChildren().get(j).getMetaSentence()));
+          justificationStream.println();
         }
       }
     }
@@ -201,6 +206,7 @@ public class Proof {
         step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
     });
 
+    /*
     System.out.println("\n\n\n\nTruth Assignments used in the above proof: ");
     truthAssignments.forEach((n, v) -> {
       v.getTruthAssignment().print();
@@ -208,6 +214,7 @@ public class Proof {
       v.getInferences().forEach(System.out::println);
       System.out.println();
     });
+    */
   }
 
   public ArrayList<Step> generateProof() {

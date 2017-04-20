@@ -174,7 +174,7 @@ public class ProverUtils {
    * @return true, if the argument is valid, false otherwise
    */
   public static boolean isFOLValid(Set<Sentence> premises, Sentence conclusion) {
-    Prover prover = new FirstOrderProver(premises, conclusion, false);
+    Prover prover = new FOLProver(premises, conclusion, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -202,7 +202,7 @@ public class ProverUtils {
    * @return true if the sentences are consistent, false otherwise
    */
   public static boolean isFOLConsistent(Set<Sentence> sentences) {
-    Prover prover = new FirstOrderProver(sentences, false);
+    Prover prover = new FOLProver(sentences, false);
     prover.run();
     return prover.isConsistent();
   }
@@ -225,7 +225,7 @@ public class ProverUtils {
    * @return true if sentence is a tautology, false otherwise
    */
   public static boolean isFOLTautology(Sentence sentence) {
-    Prover prover = new FirstOrderProver(new HashSet<>(), sentence, false);
+    Prover prover = new FOLProver(new HashSet<>(), sentence, false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -239,7 +239,7 @@ public class ProverUtils {
   public static boolean isFOLContradiction(Sentence sentence) {
     HashSet<Sentence> s = new HashSet<>();
     s.add(sentence);
-    Prover prover = new FirstOrderProver(s, Collections.emptySet(), false);
+    Prover prover = new FOLProver(s, Collections.emptySet(), false);
     prover.run();
     return !prover.isConsistent();
   }
@@ -299,7 +299,7 @@ public class ProverUtils {
     HashSet<Sentence> s = new HashSet<>();
     s.add(s1);
     s.add(s2);
-    Prover prover = new FirstOrderProver(Collections.emptySet(), s, false);
+    Prover prover = new FOLProver(Collections.emptySet(), s, false);
     prover.run();
     return !prover.isConsistent();
   }

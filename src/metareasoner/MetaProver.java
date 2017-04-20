@@ -6,6 +6,7 @@ import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +24,27 @@ public class MetaProver implements Runnable {
   private MetaSentence goal;
   int inferenceCount;
 
+  private PrintStream stepStream = System.out,
+          justificationStream = System.out;
+
   public MetaProver(ArrayList<MetaSentence> p, MetaSentence i) {
     premises = p;
     goal = i;
     proof = new Proof(p, i);
     inferenceCount = 1;
+  }
+
+  /**
+   * Create a MetaProver which prints output to stepStream and justificationStream
+   * @param p the premises
+   * @param i the goal
+   * @param stepStream the PrintStream to display inferences on
+   * @param justificationStream the PrintStream to display justifications on
+   */
+  public MetaProver(ArrayList<MetaSentence> p, MetaSentence i, PrintStream stepStream, PrintStream justificationStream) {
+    this(p, i);
+    this.stepStream = stepStream;
+    this.justificationStream = justificationStream;
   }
 
   public boolean reasonForwards(Proof p) {
@@ -50,12 +67,13 @@ public class MetaProver implements Runnable {
   }
 
   public void run() {
-    System.out.println("Inferences: ");
+    /*
+    System.out.println("Premises: ");
     proof.printInferences();
 
-    System.out.println("goals: ");
+    System.out.println("Goals: ");
     proof.printgoals();
-
+    */
 
     while (!reasoningCompleted()) {
       boolean f = reasonForwards(proof),
@@ -72,8 +90,7 @@ public class MetaProver implements Runnable {
       */
     }
 
-    System.out.println("\n\n\nProof:\n");
-    proof.printProof();
+    proof.printProof(stepStream, justificationStream);
 //    System.out.println("\n\n\nSome trees:\n");
 //    proof.getTruthTrees();
   }

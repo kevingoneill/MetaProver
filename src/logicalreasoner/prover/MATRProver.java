@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * Created by kevin on 7/5/16.
  */
-public class MATRProver extends FirstOrderProver {
+public class MATRProver extends FOLProver {
 
   public MATRProver(Set<Sentence> premises, Sentence goal) {
     super(premises, goal, false);

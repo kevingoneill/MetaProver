@@ -10,7 +10,7 @@ import java.util.Set;
  * FirstOrderMain allows you to run the prover on line-separated
  * files of premises and an goal file
  */
-public class FirstOrderProverMain {
+public class FOLProverMain {
   /**
    * Run the prover given premises and goals
    * <p>
@@ -38,7 +38,7 @@ public class FirstOrderProverMain {
       return;
     }
 
-    Prover prover = new FirstOrderProver(premises, goal, true);
+    Prover prover = new FOLProver(premises, goal, true);
     prover.run();
     System.out.println("\nTime taken: " + ((double) (System.nanoTime() - startTime)) / 1000000000.0 + " seconds.");
   }
