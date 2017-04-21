@@ -109,11 +109,6 @@ public class TreeLayout {
     for (int i = 0; i <= maxDepth; ++i) {
       level = levels.get(i);
 
-      if (level == null) {
-        System.out.println(levels);
-        throw new RuntimeException("NULL LEVEL " + i + " in TA " + root.getTruthAssignment().getUID() + " maxdepth: " + maxDepth);
-      }
-
       int maxHeight = 0;
       for (NodePanel node : level) {
         node.setX(BUFFER);
@@ -155,8 +150,6 @@ public class TreeLayout {
             node.moveBranch(sibling.getX() + sibling.getWidth() + BUFFER - node.getX(), 0);
           }
         }
-
-        System.out.println(node.getX() + " " + node.getY());
       }
     }
 

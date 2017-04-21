@@ -82,7 +82,6 @@ public class DeclarationParser {
   }
 
   private static boolean functionDec(String name, Sort returnType, ArrayList<Sort> argTypes) {
-    System.out.println(name + " " + returnType + " " + argTypes);
     return Function.addDeclaration(name, returnType, argTypes);
   }
 

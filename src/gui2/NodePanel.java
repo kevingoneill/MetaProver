@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static gui2.GraphPanel.prover;
 import static gui2.TreeLayout.BUFFER;
@@ -344,6 +345,12 @@ public class NodePanel extends JPanel {
     return prover == null || prover.reasoningCompleted();
   }
 
+  public Stream<NodePanel> getLeaves() {
+    if (children.isEmpty())
+      return Stream.of(this);
+    return children.stream().flatMap(NodePanel::getLeaves);
+  }
+
   public String toString() {
     return truthAssignment.getName();
   }
@@ -410,8 +417,14 @@ public class NodePanel extends JPanel {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-      nodePanel.movePanel(e.getXOnScreen() - x,
-              e.getYOnScreen() - y);
+      if (e.isShiftDown() || e.isControlDown()) {
+        nodePanel.moveBranch(e.getXOnScreen() - x,
+                e.getYOnScreen() - y);
+      } else {
+        nodePanel.movePanel(e.getXOnScreen() - x,
+                e.getYOnScreen() - y);
+      }
+
       nodePanel.updateBounds();
       x = e.getXOnScreen();
       y = e.getYOnScreen();
@@ -448,7 +461,6 @@ public class NodePanel extends JPanel {
           handleInference(s.reason(truthAssignment, prover.getInferenceCount(), justificationNum));
         }
       }
-
     }
 
     private void handleInference(Inference i) {
@@ -511,9 +523,9 @@ public class NodePanel extends JPanel {
 
       new TreeLayout(graphPanel.getRoot()).run();
       prover.closeBranches();
+      graphPanel.updateInferences();
       graphPanel.updateClosedBranches();
       graphPanel.repaint();
-      //graphPanel.getRoot().truthAssignment.print();
     }
   }
 }

@@ -36,18 +36,25 @@ public class GUIWindow extends JFrame {
   public GUIWindow() {
     super("MetaProver");
     setVisible(true);
-    setSize(1000, 750);
+    setSize(1000, 800);
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     initMenu();
     panel = new JPanel(new BorderLayout());
     graphPanel = new GraphPanel(this);
-    proofPanel = null;
-    proofScrollPane = null;
+    graphPanel.setPreferredSize(new Dimension(1000, 600));
+
+    proofPanel = new JPanel(new BorderLayout());
+    proofPanel.setBackground(Color.white);
+    proofPanel.setVisible(true);
+    proofScrollPane = new JScrollPane(proofPanel);
+    proofScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    proofScrollPane.setPreferredSize(new Dimension(1000, 200));
 
     JScrollPane scrollPane = new JScrollPane(graphPanel);
     scrollPane.setPreferredSize(this.getSize());
     panel.add(scrollPane, BorderLayout.CENTER);
+    panel.add(proofScrollPane, BorderLayout.SOUTH);
     add(panel);
     setVisible(true);
   }
@@ -100,6 +107,8 @@ public class GUIWindow extends JFrame {
     this.setJMenuBar(menuBar);
   }
 
+  public JPanel getProofPanel() { return proofPanel; }
+
   private void displayDialog(NewProofPanel panel) {
     String title = null;
     if (panel.getMode() == NewProofPanel.PROPOSITIONAL_MODE)
@@ -146,12 +155,7 @@ public class GUIWindow extends JFrame {
    * @param mode the expressivity of the proof (FOL or Propositional)
    */
   public void setProver(Set<Sentence> premises, Sentence goal, int mode) {
-    if (proofScrollPane != null) {
-      panel.remove(proofScrollPane);
-      proofScrollPane = null;
-      graphPanel.removeAll();
-      pack();
-    }
+    proofPanel.removeAll();
 
     if (mode == NewProofPanel.PROPOSITIONAL_MODE)
       GraphPanel.prover = new Prover(premises, goal, false, 60);
@@ -161,6 +165,9 @@ public class GUIWindow extends JFrame {
       GraphPanel.prover.run();
     graphPanel.removeAll();
     graphPanel.setRoot(GraphPanel.prover.getTruthAssignment());
+
+    graphPanel.updateInferences();
+
     if (graphPanel.isAutoMode())
       graphPanel.updateClosedBranches();
   }
@@ -173,6 +180,7 @@ public class GUIWindow extends JFrame {
   public void setProver(ArrayList<MetaSentence> premises, MetaSentence goal) {
     GraphPanel.prover = null;
     graphPanel.removeAll();
+    proofPanel.removeAll();
 
     ByteArrayOutputStream stepStream = new ByteArrayOutputStream(),
             justificationStream = new ByteArrayOutputStream();
@@ -186,19 +194,14 @@ public class GUIWindow extends JFrame {
             .collect(Collectors.toList());
     graphPanel.makeTrees(tas);
 
-    prover.getTruthAssignments().values().forEach(v -> System.out.println(v.getInferences()));
-    tas.forEach(TruthAssignment::print);
+    //prover.getTruthAssignments().values().forEach(v -> System.out.println(v.getInferences()));
+    //tas.forEach(TruthAssignment::print);
 
-    proofPanel = new JPanel(new BorderLayout());
-    proofPanel.setBackground(Color.white);
-    proofPanel.setVisible(true);
     proofPanel.add(new JTextArea(stepStream.toString()), BorderLayout.WEST);
-    proofPanel.add(new JTextArea(justificationStream.toString()), BorderLayout.EAST);
-    proofScrollPane = new JScrollPane(proofPanel);
-    proofScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    proofScrollPane.setPreferredSize(new Dimension(1000, 250));
-    panel.add(proofScrollPane, BorderLayout.SOUTH);
-    this.pack();
+    JTextArea justifications = new JTextArea(justificationStream.toString());
+    justifications.setPreferredSize(new Dimension(200, 200));
+    proofPanel.add(justifications, BorderLayout.EAST);
+    pack();
   }
 
   public void loadProof() {

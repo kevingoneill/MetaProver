@@ -6,8 +6,11 @@ import logicalreasoner.truthassignment.TruthAssignment;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A GraphPanel is a custom JPanel for displaying TruthAssignment
@@ -19,10 +22,12 @@ public class GraphPanel extends JPanel {
   public static int AUTO_MODE = 0,
           PROOF_ASSISTANT_MODE = 1;
 
+  private GUIWindow window;
   private NodePanel root = null;
   private ArrayList<Line2D.Double> edges;
   private int minX, maxX, minY, maxY;
   private int mode;
+  private boolean treeFinished = false;
 
   public GraphPanel(GUIWindow window) {
     super(null);
@@ -37,6 +42,7 @@ public class GraphPanel extends JPanel {
     GraphPanel.prover = null;
     edges = new ArrayList<>();
     root = null;
+    this.window = window;
   }
 
   public void setAutoMode() { mode = AUTO_MODE; }
@@ -89,12 +95,8 @@ public class GraphPanel extends JPanel {
   }
 
   public List<NodePanel> makeTrees(Collection<TruthAssignment> roots) {
-    //List<NodePanel> nodePanels = roots.stream().map(n -> makeTree(n, 0))
-    //        .collect(Collectors.toList());
-    List<NodePanel> nodePanels = new ArrayList<>();
-    for (TruthAssignment r : roots)
-      nodePanels.add(makeTree(r, 0));
-
+    List<NodePanel> nodePanels = roots.stream().map(n -> makeTree(n, 0))
+            .collect(Collectors.toList());
     new TreeLayout(nodePanels).run();
     return nodePanels;
   }
@@ -126,17 +128,32 @@ public class GraphPanel extends JPanel {
   }
 
   public void updateClosedBranches() {
-    Component[] components = getComponents();
-    Arrays.stream(components).forEach(c -> ((NodePanel) c).setClosed());
+    Arrays.stream(getComponents()).forEach(c ->
+            ((NodePanel) c).setClosed());
 
-    if (root.isClosed()) {
-      JOptionPane.showMessageDialog(this, "All branches are closed, so the argument is valid.",
-              "Argument Valid", JOptionPane.INFORMATION_MESSAGE);
-    } else if (root.isFinished()) {
-      JOptionPane.showMessageDialog(this,
-              "All statements are decomposed, but there remains an open branch.\nTherefore, the argument is invalid.",
-              "Sentences Satisfied", JOptionPane.INFORMATION_MESSAGE);
+    if (!treeFinished) {
+      if (root.isClosed()) {
+        treeFinished = true;
+        JOptionPane.showMessageDialog(this, "All branches are closed, so the argument is valid.",
+                "Argument Valid", JOptionPane.INFORMATION_MESSAGE);
+      } else if (root.getLeaves().anyMatch(l -> l.getTruthAssignment().decomposedAll()
+              && l.getTruthAssignment().isConsistent())) {
+        treeFinished = true;
+        JOptionPane.showMessageDialog(this,
+                "There exists an open and complete branch.\nTherefore, the argument is invalid.",
+                "Sentences Satisfied", JOptionPane.INFORMATION_MESSAGE);
+      }
     }
+  }
+
+  public void updateInferences() {
+    // Add text for inferences at the bottom
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    PrintStream stream = new PrintStream(out);
+    prover.getInferenceList().forEach(stream::println);
+    window.getProofPanel().removeAll();
+    window.getProofPanel().add(new JTextArea(out.toString()), BorderLayout.CENTER);
+    window.pack();
   }
 
   protected void paintComponent(Graphics g) {
@@ -187,6 +204,7 @@ public class GraphPanel extends JPanel {
   public void removeAll() {
     super.removeAll();
     edges.clear();
+    treeFinished = false;
   }
 
 }

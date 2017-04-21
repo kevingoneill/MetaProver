@@ -31,7 +31,6 @@ public class Function extends Sentence {
       return false;
     argTypes.add(0, returnType);
     functionDeclarations.put(s, argTypes);
-    System.out.println(functionDeclarations);
     return true;
   }
 
