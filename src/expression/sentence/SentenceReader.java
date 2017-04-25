@@ -131,7 +131,6 @@ public class SentenceReader extends AbstractSentenceReader {
       sorts = new ArrayList<>(originalSorts);
     if (sorts == null || sorts.size() < 1)
       throw new SentenceParseException("Predicate " + exprName + " has not been declared.");
-    System.out.println(originalSorts);
     if (sorts.remove(0) != Sort.BOOLEAN)
       throw new SentenceParseException("Cannot create Predicate " + exprName + " returning a non-Boolean Sort.");
     if (sorts.size() != list.size())

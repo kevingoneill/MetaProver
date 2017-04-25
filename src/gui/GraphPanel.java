@@ -1,4 +1,4 @@
-package gui2;
+package gui;
 
 import logicalreasoner.prover.Prover;
 import logicalreasoner.truthassignment.TruthAssignment;

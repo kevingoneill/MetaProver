@@ -4,8 +4,6 @@ import expression.Sort;
 import expression.sentence.BooleanSentence;
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
-import gui.truthtreevisualization.TreeBranch;
-import gui.truthtreevisualization.TruthTree;
 import logicalreasoner.inference.Closure;
 
 import java.io.Serializable;
@@ -363,21 +361,6 @@ public class TruthAssignment implements Serializable {
     constants.addAll(c);
     addInstantiatedConstants(c);
     children.forEach(child -> child.addConstants(c));
-  }
-
-  public TruthTree makeTruthTree() {
-    TreeBranch root = makeBranch(map.keySet(), children.isEmpty());
-    children.forEach(child -> root.addChild(child.makeTruthTree().getRoot()));
-    return new TruthTree(root);
-  }
-
-  private TreeBranch makeBranch(Set<Sentence> sens, boolean isLeaf) {
-    TreeBranch newBranch = new TreeBranch();
-    sens.forEach(s -> newBranch.addStatement(s.toSExpression() + " " + map.get(s).getValues().keySet().toString()));
-    if (isLeaf) {
-      newBranch.addStatement((isConsistent() ? "✓" : "✗"));
-    }
-    return newBranch;
   }
 
   /**

@@ -26,14 +26,6 @@ public class IS extends MetaSentence {
     return (Sentence) args.get(0);
   }
 
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return reason(p, inferenceNum);
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
-    return reason(p, inferenceNum);
-  }
-
   @Override
   public MetaSentence toplevelCopy(HashSet<TruthAssignmentVar> vars) {
     return this;
@@ -47,8 +39,8 @@ public class IS extends MetaSentence {
       TruthAssignmentVar child1 = t.addChild(new TruthAssignment()),
               child2 = t.addChild(new TruthAssignment());
 
-      MODELS m1 = new MODELS(child1, getSentence(), true, inferenceNum, false),
-              m2 = new MODELS(child2, getSentence(), false, inferenceNum, false);
+      MODELS m1 = new MODELS(child1, getSentence(), true, inferenceNum, false, true),
+              m2 = new MODELS(child2, getSentence(), false, inferenceNum, false, true);
 
       ArrayList<MetaSentence> args = new ArrayList<>();
       args.add(m1);
@@ -58,10 +50,21 @@ public class IS extends MetaSentence {
 
       a.add(new OR(args, vars));
     } else {
-      MODELS m = new MODELS(t, getSentence(), getConstant().getValue(), inferenceNum, true);
+      MODELS m = new MODELS(t, getSentence(), getConstant().getValue(), inferenceNum, true, true);
       a.add(m);
     }
 
     return new MetaInference(this, a, inferenceNum, false, getConstant().toSExpression());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o instanceof IS) {
+      IS i = (IS) o;
+      return getConstant() == i.getConstant() && getSentence().equals(i.getSentence());
+    }
+    return false;
   }
 }

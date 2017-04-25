@@ -22,12 +22,12 @@ public class MODELS extends MetaSentence {
 
   Boolean isModelled, isTopLevel;
 
-  public MODELS(TruthAssignmentVar t, Sentence s, Boolean b, int inferenceNum, boolean printQuantifier) {
+  public MODELS(TruthAssignmentVar t, Sentence s, Boolean b, int inferenceNum, boolean printQuantifier, boolean setS) {
     super(new ArrayList<>(Arrays.asList(t, s)),
             "models", b == null ? "⊨?" : (b ? "⊨" : "⊭"),
             (printQuantifier ? new HashSet<>(Collections.singletonList(t)) : new HashSet<>()));
     isModelled = b;
-    if (b != null && !t.getTruthAssignment().keySet().contains(s)) {
+    if (setS && b != null && !t.getTruthAssignment().keySet().contains(s)) {
       if (b)
         t.setTrue(s, inferenceNum);
       else
@@ -36,11 +36,19 @@ public class MODELS extends MetaSentence {
     isTopLevel = printQuantifier;
   }
 
+  public TruthAssignmentVar getTruthAssignmentVar() {
+    return (TruthAssignmentVar) args.get(0);
+  }
+
   public boolean equals(Object o) {
-    if (!super.equals(o))
-      return false;
-    MODELS m = (MODELS) o;
-    return m.isModelled == isModelled && m.args.get(1) == args.get(1);
+    if (this == o)
+      return true;
+    if (o instanceof MODELS) {
+      MODELS m = (MODELS) o;
+      return m.isModelled == isModelled
+              && args.get(1).equals(m.args.get(1));
+    }
+    return false;
   }
 
   public String toSExpression() {
@@ -60,15 +68,6 @@ public class MODELS extends MetaSentence {
   public boolean isModelled() {
     return isModelled;
   }
-
-  public MetaInference reasonForwards(Proof p, int inferenceNum) {
-    return reason(p, inferenceNum);
-  }
-
-  public MetaInference reasonBackwards(Proof p, int inferenceNum) {
-    return reason(p, inferenceNum);
-  }
-
   public MetaInference reason(Proof p, int inferenceNum) {
     TruthAssignmentVar t = (TruthAssignmentVar) args.get(0);
 
@@ -85,7 +84,7 @@ public class MODELS extends MetaSentence {
           Decomposition d = (Decomposition) i;
           ArrayList<MetaSentence> a = new ArrayList<>();
           d.getAdditions().keySet().forEach(s ->
-                  a.add(new MODELS(t, s, t.models(s), inferenceNum, isTopLevel)));
+                  a.add(new MODELS(t, s, t.models(s), inferenceNum, isTopLevel, true)));
 
           return new MetaInference(this, a, inferenceNum, true, d.getOrigin().getSymbol());
         } else if (i instanceof Branch) {
@@ -94,10 +93,10 @@ public class MODELS extends MetaSentence {
 
           b.getBranches().forEach(c -> {
             if (c.keySet().size() == 1)
-              c.keySet().forEach(s -> a.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
+              c.keySet().forEach(s -> a.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false, true)));
             else if (!c.keySet().isEmpty()) {
               ArrayList<MetaSentence> conjuncts = new ArrayList<>();
-              c.keySet().forEach(s -> conjuncts.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false)));
+              c.keySet().forEach(s -> conjuncts.add(new MODELS(t.getChild(c), s, c.models(s), inferenceNum, false, true)));
               AND and = new AND(conjuncts, new HashSet<>());
               a.add(and);
             }

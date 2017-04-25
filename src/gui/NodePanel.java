@@ -1,4 +1,4 @@
-package gui2;
+package gui;
 
 import expression.sentence.ForAll;
 import expression.sentence.Sentence;
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static gui2.GraphPanel.prover;
-import static gui2.TreeLayout.BUFFER;
+import static gui.GraphPanel.prover;
+import static gui.TreeLayout.BUFFER;
 
 /**
  * Created by kevin on 3/25/17.

@@ -1,6 +1,7 @@
 package expression.metasentence;
 
 import expression.sentence.Iff;
+import expression.sentence.Implies;
 import expression.sentence.Sentence;
 import logicalreasoner.truthassignment.TruthAssignment;
 import metareasoner.metainference.MetaInference;
@@ -8,15 +9,14 @@ import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 
 /**
- * The IFF class represents the metalogical IFF statement
+ * Created by kevin on 4/21/17.
  */
-public class IFF extends MetaSentence {
-  public IFF(MetaSentence s1, MetaSentence s2, HashSet<TruthAssignmentVar> v) {
-    super(new ArrayList<>(Arrays.asList(s1, s2)), "IFF", "IFF", v);
+public class IMPLIES extends MetaSentence {
+  public IMPLIES(MetaSentence s1, MetaSentence s2, HashSet<TruthAssignmentVar> v) {
+    super(new ArrayList<>(Arrays.asList(s1, s2)), "IMPLIES", "IMPLIES", v);
   }
 
   @Override
@@ -30,8 +30,10 @@ public class IFF extends MetaSentence {
               arg2 = (MODELS) args.get(1);
 
       if (arg1.getTruthAssignmentVar() == arg2.getTruthAssignmentVar()) {
-        Iff iff = (Iff) Sentence.makeSentence("iff", Arrays.asList(arg1.getSentence(), arg2.getSentence()));
-        MODELS m = new MODELS(arg1.getTruthAssignmentVar(), iff, arg1.isModelled() == arg2.isModelled(), inferenceNum, true, true);
+        Implies implies = (Implies) Sentence.makeSentence("implies", Arrays.asList(arg1.getSentence(), arg2.getSentence()));
+        MODELS m = new MODELS(arg1.getTruthAssignmentVar(), implies,
+                arg1.isModelled() == arg2.isModelled(), inferenceNum,
+                true, true);
         ArrayList<MetaSentence> a = new ArrayList<>();
         a.add(m);
 

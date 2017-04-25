@@ -42,8 +42,8 @@ public class CONTRARY extends MetaSentence {
             child1 = t.addChild(new TruthAssignment()),
             child2 = t.addChild(new TruthAssignment());
 
-    MODELS m1 = new MODELS(child1, (Sentence) args.get(0), false, inferenceNum, false),
-            m2 = new MODELS(child2, (Sentence) args.get(1), false, inferenceNum, false);
+    MODELS m1 = new MODELS(child1, (Sentence) args.get(0), false, inferenceNum, false, true),
+            m2 = new MODELS(child2, (Sentence) args.get(1), false, inferenceNum, false, true);
 
     MetaSentence s = new OR(m1, m2, new HashSet<>(Collections.singletonList(t)));
     ArrayList<MetaSentence> a = new ArrayList<>();

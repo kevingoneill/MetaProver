@@ -40,8 +40,8 @@ public class SUBCONTRARY extends MetaSentence {
             child1 = t.addChild(new TruthAssignment()),
             child2 = t.addChild(new TruthAssignment());
 
-    MODELS m1 = new MODELS(child1, (Sentence) args.get(0), true, inferenceNum, false),
-            m2 = new MODELS(child2, (Sentence) args.get(1), true, inferenceNum, false);
+    MODELS m1 = new MODELS(child1, (Sentence) args.get(0), true, inferenceNum, false, true),
+            m2 = new MODELS(child2, (Sentence) args.get(1), true, inferenceNum, false, true);
 
     MetaSentence s = new OR(m1, m2, new HashSet<>(Collections.singletonList(t)));
     ArrayList<MetaSentence> a = new ArrayList<>();

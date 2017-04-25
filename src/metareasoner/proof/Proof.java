@@ -2,7 +2,6 @@ package metareasoner.proof;
 
 import expression.metasentence.MetaSentence;
 import expression.metasentence.TruthAssignmentVar;
-import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 
 import java.io.PrintStream;
@@ -125,52 +124,15 @@ public class Proof {
                     f.getMetaSentence().equals(l.getMetaSentence())));
   }
 
-  public Map<Integer, List<TruthTree>> getTruthTrees() {
-    if (!isComplete()) {
-      return null;
-    }
-
-    Map<Integer, List<TruthTree>> stepsToTruthTrees = new LinkedHashMap<Integer, List<TruthTree>>();
-
-    ArrayList<Step> proof = generateProof();
-
-    for (int i = 0; i < proof.size(); ++i) {
-      Step s = proof.get(i);
-      List<TruthTree> stepTTs = new ArrayList<TruthTree>();
-
-      s.getMetaSentence().getVars().forEach(tav -> {
-        System.out.println(tav.getInferences());
-        stepTTs.add(tav.getTruthAssignment().makeTruthTree());
-      });
-
-//            s.getChildren().forEach(child -> 
-//            	child.getMetaSentence().getVars().forEach(tav -> {
-//            		stepTTs.add(tav.getTruthAssignment().makeTruthTree());
-//            	})
-//            );
-      if (stepTTs.size() > 0) {
-        stepsToTruthTrees.put(i, stepTTs);
-      }
-    }
-
-    stepsToTruthTrees.keySet().forEach(step -> {
-      System.out.println(step + ": \n");
-      int i = 1;
-      stepsToTruthTrees.get(step).forEach(tree -> {
-        System.out.println("Tree " + i + ":\n");
-        tree.print();
-        System.out.println("\n");
-      });
-    });
-    return stepsToTruthTrees;
-  }
-
   public void printProof(PrintStream stepStream, PrintStream justificationStream) {
     if (!isComplete()) {
       System.out.println("NO PROOF FOUND");
+      forwardsInferences.forEach(f -> f.getMetaSentence().getVars().forEach(this::addTruthAssignment));
+      backwardsInferences.forEach(b -> b.getMetaSentence().getVars().forEach(this::addTruthAssignment));
       return;
     }
 
+    compressProof();
     ArrayList<Step> proof = generateProof();
 
     // Get the maximum metasentence length
@@ -201,10 +163,7 @@ public class Proof {
       }
     }
 
-    proof.forEach(step -> {
-      //if (!(step.getMetaSentence() instanceof IFF))
-        step.getMetaSentence().getVars().forEach(this::addTruthAssignment);
-    });
+    proof.forEach(step -> step.getMetaSentence().getVars().forEach(this::addTruthAssignment));
 
     /*
     System.out.println("\n\n\n\nTruth Assignments used in the above proof: ");
@@ -217,8 +176,44 @@ public class Proof {
     */
   }
 
+  /**
+   * Make the proof as compact as possible by merging equivalent
+   * forwards & backwards steps
+   */
+  public void compressProof() {
+    backwardsInferences.forEach(b -> {
+      forwardsInferences.stream().filter(f -> f.getMetaSentence().equals(b.getMetaSentence())).forEach(f -> {
+        b.setJustification(f.getJustification());
+      });
+    });
+  }
+
   public ArrayList<Step> generateProof() {
-    return getProofBackwards(find(backwardsInferences, ultimateGoal));
+    ArrayList<Step> a = getProofBackwards(find(backwardsInferences, ultimateGoal));
+
+    /*
+    a.forEach(s -> {
+      if (s.getJustification() != null && s.isForwards())
+        System.out.println(s + "\t" + s.getJustification().getOrigin());
+      else if (s.getJustification() != null)
+        System.out.println(s + "\t" + s.getChildren().stream().map(Step::getMetaSentence).collect(Collectors.toList()));
+      else
+        System.out.println(s);
+    });
+    System.out.println();
+    */
+
+    // remove unused steps
+    boolean changed = true;
+    while (changed) {
+      changed = a.removeIf(s -> (a.indexOf(s) != a.size() - 1) && a.stream().noneMatch(s2 ->
+              s2.getJustification() != null
+                      && ((s2.isForwards() && s2.getJustification().getOrigin().equals(s.getMetaSentence()))
+                      || (!s2.isForwards() && (s2.getChildren().isEmpty() || s2.getChildren().stream().anyMatch(c -> c.getMetaSentence().equals(s.getMetaSentence())))))
+      ));
+    }
+
+    return a;
   }
 
   private ArrayList<Step> getProofBackwards(Step s) {

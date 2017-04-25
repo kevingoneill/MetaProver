@@ -2,7 +2,6 @@ package metareasoner;
 
 import expression.metasentence.MetaSentence;
 import expression.metasentence.TruthAssignmentVar;
-import gui.truthtreevisualization.TruthTree;
 import metareasoner.metainference.MetaInference;
 import metareasoner.proof.Proof;
 
@@ -76,9 +75,7 @@ public class MetaProver implements Runnable {
     */
 
     while (!reasoningCompleted()) {
-      boolean f = reasonForwards(proof),
-              b = reasonBackwards(proof);
-      if (!(f || b))
+      if (!(reasonForwards(proof) || reasonBackwards(proof)))
         break;
 
       /*
@@ -91,18 +88,13 @@ public class MetaProver implements Runnable {
     }
 
     proof.printProof(stepStream, justificationStream);
-//    System.out.println("\n\n\nSome trees:\n");
-//    proof.getTruthTrees();
+    //proof.getTruthAssignments().values().forEach(t -> t.getTruthAssignment().print());
   }
 
   public boolean proofFound() {
     return proof.isComplete();
   }
 
-  public Map<Integer, List<TruthTree>> getTruthTrees() {
-    return proof.getTruthTrees();
-  }
-  
   public Map<String, TruthAssignmentVar> getTruthAssignments() {
 	return proof.getTruthAssignments();
   }

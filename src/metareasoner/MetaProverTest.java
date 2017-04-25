@@ -113,6 +113,4 @@ public class MetaProverTest {
     premises.add("[SUBSUMES φ ψ]");
     runProver(premises, "[SUBSUMES (not ψ) (not φ)]");
   }
-
-
 }

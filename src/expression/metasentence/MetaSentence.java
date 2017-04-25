@@ -54,18 +54,6 @@ public abstract class MetaSentence extends Expression {
   }
 
   public String toString() {
-    /*
-    StringBuilder builder = new StringBuilder();
-
-    vars.forEach(v -> builder.append("∀").append(v.toSExpression()));
-    if (!vars.isEmpty())
-      builder.append(" ");
-
-    builder.append("[").append(name);
-    args.forEach(arg -> builder.append(" ").append(arg));
-    builder.append("]");
-    return builder.toString();
-    */
     return toSExpression();
   }
 

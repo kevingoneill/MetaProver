@@ -1,4 +1,4 @@
-package gui2;
+package gui;
 
 import expression.metasentence.MetaSentence;
 import expression.metasentence.TruthAssignmentVar;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  */
 public class GUIWindow extends JFrame {
   private JMenuBar menuBar;
-  private JPanel panel;
+  private JSplitPane splitPane;
   private JPanel proofPanel;
   private JScrollPane proofScrollPane;
   private GraphPanel graphPanel;
@@ -40,7 +40,6 @@ public class GUIWindow extends JFrame {
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     initMenu();
-    panel = new JPanel(new BorderLayout());
     graphPanel = new GraphPanel(this);
     graphPanel.setPreferredSize(new Dimension(1000, 600));
 
@@ -53,9 +52,15 @@ public class GUIWindow extends JFrame {
 
     JScrollPane scrollPane = new JScrollPane(graphPanel);
     scrollPane.setPreferredSize(this.getSize());
-    panel.add(scrollPane, BorderLayout.CENTER);
-    panel.add(proofScrollPane, BorderLayout.SOUTH);
-    add(panel);
+
+    splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, scrollPane, proofScrollPane);
+    splitPane.setDividerLocation(600);
+    splitPane.setResizeWeight(1);
+
+    //splitPane.add(scrollPane, BorderLayout.CENTER);
+    //splitPane.add(proofScrollPane, BorderLayout.SOUTH);
+
+    add(splitPane);
     setVisible(true);
   }
 

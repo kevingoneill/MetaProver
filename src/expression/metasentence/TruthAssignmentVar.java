@@ -82,6 +82,7 @@ public class TruthAssignmentVar extends MetaSentence {
       if (child.assignmentsEqual(h))
         return new TruthAssignmentVar(child, this);
     }
+
     return null;
   }
 

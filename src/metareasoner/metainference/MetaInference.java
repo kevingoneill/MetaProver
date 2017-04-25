@@ -4,6 +4,9 @@ import expression.metasentence.MetaSentence;
 import metareasoner.proof.Proof;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +49,13 @@ public class MetaInference {
 
   public int hashCode() {
     return origin.hashCode();
+  }
+
+  public List<MetaInference> reverse() {
+    return inferences.stream().map(i ->
+            new MetaInference(i, new ArrayList<MetaSentence>(Collections.singletonList(origin)),
+                    uid, isSemantic, symbol))
+            .collect(Collectors.toList());
   }
 
   public boolean equals(Object o) {
